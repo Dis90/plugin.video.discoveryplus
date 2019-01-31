@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<addon id="plugin.video.dplaynordic" version="0.1.0" name="Dplay" provider-name="Dis90">
+<requires>
+  <import addon="xbmc.python" version="2.24.0"/>
+  <import addon="script.module.requests" version="2.9.1"/>
+  <import addon="script.module.inputstreamhelper" version="0.2.4"/>
+  <import addon="inputstream.adaptive" version="2.0.4"/>
+  <import addon="script.module.pycaption" version="0.5.6"/>
+</requires>
+<extension point="xbmc.python.pluginsource" library="addon.py">
+  <provides>video</provides>
+</extension>
+<extension point="xbmc.addon.metadata">
+  <summary lang="en">Dplay</summary>
+  <description lang="en"></description>
+  <disclaimer lang="en"></disclaimer>
+  <assets>
+    <icon>resources/icon.png</icon> 
+  </assets>
+  <news></news>
+</extension>
+</addon>
