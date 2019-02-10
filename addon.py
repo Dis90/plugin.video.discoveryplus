@@ -63,10 +63,12 @@ def list_shows(search_query=None, letter=None):
 
         fanart_image = json.loads(helper.d.get_metadata(json.dumps(shows['included']), show['relationships']['images']['data'][0]['id']))['src'] if show['relationships'].get('images') else None
         thumb_image = json.loads(helper.d.get_metadata(json.dumps(shows['included']), show['relationships']['images']['data'][-1]['id']))['src'] if show['relationships'].get('images') else None
+        clearlogo = thumb_image if len(show['relationships']['images']['data']) == 2 else None
 
         show_art = {
             'fanart': fanart_image,
-            'thumb': thumb_image
+            'thumb': thumb_image,
+            'clearlogo': clearlogo
             }
 
         helper.add_item(title, params, info=info, art=show_art, content='tvshows')
@@ -124,10 +126,12 @@ def list_collection_shows(collection_data):
                                                                                show_data['relationships']['images']['data'][
                                                                                    -1]['id']))['src'] if show_data[
                                     'relationships'].get('images') else None
+                                clearlogo = thumb_image if len(show_data['relationships']['images']['data']) == 2 else None
 
                                 show_art = {
                                     'fanart': fanart_image,
-                                    'thumb': thumb_image
+                                    'thumb': thumb_image,
+                                    'clearlogo': clearlogo
                                 }
 
                                 helper.add_item(title, params, info=info, art=show_art, content='tvshows')
@@ -210,8 +214,7 @@ def list_seasons(show_id, seasons):
         }
 
         info = {
-            'mediatype': 'season',
-            'plot': title
+            'mediatype': 'season'
         }
 
         helper.add_item(title, params, info=info, content='seasons')
@@ -334,10 +337,12 @@ def list_channel_shows(channel_id):
             thumb_image = json.loads(helper.d.get_metadata(json.dumps(shows['included']),
                                                            i['relationships']['images']['data'][1]['id']))['src'] if \
             i['relationships'].get('images') else None
+            clearlogo = thumb_image if len(i['relationships']['images']['data']) >= 2 else None
 
             channel_art = {
                 'fanart': fanart_image,
-                'thumb': thumb_image
+                'thumb': thumb_image,
+                'clearlogo': clearlogo
             }
 
             helper.add_item(i['attributes'].get('name'), params=params, info=channel_info, art=channel_art, playable=True)
@@ -364,10 +369,12 @@ def list_channel_shows(channel_id):
             thumb_image = json.loads(helper.d.get_metadata(json.dumps(shows['included']),
                                                            i['relationships']['images']['data'][-1]['id']))['src'] if \
             i['relationships'].get('images') else None
+            clearlogo = thumb_image if len(i['relationships']['images']['data']) == 2 else None
 
             show_art = {
                 'fanart': fanart_image,
-                'thumb': thumb_image
+                'thumb': thumb_image,
+                'clearlogo': clearlogo
             }
 
             helper.add_item(title, params, info=info, art=show_art, content='tvshows')
