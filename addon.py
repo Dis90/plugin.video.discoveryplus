@@ -103,7 +103,7 @@ def list_collection_shows(collection_data):
 
                     for show_data in collections['included']:
                         if show_data['id'] == show_id:
-                            if show_data['attributes'].get('name'): # suodata pois turha sisältö
+                            if show_data['attributes'].get('name'): # parse content
 
                                 title = show_data['attributes']['name'].encode('utf-8')
 
@@ -210,7 +210,7 @@ def list_seasons(show_id, seasons):
         params = {
             'action': 'list_videos',
             'show_id': show_id,
-            'season_id': season
+            'season_number': season
         }
 
         info = {
@@ -220,68 +220,67 @@ def list_seasons(show_id, seasons):
         helper.add_item(title, params, info=info, content='seasons')
     helper.eod()
 
-def list_videos(show_id=None, season_id=None):
-    if show_id or season_id:
-        videos = helper.d.get_videos(show_id, season_id)
+def list_videos(show_id, season_number):
+    videos = helper.d.get_videos(show_id, season_number)
 
-        for i in videos['data']:
+    for i in videos['data']:
 
-            # Dplay+ content check
-            # If first package is Registered show has been or is available for free
-            if i['attributes']['availabilityWindows'][0]['package'] == 'Registered':
-                # Check if there is ending time for free availability
-                if i['attributes']['availabilityWindows'][0].get('playableEnd'):
-                    # Check if show is still available for free
-                    if helper.d.parse_datetime(i['attributes']['availabilityWindows'][0][
-                                                   'playableStart']) < helper.d.get_current_time() < helper.d.parse_datetime(
-                            i['attributes']['availabilityWindows'][0]['playableEnd']):
+        # Dplay+ content check
+        # If first package is Registered show has been or is available for free
+        if i['attributes']['availabilityWindows'][0]['package'] == 'Registered':
+            # Check if there is ending time for free availability
+            if i['attributes']['availabilityWindows'][0].get('playableEnd'):
+                # Check if show is still available for free
+                if helper.d.parse_datetime(i['attributes']['availabilityWindows'][0][
+                                               'playableStart']) < helper.d.get_current_time() < helper.d.parse_datetime(
+                        i['attributes']['availabilityWindows'][0]['playableEnd']):
 
-                        dplayplus = False # Show is still available for free
-                    else: # Show is not anymore available for free
-                        dplayplus = True
-                else: # No ending time for free availability
-                    dplayplus = False
-            else:
-                dplayplus = True # Dplay+ subscription is needed
+                    dplayplus = False # Show is still available for free
+                else: # Show is not anymore available for free
+                    dplayplus = True
+            else: # No ending time for free availability
+                dplayplus = False
+        else:
+            dplayplus = True # Dplay+ subscription is needed
 
 
-            if dplayplus == True:
-                list_title = i['attributes'].get('name').lstrip() + ' [Dplay+]'
-            else:
-                list_title = i['attributes'].get('name').lstrip()
+        if dplayplus == True:
+            list_title = i['attributes'].get('name').lstrip() + ' [Dplay+]'
+        else:
+            list_title = i['attributes'].get('name').lstrip()
 
-            params = {
-                'action': 'play',
-                'video_id': i['id'],
-                'video_type': 'video'
-            }
+        params = {
+            'action': 'play',
+            'video_id': i['id'],
+            'video_type': 'video'
+        }
 
-            show_title = json.loads(helper.d.get_metadata(json.dumps(videos['included']),
-                                                          i['relationships']['show']['data']['id']))['name']
+        show_title = json.loads(helper.d.get_metadata(json.dumps(videos['included']),
+                                                      i['relationships']['show']['data']['id']))['name']
 
-            fanart_image = json.loads(
-                helper.d.get_metadata(json.dumps(videos['included']), i['relationships']['images']['data'][0]['id']))[
-                'src'] if i['relationships'].get('images') else None
+        fanart_image = json.loads(
+            helper.d.get_metadata(json.dumps(videos['included']), i['relationships']['images']['data'][0]['id']))[
+            'src'] if i['relationships'].get('images') else None
 
-            duration = i['attributes']['videoDuration']/1000.0 if i['attributes'].get('videoDuration') else None
+        duration = i['attributes']['videoDuration']/1000.0 if i['attributes'].get('videoDuration') else None
 
-            episode_info = {
-                'mediatype': 'episode',
-                'title': i['attributes'].get('name').lstrip(),
-                'tvshowtitle': show_title,
-                'season': i['attributes'].get('seasonNumber'),
-                'episode': i['attributes'].get('episodeNumber'),
-                'plot': i['attributes'].get('description'),
-                'duration': duration,
-                'aired': i['attributes'].get('airDate')
-            }
+        episode_info = {
+            'mediatype': 'episode',
+            'title': i['attributes'].get('name').lstrip(),
+            'tvshowtitle': show_title,
+            'season': i['attributes'].get('seasonNumber'),
+            'episode': i['attributes'].get('episodeNumber'),
+            'plot': i['attributes'].get('description'),
+            'duration': duration,
+            'aired': i['attributes'].get('airDate')
+        }
 
-            episode_art = {
-                'fanart': fanart_image,
-                'thumb': fanart_image
-            }
+        episode_art = {
+            'fanart': fanart_image,
+            'thumb': fanart_image
+        }
 
-            helper.add_item(list_title, params=params, info=episode_info, art=episode_art, content='episodes', playable=True)
+        helper.add_item(list_title, params=params, info=episode_info, art=episode_art, content='episodes', playable=True)
     helper.eod()
 
 def list_channels():
@@ -424,7 +423,7 @@ def router(paramstring):
         elif params['action'] == 'list_seasons':
             list_seasons(show_id=params['show_id'], seasons=params['seasons'])
         elif params['action'] == 'list_videos':
-            list_videos(show_id=params['show_id'], season_id=params['season_id'])
+            list_videos(show_id=params['show_id'], season_number=params['season_number'])
         elif params['action'] == 'play':
             # Play a video from a provided URL.
             helper.play_item(params['video_id'], params['video_type'])

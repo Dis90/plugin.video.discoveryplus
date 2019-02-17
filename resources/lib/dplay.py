@@ -189,7 +189,7 @@ class Dplay(object):
         data = json.loads(self.make_request(url, 'get', params=params))
         return data
 
-    def get_videos(self, show_id, season_id):
+    def get_videos(self, show_id, season_number):
         url = 'https://disco-api.dplay.{locale_suffix}/content/videos'.format(locale_suffix=self.locale_suffix)
 
         params = {
@@ -197,7 +197,7 @@ class Dplay(object):
             'include': 'images,primaryChannel,show,contentPackages',
             'filter[videoType]': 'EPISODE, LIVE, FOLLOW_UP',
             'filter[show.id]': show_id,
-            'filter[seasonNumber]': season_id,
+            'filter[seasonNumber]': season_number,
             'page[size]': 100,
             'page[number]': '1',
             'sort': 'episodeNumber'
