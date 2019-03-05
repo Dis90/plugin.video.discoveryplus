@@ -194,14 +194,14 @@ def list_collection_shows(collection_data):
 
                             # Watched status from Dplay
                             if video_data['attributes']['viewingHistory']['viewed']:
-                                if video_data['attributes']['viewingHistory']['completed']:  # Completely watched video
+                                if video_data['attributes']['viewingHistory']['completed']: # Watched video
                                     episode_info['playcount'] = 1
                                     resume = 0
                                     total = duration
-                                else:  # Partly watched video
+                                else: # Partly watched video
                                     resume = video_data['attributes']['viewingHistory']['position'] / 1000.0
                                     total = duration
-                            else:  # Not watched video
+                            else: # Unwatched video
                                 episode_info['playcount'] = 0
                                 resume = 0
                                 total = 1
@@ -291,14 +291,14 @@ def list_videos(show_id, season_number):
 
         # Watched status from Dplay
         if i['attributes']['viewingHistory']['viewed']:
-            if i['attributes']['viewingHistory']['completed']: # Completely watched video
+            if i['attributes']['viewingHistory']['completed']: # Watched video
                 episode_info['playcount'] = 1
                 resume = 0
                 total = duration
             else: # Partly watched video
                 resume = i['attributes']['viewingHistory']['position']/1000.0
                 total = duration
-        else: # Not watched video
+        else: # Unwatched video
             episode_info['playcount'] = 0
             resume = 0
             total = 1

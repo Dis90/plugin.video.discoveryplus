@@ -214,6 +214,8 @@ class Dplay(object):
             'position': position
         }
 
+        # Dplay wants POST before PUT
+        self.make_request(url, 'post', params=params)
         return self.make_request(url, 'put', params=params)
 
     def webvtt_to_srt_conversion(self, sub_webvtt):
