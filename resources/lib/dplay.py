@@ -131,6 +131,7 @@ class Dplay(object):
         url = 'https://disco-api.dplay.{locale_suffix}/cms/collections/home-page'.format(locale_suffix=self.locale_suffix)
 
         params = {
+            'decorators': 'viewingHistory',
             'include': 'default'
         }
 
@@ -205,6 +206,15 @@ class Dplay(object):
 
         data = json.loads(self.make_request(url, 'get', params=params))
         return data
+
+    def update_playback_progress(self, video_id, position):
+        url = 'https://disco-api.dplay.{locale_suffix}/playback/report/video/{video_id}'.format(locale_suffix=self.locale_suffix, video_id=video_id)
+
+        params = {
+            'position': position
+        }
+
+        return self.make_request(url, 'put', params=params)
 
     def webvtt_to_srt_conversion(self, sub_webvtt):
         caption_set = WebVTTReader().read(sub_webvtt)

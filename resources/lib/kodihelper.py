@@ -3,6 +3,7 @@
 import os
 import urllib
 import re
+import sys
 
 from dplay import Dplay
 
@@ -118,13 +119,16 @@ class KodiHelper(object):
         self.set_setting('username', '')
         self.set_setting('password', '')
 
-    def add_item(self, title, params, items=False, folder=True, playable=False, info=None, art=None, content=False):
+    def add_item(self, title, params, items=False, folder=True, playable=False, info=None, art=None, content=False, menu=None, resume=None, total=None):
         addon = self.get_addon()
         listitem = xbmcgui.ListItem(label=title)
 
         if playable:
             listitem.setProperty('IsPlayable', 'true')
             folder = False
+        if resume:
+            listitem.setProperty("ResumeTime", str(resume))
+            listitem.setProperty("TotalTime", str(total))
         if art:
             listitem.setArt(art)
         else:
@@ -137,6 +141,8 @@ class KodiHelper(object):
             listitem.setInfo('video', info)
         if content:
             xbmcplugin.setContent(self.handle, content)
+        if menu:
+            listitem.addContextMenuItems(menu)
 
         recursive_url = self.base_url + '?' + urllib.urlencode(params)
 
@@ -170,6 +176,52 @@ class KodiHelper(object):
                     header = 'PreAuthorization=' + stream['drm_token']
                     playitem.setProperty('inputstream.adaptive.license_key', stream['license_url'] + '|' + header + '|R{SSM}|')
 
-            xbmcplugin.setResolvedUrl(self.handle, True, listitem=playitem)
+            player = DplayPlayer()
+            player.resolve(playitem)
+
+            if video_type == 'video':
+                while not xbmc.abortRequested and player.running:
+                    if player.isPlayingVideo():
+                        player.video_id = video_id
+                        player.video_totaltime = player.getTotalTime()
+                        player.video_lastpos = player.getTime()
+
+                    xbmc.sleep(1000)
+
         except self.d.DplayError as error:
             self.dialog('ok', self.language(30006), error.value)
+
+class DplayPlayer(xbmc.Player):
+    def __init__(self):
+        base_url = sys.argv[0]
+        handle = int(sys.argv[1])
+        self.helper = KodiHelper(base_url, handle)
+        self.video_lastpos = 0
+        self.video_totaltime = 0
+        self.running = False
+
+    def resolve(self, li):
+        xbmcplugin.setResolvedUrl(self.helper.handle, True, listitem=li)
+        self.running = True
+
+    def onPlayBackEnded(self):
+        self.helper.log('Playback ended')
+        video_totaltime = format(self.video_totaltime, '.0f')
+        video_totaltime_msec = int(video_totaltime) * 1000
+
+        self.helper.d.update_playback_progress(self.video_id, video_totaltime_msec)
+        return xbmc.executebuiltin('Container.Refresh')
+
+    def onPlayBackStopped(self):
+        video_lastpos = format(self.video_lastpos, '.0f')
+        video_totaltime = format(self.video_totaltime, '.0f')
+
+        # Convert to milliseconds
+        video_lastpos_msec = int(video_lastpos) * 1000
+        video_totaltime_msec = int(video_totaltime) * 1000
+
+        self.helper.log('totaltime_msec: ' + str(video_totaltime_msec))
+        self.helper.log('lastpos_msec: ' + str(video_lastpos_msec))
+
+        self.helper.d.update_playback_progress(self.video_id, video_lastpos_msec)
+        return xbmc.executebuiltin('Container.Refresh')

@@ -192,13 +192,27 @@ def list_collection_shows(collection_data):
                                 'aired': video_data['attributes'].get('airDate')
                             }
 
+                            # Watched status from Dplay
+                            if video_data['attributes']['viewingHistory']['viewed']:
+                                if video_data['attributes']['viewingHistory']['completed']:  # Completely watched video
+                                    episode_info['playcount'] = 1
+                                    resume = 0
+                                    total = duration
+                                else:  # Partly watched video
+                                    resume = video_data['attributes']['viewingHistory']['position'] / 1000.0
+                                    total = duration
+                            else:  # Not watched video
+                                episode_info['playcount'] = 0
+                                resume = 0
+                                total = 1
+
                             episode_art = {
                                 'fanart': fanart_image,
                                 'thumb': fanart_image
                             }
 
                             helper.add_item(list_title, params=params, info=episode_info, art=episode_art,
-                                            content='episodes', playable=True)
+                                            content='episodes', playable=True, resume=resume, total=total)
 
 
     helper.eod()
@@ -275,12 +289,28 @@ def list_videos(show_id, season_number):
             'aired': i['attributes'].get('airDate')
         }
 
+        # Watched status from Dplay
+        if i['attributes']['viewingHistory']['viewed']:
+            if i['attributes']['viewingHistory']['completed']: # Completely watched video
+                episode_info['playcount'] = 1
+                resume = 0
+                total = duration
+            else: # Partly watched video
+                resume = i['attributes']['viewingHistory']['position']/1000.0
+                total = duration
+        else: # Not watched video
+            episode_info['playcount'] = 0
+            resume = 0
+            total = 1
+
         episode_art = {
             'fanart': fanart_image,
             'thumb': fanart_image
         }
 
-        helper.add_item(list_title, params=params, info=episode_info, art=episode_art, content='episodes', playable=True)
+        helper.add_item(list_title, params=params, info=episode_info, art=episode_art, content='episodes', playable=True,
+                    resume=resume, total=total)
+
     helper.eod()
 
 def list_channels():
