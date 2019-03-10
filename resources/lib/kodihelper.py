@@ -222,9 +222,6 @@ class KodiHelper(object):
                 playitem.setProperty("ResumeTime", str(resume))
                 playitem.setProperty("TotalTime", str(duration))
 
-                # Do POST to playback progress when playback starts
-                self.d.update_playback_progress('post', video_id, position)
-
             elif video_type == 'channel':
                 is_helper = inputstreamhelper.Helper('mpd', drm='com.widevine.alpha')
                 if is_helper.check_inputstream():
@@ -348,6 +345,11 @@ class DplayPlayer(xbmc.Player):
             video_totaltime = format(self.video_totaltime, '.0f')
             video_totaltime_msec = int(video_totaltime) * 1000
 
+            # Get new token before updating playback progress
+            self.helper.d.get_token()
+
+            # Dplay wants POST before PUT
+            self.helper.d.update_playback_progress('post', self.video_id, video_totaltime_msec)
             self.helper.d.update_playback_progress('put', self.video_id, video_totaltime_msec)
             return xbmc.executebuiltin('Container.Refresh')
 
@@ -364,6 +366,11 @@ class DplayPlayer(xbmc.Player):
             self.helper.log('totaltime_msec: ' + str(video_totaltime_msec))
             self.helper.log('lastpos_msec: ' + str(video_lastpos_msec))
 
+            # Get new token before updating playback progress
+            self.helper.d.get_token()
+
+            # Dplay wants POST before PUT
+            self.helper.d.update_playback_progress('post', self.video_id, video_lastpos_msec)
             self.helper.d.update_playback_progress('put', self.video_id, video_lastpos_msec)
 
             return xbmc.executebuiltin('Container.Refresh')
