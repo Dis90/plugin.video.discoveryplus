@@ -275,7 +275,7 @@ class DplayPlayer(xbmc.Player):
 
 
         if next_ep['meta']['totalPages'] == 1:
-            self.helper.log('Next episode name: ' + next_ep['data'][0]['attributes'].get('name').lstrip())
+            self.helper.log('Next episode name: ' + next_ep['data'][0]['attributes'].get('name').encode('utf-8').lstrip())
 
             next_show_title = json.loads(self.helper.d.get_metadata(json.dumps(next_ep['included']),
                                                                     next_ep['data'][0]['relationships']['show']['data'][
@@ -286,7 +286,7 @@ class DplayPlayer(xbmc.Player):
                                                                           'data'][0]['id']))['src'] if \
             next_ep['data'][0]['relationships'].get('images') else None
 
-            self.helper.log('Current episode name: ' + self.current_episode_info['title'])
+            self.helper.log('Current episode name: ' + self.current_episode_info['title'].encode('utf-8'))
 
             current_episode = {}
             current_episode["episodeid"] = self.video_id
