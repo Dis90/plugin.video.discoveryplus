@@ -207,16 +207,36 @@ class Dplay(object):
         data = json.loads(self.make_request(url, 'get', params=params))
         return data
 
-    def update_playback_progress(self, video_id, position):
+    def update_playback_progress(self, method, video_id, position):
         url = 'https://disco-api.dplay.{locale_suffix}/playback/report/video/{video_id}'.format(locale_suffix=self.locale_suffix, video_id=video_id)
 
         params = {
             'position': position
         }
 
-        # Dplay wants POST before PUT
-        self.make_request(url, 'post', params=params)
-        return self.make_request(url, 'put', params=params)
+        return self.make_request(url, method, params=params)
+
+    def get_current_episode_info(self, video_id):
+        url = 'https://disco-api.dplay.{locale_suffix}/content/videos/{video_id}'.format(locale_suffix=self.locale_suffix, video_id=video_id)
+
+        params = {
+            'decorators': 'viewingHistory',
+            'include': 'genres,images,primaryChannel,show,show.images'
+        }
+
+        data = json.loads(self.make_request(url, 'get', params=params))
+        return data
+
+    def get_nextepisode_info(self, current_video_id):
+        url = 'https://disco-api.dplay.{locale_suffix}/content/videos/{video_id}/next'.format(locale_suffix=self.locale_suffix, video_id=current_video_id)
+
+        params = {
+            'algorithm': 'naturalOrder',
+            'include': 'genres,images,primaryChannel,show,show.images,contentPackages'
+        }
+
+        data = json.loads(self.make_request(url, 'get', params=params))
+        return data
 
     def webvtt_to_srt_conversion(self, sub_webvtt):
         caption_set = WebVTTReader().read(sub_webvtt)

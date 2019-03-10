@@ -4,6 +4,7 @@ import os
 import urllib
 import re
 import sys
+import json
 
 from dplay import Dplay
 
@@ -13,6 +14,7 @@ import xbmcgui
 import xbmcplugin
 from xbmcaddon import Addon
 import inputstreamhelper
+import AddonSignals
 
 class KodiHelper(object):
     def __init__(self, base_url=None, handle=None):
@@ -28,6 +30,7 @@ class KodiHelper(object):
         if not xbmcvfs.exists(self.addon_profile):
             xbmcvfs.mkdir(self.addon_profile)
         self.d = Dplay(self.addon_profile, self.get_setting('locale'), True)
+        AddonSignals.registerSlot('upnextprovider', self.addon_name + '_play_action', self.play_upnext)
 
     def get_addon(self):
         """Returns a fresh addon instance."""
@@ -156,6 +159,14 @@ class KodiHelper(object):
         """Tell Kodi that the end of the directory listing is reached."""
         xbmcplugin.endOfDirectory(self.handle)
 
+    def play_upnext(self, data):
+        self.log('Start playing from UpNext')
+        self.log('Video id: ' + str(data['video_id']))
+
+        xbmc.executebuiltin('PlayerControl(Stop)')
+        media = 'plugin://' + self.addon_name + '/?action=play&video_id=' + data['video_id'] + '&video_type=video'
+        xbmc.executebuiltin('PlayMedia({})'.format(media))
+
     def play_item(self, video_id, video_type):
         try:
             stream = self.d.get_stream(video_id, video_type)
@@ -166,6 +177,54 @@ class KodiHelper(object):
                 # Have to use hls for shows because mpd encryption type 'clearkey' is not supported by inputstream.adaptive
                 playitem.setProperty('inputstream.adaptive.manifest_type', 'hls')
                 playitem.setSubtitles(self.d.get_subtitles(stream['hls_url']))
+
+                # Get current episode info
+                current_ep = self.d.get_current_episode_info(video_id)
+
+                show_title = json.loads(self.d.get_metadata(json.dumps(current_ep['included']),
+                                                                   current_ep['data']['relationships']['show']['data'][
+                                                                       'id']))['name']
+
+                fanart_image = json.loads(self.d.get_metadata(json.dumps(current_ep['included']),
+                                                                     current_ep['data']['relationships']['images'][
+                                                                         'data'][0]['id']))['src'] if \
+                current_ep['data']['relationships'].get('images') else None
+
+                duration = current_ep['data']['attributes']['videoDuration'] / 1000.0 if current_ep['data'][
+                    'attributes'].get('videoDuration') else None
+
+                info = {
+                    'mediatype': 'episode',
+                    'title': current_ep['data']['attributes'].get('name').lstrip(),
+                    'tvshowtitle': show_title,
+                    'season': current_ep['data']['attributes'].get('seasonNumber'),
+                    'episode': current_ep['data']['attributes'].get('episodeNumber'),
+                    'plot': current_ep['data']['attributes'].get('description'),
+                    'duration': duration,
+                    'aired': current_ep['data']['attributes'].get('airDate')
+                }
+
+                playitem.setInfo('video', info)
+
+                art = {
+                    'fanart': fanart_image,
+                    'thumb': fanart_image
+                }
+
+                playitem.setArt(art)
+
+                if current_ep['data']['attributes']['viewingHistory'].get('position'):
+                    position = current_ep['data']['attributes']['viewingHistory']['position']
+                else:
+                    position = 0
+
+                resume = position / 1000.0
+                playitem.setProperty("ResumeTime", str(resume))
+                playitem.setProperty("TotalTime", str(duration))
+
+                # Do POST to playback progress when playback starts
+                self.d.update_playback_progress('post', video_id, position)
+
             elif video_type == 'channel':
                 is_helper = inputstreamhelper.Helper('mpd', drm='com.widevine.alpha')
                 if is_helper.check_inputstream():
@@ -180,9 +239,12 @@ class KodiHelper(object):
             player.resolve(playitem)
 
             if video_type == 'video':
+                player.video_id = video_id
+                player.current_episode_info = info
+                player.current_episode_art = art
+
                 while not xbmc.abortRequested and player.running:
                     if player.isPlayingVideo():
-                        player.video_id = video_id
                         player.video_totaltime = player.getTotalTime()
                         player.video_lastpos = player.getTime()
 
@@ -196,6 +258,9 @@ class DplayPlayer(xbmc.Player):
         base_url = sys.argv[0]
         handle = int(sys.argv[1])
         self.helper = KodiHelper(base_url, handle)
+        self.video_id = 0
+        self.current_episode_info = ''
+        self.current_episode_art = ''
         self.video_lastpos = 0
         self.video_totaltime = 0
         self.running = False
@@ -204,24 +269,101 @@ class DplayPlayer(xbmc.Player):
         xbmcplugin.setResolvedUrl(self.helper.handle, True, listitem=li)
         self.running = True
 
-    def onPlayBackEnded(self):
-        self.helper.log('Playback ended')
-        video_totaltime = format(self.video_totaltime, '.0f')
-        video_totaltime_msec = int(video_totaltime) * 1000
+    def onPlayBackStarted(self):
+        self.helper.log('Getting next episode info')
+        next_ep = self.helper.d.get_nextepisode_info(self.video_id)
 
-        self.helper.d.update_playback_progress(self.video_id, video_totaltime_msec)
-        return xbmc.executebuiltin('Container.Refresh')
+
+        if next_ep['meta']['totalPages'] == 1:
+            self.helper.log('Next episode name: ' + next_ep['data'][0]['attributes'].get('name').lstrip())
+
+            next_show_title = json.loads(self.helper.d.get_metadata(json.dumps(next_ep['included']),
+                                                                    next_ep['data'][0]['relationships']['show']['data'][
+                                                                        'id']))['name']
+
+            next_fanart_image = json.loads(self.helper.d.get_metadata(json.dumps(next_ep['included']),
+                                                                      next_ep['data'][0]['relationships']['images'][
+                                                                          'data'][0]['id']))['src'] if \
+            next_ep['data'][0]['relationships'].get('images') else None
+
+            self.helper.log('Current episode name: ' + self.current_episode_info['title'])
+
+            current_episode = {}
+            current_episode["episodeid"] = self.video_id
+            current_episode["tvshowid"] = ''
+            current_episode["title"] = self.current_episode_info['title']
+            current_episode["art"] = {}
+            current_episode["art"]["tvshow.poster"] = ''
+            current_episode["art"]["thumb"] = self.current_episode_art['thumb']
+            current_episode["art"]["tvshow.fanart"] = self.current_episode_art['fanart']
+            current_episode["art"]["tvshow.landscape"] = ''
+            current_episode["art"]["tvshow.clearart"] = ''
+            current_episode["art"]["tvshow.clearlogo"] = ''
+            current_episode["plot"] = self.current_episode_info['title']
+            current_episode["showtitle"] = self.current_episode_info['tvshowtitle']
+            current_episode["playcount"] = ''
+            current_episode["season"] = self.current_episode_info['season']
+            current_episode["episode"] = self.current_episode_info['episode']
+            current_episode["rating"] = None
+            current_episode["firstaired"] = self.current_episode_info['aired']
+
+            next_episode = {}
+            next_episode["episodeid"] = next_ep['data'][0]['id']
+            next_episode["tvshowid"] = ''
+            next_episode["title"] = next_ep['data'][0]['attributes'].get('name').lstrip()
+            next_episode["art"] = {}
+            next_episode["art"]["tvshow.poster"] = ''
+            next_episode["art"]["thumb"] = next_fanart_image
+            next_episode["art"]["tvshow.fanart"] = next_fanart_image
+            next_episode["art"]["tvshow.landscape"] = ''
+            next_episode["art"]["tvshow.clearart"] = ''
+            next_episode["art"]["tvshow.clearlogo"] = ''
+            next_episode["plot"] = next_ep['data'][0]['attributes'].get('description')
+            next_episode["showtitle"] = next_show_title
+            next_episode["playcount"] = ''
+            next_episode["season"] = next_ep['data'][0]['attributes'].get('seasonNumber')
+            next_episode["episode"] = next_ep['data'][0]['attributes'].get('episodeNumber')
+            next_episode["rating"] = None
+            next_episode["firstaired"] = next_ep['data'][0]['attributes'].get('airDate')
+
+            play_info = {}
+            play_info['video_id'] = next_ep['data'][0]['id']
+
+            next_info = {
+                'current_episode': current_episode,
+                'next_episode': next_episode,
+                'play_info': play_info,
+                'notification_time': ''
+            }
+
+            AddonSignals.sendSignal("upnext_data", next_info, source_id=self.helper.addon_name)
+
+        else:
+            self.helper.log('No next episode available')
+
+    def onPlayBackEnded(self):
+        if self.running:
+            self.running = False
+            self.helper.log('Playback ended')
+            video_totaltime = format(self.video_totaltime, '.0f')
+            video_totaltime_msec = int(video_totaltime) * 1000
+
+            self.helper.d.update_playback_progress('put', self.video_id, video_totaltime_msec)
+            return xbmc.executebuiltin('Container.Refresh')
 
     def onPlayBackStopped(self):
-        video_lastpos = format(self.video_lastpos, '.0f')
-        video_totaltime = format(self.video_totaltime, '.0f')
+        if self.running:
+            self.running = False
+            video_lastpos = format(self.video_lastpos, '.0f')
+            video_totaltime = format(self.video_totaltime, '.0f')
 
-        # Convert to milliseconds
-        video_lastpos_msec = int(video_lastpos) * 1000
-        video_totaltime_msec = int(video_totaltime) * 1000
+            # Convert to milliseconds
+            video_lastpos_msec = int(video_lastpos) * 1000
+            video_totaltime_msec = int(video_totaltime) * 1000
 
-        self.helper.log('totaltime_msec: ' + str(video_totaltime_msec))
-        self.helper.log('lastpos_msec: ' + str(video_lastpos_msec))
+            self.helper.log('totaltime_msec: ' + str(video_totaltime_msec))
+            self.helper.log('lastpos_msec: ' + str(video_lastpos_msec))
 
-        self.helper.d.update_playback_progress(self.video_id, video_lastpos_msec)
-        return xbmc.executebuiltin('Container.Refresh')
+            self.helper.d.update_playback_progress('put', self.video_id, video_lastpos_msec)
+
+            return xbmc.executebuiltin('Container.Refresh')
