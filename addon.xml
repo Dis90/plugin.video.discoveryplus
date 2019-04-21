@@ -16,8 +16,8 @@
   <description lang="en"></description>
   <disclaimer lang="en"></disclaimer>
   <assets>
-    <icon>resources/icon.png</icon> 
-    <fanart>resources/fanart.jpg</fanart>
+    <icon>resources/icon.jpg</icon> 
+    <fanart>resources/fanart.png</fanart>
   </assets>
   <news></news>
 </extension>
