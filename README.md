@@ -6,6 +6,15 @@ This addon is unofficial and it is not supported by Discovery Networks, so it ca
 
 # Requirements
 - pycaption from https://github.com/aussieaddons/script.module.pycaption
+- Firefox
+
+# Supported platforms
+- Linux
+- Mac
+- Windows (not tested)
+
+# How to login?
+Because login page uses reCAPTCHA it is not possible handle login inside addon. That is why you need to login to Dplay using Firefox and addon uses Firefox cookie to work.
 
 # Features
 - Supports <a href="https://forum.kodi.tv/showthread.php?tid=336747">Up Next</a>

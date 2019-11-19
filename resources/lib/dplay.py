@@ -13,6 +13,9 @@ from pycaption import WebVTTReader, SRTWriter
 
 import requests
 import urlparse
+import sqlite3
+import glob
+import sys
 
 class Dplay(object):
     def __init__(self, settings_folder, locale, debug=False):
@@ -24,12 +27,59 @@ class Dplay(object):
         self.tempdir = os.path.join(settings_folder, 'tmp')
         if not os.path.exists(self.tempdir):
             os.makedirs(self.tempdir)
-        self.cookie_jar = cookielib.LWPCookieJar(os.path.join(self.settings_folder, 'cookie_file'))
-        try:
-            self.cookie_jar.load(ignore_discard=True, ignore_expires=True)
-        except IOError:
-            pass
-        self.http_session.cookies = self.cookie_jar
+
+        def star(filename):
+            names = glob.glob(filename)  # -> [] or [name ...]
+            return names[0] if len(names) > 0  else filename  # 2 or more ?
+
+        cj = cookielib.CookieJar()
+
+        if sys.platform == 'darwin':
+            ff_cookies_file = star(
+                os.path.expanduser('~/Library/Application Support/Firefox/Profiles/*default*/cookies.sqlite'))
+        elif sys.platform.startswith('linux'):
+            ff_cookies_file = star(os.path.expanduser('~/.mozilla/firefox/*default*/cookies.sqlite'))
+        elif sys.platform == 'win32':
+            ff_cookies_file = star(os.path.join(os.environ.get('PROGRAMFILES', ''),
+                                                    'Mozilla Firefox/profile/cookies.sqlite')) \
+                            or star(os.path.join(os.environ.get('PROGRAMFILES(X86)', ''),
+                                                    'Mozilla Firefox/profile/cookies.sqlite')) \
+                            or star(os.path.join(os.environ.get('APPDATA', ''),
+                                                    'Mozilla/Firefox/Profiles/*default*/cookies.sqlite')) \
+                            or star(os.path.join(os.environ.get('LOCALAPPDATA', ''),
+                                                    'Mozilla/Firefox/Profiles/*default*/cookies.sqlite'))
+        else:
+            self.raise_dplay_error('Unsupported operating system: ' + sys.platform)
+
+        if ff_cookies_file:
+            self.get_firefox_cookies(cj, ff_cookies_file, 'dplay')
+            self.http_session.cookies = cj
+        else:
+            self.raise_dplay_error('Failed to find Firefox cookie')
+
+    def get_firefox_cookies(self, cj, ff_cookies_file, domain_name):
+        # Create local copy of cookies sqlite database. This is necessary in case this database is still being written
+        # to while the user browses to avoid sqlite locking errors.
+        tmp_cookies_file = os.path.join(self.tempdir, 'ff_cookies.sqlite')
+        open(tmp_cookies_file, 'wb').write(open(ff_cookies_file, 'rb').read())
+
+        con = sqlite3.connect(tmp_cookies_file)
+        cur = con.cursor()
+
+        cur.execute('select host, path, isSecure, expiry, name, value from moz_cookies '
+                    'where host like "%{}%"'.format(domain_name))
+
+        for item in cur.fetchall():
+            c = cookielib.Cookie(0, item[4], item[5],
+                                 None, False,
+                                 item[0], item[0].startswith('.'), item[0].startswith('.'),
+                                 item[1], False,
+                                 item[2],
+                                 item[3], item[3] == "",
+                                 None, None, {})
+            self.log(c)
+            cj.set_cookie(c)
+        con.close()
 
     class DplayError(Exception):
         def __init__(self, value):
@@ -66,7 +116,6 @@ class Dplay(object):
                 req = self.http_session.post(url, params=params, data=payload, headers=headers)
             self.log('Response code: %s' % req.status_code)
             self.log('Response: %s' % req.content)
-            self.cookie_jar.save(ignore_discard=True, ignore_expires=True)
             self.raise_dplay_error(req.content)
             if text:
                 return req.text
@@ -86,10 +135,7 @@ class Dplay(object):
             if 'errors' in response:
                 for error in response['errors']:
                     if 'code' in error.keys():
-                        if error['code'] == 'unauthorized': # Login error, wrong email or password
-                            raise self.DplayError(error['code']) # Detail is empty in login error
-                        else:
-                            raise self.DplayError(error['detail'])
+                        raise self.DplayError(error['detail'])
 
         except KeyError:
             pass
@@ -107,19 +153,6 @@ class Dplay(object):
         }
 
         return self.make_request(url, 'get', params=params)
-
-    def login(self, username=None, password=None):
-        url = 'https://disco-api.dplay.{locale_suffix}/login'.format(locale_suffix=self.locale_suffix)
-
-        method = 'post'
-        payload = {
-            'credentials': {
-                'username': username,
-                'password': password
-            }
-        }
-
-        return self.make_request(url, method, payload=json.dumps(payload))
 
     def get_user_data(self):
         url = 'https://disco-api.dplay.{locale_suffix}/users/me'.format(locale_suffix=self.locale_suffix)
