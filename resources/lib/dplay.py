@@ -28,35 +28,29 @@ class Dplay(object):
         if not os.path.exists(self.tempdir):
             os.makedirs(self.tempdir)
 
-        def star(filename):
-            names = glob.glob(filename)  # -> [] or [name ...]
-            return names[0] if len(names) > 0  else filename  # 2 or more ?
-
         cj = cookielib.CookieJar()
 
+        self.get_firefox_cookies(cj, self.find_cookie_files()[0], 'dplay')
+        self.http_session.cookies = cj
+
+    def find_cookie_files(self):
         if sys.platform == 'darwin':
-            ff_cookies_file = star(
+            cookie_files = glob.glob(
                 os.path.expanduser('~/Library/Application Support/Firefox/Profiles/*default*/cookies.sqlite'))
         elif sys.platform.startswith('linux'):
-            ff_cookies_file = star(os.path.expanduser('~/.mozilla/firefox/*default*/cookies.sqlite'))
+            cookie_files = glob.glob(os.path.expanduser('~/.mozilla/firefox/*default*/cookies.sqlite'))
         elif sys.platform == 'win32':
-            ff_cookies_file = star(os.path.join(os.environ.get('PROGRAMFILES', ''),
-                                                    'Mozilla Firefox/profile/cookies.sqlite')) \
-                            or star(os.path.join(os.environ.get('PROGRAMFILES(X86)', ''),
-                                                    'Mozilla Firefox/profile/cookies.sqlite')) \
-                            or star(os.path.join(os.environ.get('APPDATA', ''),
-                                                    'Mozilla/Firefox/Profiles/*default*/cookies.sqlite')) \
-                            or star(os.path.join(os.environ.get('LOCALAPPDATA', ''),
+            cookie_files = glob.glob(os.path.join(os.environ.get('APPDATA', ''),
                                                     'Mozilla/Firefox/Profiles/*default*/cookies.sqlite'))
         else:
-            self.raise_dplay_error('Unsupported operating system: ' + sys.platform)
+            self.log('Unsupported operating system: ' + sys.platform)
 
-        if ff_cookies_file:
-            self.get_firefox_cookies(cj, ff_cookies_file, 'dplay')
-            self.http_session.cookies = cj
+        if cookie_files:
+            return cookie_files
         else:
-            self.raise_dplay_error('Failed to find Firefox cookie')
+            raise self.log('Failed to find Firefox cookies')
 
+    # From https://stackoverflow.com/questions/49502254/how-to-import-firefox-cookies-to-python-requests
     def get_firefox_cookies(self, cj, ff_cookies_file, domain_name):
         # Create local copy of cookies sqlite database. This is necessary in case this database is still being written
         # to while the user browses to avoid sqlite locking errors.
