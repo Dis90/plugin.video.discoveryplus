@@ -15,6 +15,7 @@ def list_pages():
 
     helper.add_item(helper.language(30009), params={'action': 'list_show_categories'})
     helper.add_item(helper.language(30010), params={'action': 'list_channels'})
+    helper.add_item(helper.language(30016), params={'action': 'list_favorites'})
     helper.add_item(helper.language(30007), params={'action': 'search'})
 
     # List frontpage show categories
@@ -73,6 +74,51 @@ def list_shows(search_query=None, letter=None):
             show_art['clearlogo'] = thumb_image if len(show['relationships']['images']['data']) == 2 else None
 
         helper.add_item(title, params, info=info, art=show_art, content='tvshows')
+    helper.eod()
+
+def list_favorites():
+    favorites = helper.d.get_favorites()
+
+    for favorite in favorites['data']['relationships']['favorites']['data']:
+        show_id = favorite['id']
+
+        for show_data in favorites['included']:
+            if show_data['id'] == show_id:
+                if show_data['attributes'].get('name'):  # parse content
+
+                    title = show_data['attributes']['name'].encode('utf-8')
+
+                    params = {
+                        'action': 'list_seasons',
+                        'show_id': show_data['id'],
+                        'seasons': json.dumps(show_data['attributes']['seasonNumbers'])
+                    }
+
+                    info = {
+                        'mediatype': 'tvshow',
+                        'plot': show_data['attributes'].get('description')
+                    }
+
+                    fanart_image = json.loads(helper.d.get_metadata(json.dumps(favorites['included']),
+                                                                show_data['relationships']['images']['data'][
+                                                                    0]['id']))['src'] if show_data[
+                        'relationships'].get('images') else None
+                    thumb_image = json.loads(helper.d.get_metadata(json.dumps(favorites['included']),
+                                                               show_data['relationships']['images']['data'][
+                                                                   -1]['id']))['src'] if show_data[
+                        'relationships'].get('images') else None
+
+                    show_art = {
+                        'fanart': fanart_image,
+                        'thumb': thumb_image
+                    }
+
+                    if show_data['relationships'].get('images'):
+                        show_art['clearlogo'] = thumb_image if len(
+                            show_data['relationships']['images']['data']) == 2 else None
+
+                    helper.add_item(title, params, info=info, art=show_art, content='tvshows')
+
     helper.eod()
 
 def list_alphabet():
@@ -445,6 +491,8 @@ def router(paramstring):
                 list_shows(letter=params['letter'])
             else:
                 list_shows()
+        elif params['action'] == 'list_favorites':
+            list_favorites()
         elif params['action'] == 'list_alphabet':
             list_alphabet()
         elif params['action'] == 'list_collection_shows':

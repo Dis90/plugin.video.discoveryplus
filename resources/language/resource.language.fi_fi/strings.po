@@ -76,3 +76,7 @@ msgstr "Suosituimmat ohjelmat"
 msgctxt "#30015"
 msgid "You have to first login to Dplay using Firefox"
 msgstr "Kirjaudu ensin sisään Dplayhin käyttäen Firefoxia"
+
+msgctxt "#30016"
+msgid "Favorites"
+msgstr "Suosikit"

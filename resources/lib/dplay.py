@@ -198,6 +198,15 @@ class Dplay(object):
         data = json.loads(self.make_request(url, 'get', params=params))
         return data
 
+    def get_favorites(self):
+        url = 'https://disco-api.dplay.{locale_suffix}/users/me/favorites'.format(locale_suffix=self.locale_suffix)
+        params = {
+            'include': 'default'
+        }
+
+        data = json.loads(self.make_request(url, 'get', params=params))
+        return data
+
     def get_metadata(self, data, id):
         for i in json.loads(data):
             if i['id'] == id:
