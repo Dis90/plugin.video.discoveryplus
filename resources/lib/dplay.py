@@ -263,7 +263,7 @@ class Dplay(object):
         data = json.loads(self.make_request(url, 'get', params=params))
         return data
 
-    def get_nextepisode_info(self, current_video_id):
+    def get_next_episode_info(self, current_video_id):
         url = 'https://disco-api.dplay.{locale_suffix}/content/videos/{video_id}/next'.format(locale_suffix=self.locale_suffix, video_id=current_video_id)
 
         params = {
