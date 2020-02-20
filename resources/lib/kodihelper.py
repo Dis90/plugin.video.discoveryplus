@@ -14,7 +14,9 @@ import xbmcgui
 import xbmcplugin
 from xbmcaddon import Addon
 import inputstreamhelper
-import AddonSignals
+from base64 import b64encode
+import time
+from datetime import datetime, timedelta
 
 class KodiHelper(object):
     def __init__(self, base_url=None, handle=None):
@@ -30,7 +32,6 @@ class KodiHelper(object):
         if not xbmcvfs.exists(self.addon_profile):
             xbmcvfs.mkdir(self.addon_profile)
         self.d = Dplay(self.addon_profile, self.get_setting('locale'), True)
-        AddonSignals.registerSlot('upnextprovider', self.addon_name + '_play_action', self.play_upnext)
 
     def get_addon(self):
         """Returns a fresh addon instance."""
@@ -138,13 +139,58 @@ class KodiHelper(object):
         """Tell Kodi that the end of the directory listing is reached."""
         xbmcplugin.endOfDirectory(self.handle)
 
-    def play_upnext(self, data):
-        self.log('Start playing from UpNext')
-        self.log('Video id: ' + str(data['video_id']))
+    # Up Next integration
+    def upnext_signal(self, sender, next_info):
+        """Send a signal to Kodi using JSON RPC"""
+        self.log("Sending Up Next data: %s" % next_info)
+        data = [self.to_unicode(b64encode(json.dumps(next_info).encode()))]
+        self.notify(sender=sender + '.SIGNAL', message='upnext_data', data=data)
 
+    def notify(self, sender, message, data):
+        """Send a notification to Kodi using JSON RPC"""
+        result = self.jsonrpc(method='JSONRPC.NotifyAll', params=dict(
+            sender=sender,
+            message=message,
+            data=data,
+        ))
+        if result.get('result') != 'OK':
+            self.log('Failed to send notification: ' + result.get('error').get('message'))
+            return False
+        self.log('Succesfully sent notification')
+        return True
+
+    def jsonrpc(self, **kwargs):
+        """ Perform JSONRPC calls """
+        if kwargs.get('id') is None:
+            kwargs.update(id=0)
+        if kwargs.get('jsonrpc') is None:
+            kwargs.update(jsonrpc='2.0')
+
+        self.log("Sending notification event data: %s" % kwargs)
+        return json.loads(xbmc.executeJSONRPC(json.dumps(kwargs)))
+
+    def to_unicode(self, text, encoding='utf-8', errors='strict'):
+        """Force text to unicode"""
+        if isinstance(text, bytes):
+            return text.decode(encoding, errors=errors)
+        return text
+
+    def play_upnext(self, next_video_id):
+        self.log('Start playing from Up Next')
+        self.log('Next video id: ' + str(next_video_id))
+
+        # Stop playback before playing next episode otherwise episode is not marked as watched
         xbmc.executebuiltin('PlayerControl(Stop)')
-        media = 'plugin://' + self.addon_name + '/?action=play&video_id=' + data['video_id'] + '&video_type=video'
+
+        media = 'plugin://' + self.addon_name + '/?action=play&video_id=' + next_video_id + '&video_type=video'
         xbmc.executebuiltin('PlayMedia({})'.format(media))
+    # End of Up next integration
+
+    def parse_datetime(self, date):
+        """Parse date string to datetime object."""
+        date_time_format = '%Y-%m-%dT%H:%M:%SZ'
+        datetime_obj = datetime(*(time.strptime(date, date_time_format)[0:6]))
+        return datetime_obj
 
     def play_item(self, video_id, video_type):
         try:
@@ -247,8 +293,7 @@ class DplayPlayer(xbmc.Player):
 
     def onPlayBackStarted(self):
         self.helper.log('Getting next episode info')
-        next_ep = self.helper.d.get_nextepisode_info(self.video_id)
-
+        next_ep = self.helper.d.get_next_episode_info(self.video_id)
 
         if next_ep['meta']['totalPages'] == 1:
             self.helper.log('Next episode name: ' + next_ep['data'][0]['attributes'].get('name').encode('utf-8').lstrip())
@@ -281,7 +326,8 @@ class DplayPlayer(xbmc.Player):
             current_episode["season"] = self.current_episode_info['season']
             current_episode["episode"] = self.current_episode_info['episode']
             current_episode["rating"] = None
-            current_episode["firstaired"] = self.current_episode_info['aired']
+            current_episode["firstaired"] = self.helper.parse_datetime(self.current_episode_info['aired']).strftime('%d.%m.%Y')
+            current_episode["runtime"] = self.current_episode_info['duration']
 
             next_episode = {}
             next_episode["episodeid"] = next_ep['data'][0]['id']
@@ -300,19 +346,17 @@ class DplayPlayer(xbmc.Player):
             next_episode["season"] = next_ep['data'][0]['attributes'].get('seasonNumber')
             next_episode["episode"] = next_ep['data'][0]['attributes'].get('episodeNumber')
             next_episode["rating"] = None
-            next_episode["firstaired"] = next_ep['data'][0]['attributes'].get('airDate')
-
-            play_info = {}
-            play_info['video_id'] = next_ep['data'][0]['id']
+            next_episode["firstaired"] = self.helper.parse_datetime(next_ep['data'][0]['attributes'].get('airDate')).strftime('%d.%m.%Y')
+            next_episode["runtime"] = next_ep['data'][0]['attributes'].get('videoDuration') / 1000.0
 
             next_info = {
                 'current_episode': current_episode,
                 'next_episode': next_episode,
-                'play_info': play_info,
+                'play_url': 'plugin://' + self.helper.addon_name + '/?action=play_upnext&next_video_id=' + next_ep['data'][0]['id'],
                 'notification_time': ''
             }
 
-            AddonSignals.sendSignal("upnext_data", next_info, source_id=self.helper.addon_name)
+            self.helper.upnext_signal(sender=self.helper.addon_name, next_info=next_info)
 
         else:
             self.helper.log('No next episode available')
@@ -330,7 +374,7 @@ class DplayPlayer(xbmc.Player):
             # Dplay wants POST before PUT
             self.helper.d.update_playback_progress('post', self.video_id, video_totaltime_msec)
             self.helper.d.update_playback_progress('put', self.video_id, video_totaltime_msec)
-            return xbmc.executebuiltin('Container.Refresh')
+            return xbmc.executebuiltin('Container.Update')
 
     def onPlayBackStopped(self):
         if self.running:
@@ -342,8 +386,8 @@ class DplayPlayer(xbmc.Player):
             video_lastpos_msec = int(video_lastpos) * 1000
             video_totaltime_msec = int(video_totaltime) * 1000
 
-            self.helper.log('totaltime_msec: ' + str(video_totaltime_msec))
-            self.helper.log('lastpos_msec: ' + str(video_lastpos_msec))
+            self.helper.log('Video totaltime msec: ' + str(video_totaltime_msec))
+            self.helper.log('Video lastpos msec: ' + str(video_lastpos_msec))
 
             # Get new token before updating playback progress
             self.helper.d.get_token()
@@ -352,4 +396,4 @@ class DplayPlayer(xbmc.Player):
             self.helper.d.update_playback_progress('post', self.video_id, video_lastpos_msec)
             self.helper.d.update_playback_progress('put', self.video_id, video_lastpos_msec)
 
-            return xbmc.executebuiltin('Container.Refresh')
+            return xbmc.executebuiltin('Container.Update')
