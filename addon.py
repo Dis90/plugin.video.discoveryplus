@@ -508,6 +508,8 @@ def router(paramstring):
         elif params['action'] == 'play':
             # Play a video from a provided URL.
             helper.play_item(params['video_id'], params['video_type'])
+        elif params['action'] == 'play_upnext':
+            helper.play_upnext(next_video_id=params['next_video_id'])
         elif params['action'] == 'search':
             search()
     else:
