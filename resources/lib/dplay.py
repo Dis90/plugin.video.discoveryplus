@@ -25,6 +25,7 @@ class Dplay(object):
         self.http_session = requests.Session()
         self.settings_folder = settings_folder
         self.tempdir = os.path.join(settings_folder, 'tmp')
+        self.unwanted_menu_items = ('Hae mukaan', 'Info', 'Tablå', 'Live TV', 'TV-guide')
         if not os.path.exists(self.tempdir):
             os.makedirs(self.tempdir)
 
@@ -106,6 +107,8 @@ class Dplay(object):
                 req = self.http_session.get(url, params=params, headers=headers)
             elif method == 'put':
                 req = self.http_session.put(url, params=params, data=payload, headers=headers)
+            elif method == 'delete':
+                req = self.http_session.delete(url, params=params, data=payload, headers=headers)
             else:  # post
                 req = self.http_session.post(url, params=params, data=payload, headers=headers)
             self.log('Response code: %s' % req.status_code)
@@ -154,8 +157,151 @@ class Dplay(object):
         data = self.make_request(url, 'get')
         return json.loads(data)['data']
 
-    def get_homepage(self):
-        url = 'https://disco-api.dplay.{locale_suffix}/cms/collections/home-page'.format(locale_suffix=self.locale_suffix)
+    def get_menu(self):
+        url = 'https://disco-api.dplay.{locale_suffix}/cms/collections/web-menubar'.format(locale_suffix=self.locale_suffix)
+
+        params = {
+            'include': 'default'
+        }
+
+        data = json.loads(self.make_request(url, 'get', params=params))
+        return data
+
+    def parse_page(self, page_path=None, collection_id=None, search_query=None, mandatoryParams=None, parameter=None, video_id=None, current_video_id=None):
+        if page_path == 'menu':
+            page = self.get_menu()
+        elif page_path == 'favorites':
+            page = self.get_favorites()
+        elif page_path == 'search':
+            page = self.get_search_shows(search_query)
+        elif collection_id:
+            if parameter:
+                page = self.get_collections(collection_id, mandatoryParams, parameter)
+            else:
+                page = self.get_collections(collection_id, mandatoryParams)
+        # Current episode info
+        elif video_id:
+            page = self.get_current_episode_info(video_id)
+        elif current_video_id:
+            page = self.get_next_episode_info(current_video_id)
+        else:
+            page = self.get_page(page_path)
+
+        pages = []
+        pageItems = []
+        collections = []
+        collectionItems = []
+        images = []
+        links = []
+        shows = []
+        videos = []
+        channels = []
+        routes = []
+        genres = []
+
+        # page['data'] is dict or list
+        if isinstance(page['data'], dict):
+            data = {
+                'type': page['data']['type'],
+                'attributes': page['data'].get('attributes'),
+                'relationships': page['data']['relationships']
+            }
+        else:
+            data = []
+            for d in page['data']:
+                data.append(d)
+
+        for p in page['included']:
+
+            # Pages
+            if p['type'] == 'page':
+                pages.append({
+                    'id': p['id'],
+                    'attributes': p['attributes'],
+                    'relationships': p['relationships']
+                })
+
+            # PageItems
+            if p['type'] == 'pageItem':
+                pageItems.append({
+                    'id': p['id'],
+                    'relationships': p['relationships']
+                })
+
+            # Collections
+            if p['type'] == 'collection':
+                collections.append({
+                    'id': p['id'],
+                    'attributes': p['attributes'],
+                    'relationships': p['relationships']
+                })
+
+            # CollectionItems
+            if p['type'] == 'collectionItem':
+                collectionItems.append({
+                    'id': p['id'],
+                    'relationships': p['relationships']
+                })
+
+            # Images
+            if p['type'] == 'image':
+                images.append({
+                    'id': p['id'],
+                    'attributes': p['attributes']
+                })
+
+            # Shows
+            if p['type'] == 'show':
+                shows.append({
+                    'id': p['id'],
+                    'attributes': p['attributes'],
+                    'relationships': p['relationships']
+                })
+
+            # Videos
+            if p['type'] == 'video':
+                videos.append({
+                    'id': p['id'],
+                    'attributes': p['attributes'],
+                    'relationships': p['relationships']
+                })
+
+            # Channels
+            if p['type'] == 'channel':
+                channels.append({
+                    'id': p['id'],
+                    'attributes': p['attributes'],
+                    'relationships': p['relationships']
+                })
+
+            # Genres
+            if p['type'] == 'genre':
+                genres.append({
+                    'id': p['id'],
+                    'attributes': p['attributes']
+                })
+
+            # Links (menu, categories)
+            if p['type'] == 'link':
+                links.append({
+                    'id': p['id'],
+                    'attributes': p['attributes'],
+                    'relationships': p['relationships']
+                })
+
+            # Routes
+            if p['type'] == 'route':
+                routes.append({
+                    'id': p['id'],
+                    'attributes': p['attributes']
+                })
+
+        page_sorted = ({'data': data, 'pages': pages, 'pageItems': pageItems, 'collections': collections, 'collectionItems': collectionItems, 'images': images, 'shows': shows, 'videos': videos, 'channels': channels, 'genres': genres, 'links': links, 'routes': routes})
+
+        return page_sorted
+
+    def get_page(self, path):
+        url = 'https://disco-api.dplay.{locale_suffix}/cms/routes{path}'.format(locale_suffix=self.locale_suffix, path=path)
 
         params = {
             'decorators': 'viewingHistory',
@@ -165,29 +311,30 @@ class Dplay(object):
         data = json.loads(self.make_request(url, 'get', params=params))
         return data
 
-    def get_shows(self, search_query=None, letter=None):
+    def get_collections(self, collection_id, mandatoryParams, parameter=None):
+        if parameter:
+            url = 'https://disco-api.dplay.{locale_suffix}/cms/collections/{collection_id}?{mandatoryParams}&{parameter}'.format(locale_suffix=self.locale_suffix, collection_id=collection_id, mandatoryParams=mandatoryParams, parameter=parameter)
+        else:
+            url = 'https://disco-api.dplay.{locale_suffix}/cms/collections/{collection_id}?{mandatoryParams}'.format(locale_suffix=self.locale_suffix, collection_id=collection_id, mandatoryParams=mandatoryParams)
+
+        params = {
+            'decorators': 'viewingHistory',
+            'include': 'default',
+            'page[items.number]': 1,
+            'page[items.size]': 100
+        }
+
+        data = json.loads(self.make_request(url, 'get', params=params))
+        return data
+
+    def get_search_shows(self, search_query):
         url = 'https://disco-api.dplay.{locale_suffix}/content/shows'.format(locale_suffix=self.locale_suffix)
 
-        if search_query:
-            params = {
-                'include': 'genres,images,primaryChannel.images,contentPackages',
-                'page[size]': 20,
-                'query': search_query
-            }
-        elif letter:
-            params = {
-                'include': 'genres,images,primaryChannel.images,contentPackages',
-                'filter[name.startsWith]': letter,
-                'page[size]': 100,
-                'page[number]': '1'
-            }
-        else: # Get popular shows
-            params = {
-                'include': 'genres,images,primaryChannel.images,contentPackages',
-                'page[size]': 100,
-                'page[number]': '1',
-                'sort': 'views.lastMonth'
-            }
+        params = {
+            'include': 'genres,images,primaryChannel.images,contentPackages',
+            'page[size]': 20,
+            'query': search_query
+        }
 
         data = json.loads(self.make_request(url, 'get', params=params))
         return data
@@ -201,50 +348,8 @@ class Dplay(object):
         data = json.loads(self.make_request(url, 'get', params=params))
         return data
 
-    def get_metadata(self, data, id):
-        for i in json.loads(data):
-            if i['id'] == id:
-                return json.dumps(i['attributes'])
-
-    def get_channels(self):
-        url = 'https://disco-api.dplay.{locale_suffix}/cms/collections/kanaler'.format(locale_suffix=self.locale_suffix)
-
-        params = {
-            'include': 'default'
-        }
-
-        data = json.loads(self.make_request(url, 'get', params=params))
-        return data
-
-    def get_channel_shows(self, channel_id):
-        url = 'https://disco-api.dplay.{locale_suffix}/cms/collections/channel/{channel_id}'.format(locale_suffix=self.locale_suffix, channel_id=channel_id)
-
-        params = {
-            'include': 'default'
-        }
-
-        data = json.loads(self.make_request(url, 'get', params=params))
-        return data
-
-    def get_videos(self, show_id, season_number):
-        url = 'https://disco-api.dplay.{locale_suffix}/content/videos'.format(locale_suffix=self.locale_suffix)
-
-        params = {
-            'decorators': 'viewingHistory',
-            'include': 'images,primaryChannel,show,contentPackages',
-            'filter[videoType]': 'EPISODE, LIVE, FOLLOW_UP',
-            'filter[show.id]': show_id,
-            'filter[seasonNumber]': season_number,
-            'page[size]': 100,
-            'page[number]': '1',
-            'sort': 'episodeNumber'
-        }
-
-        data = json.loads(self.make_request(url, 'get', params=params))
-        return data
-
     def update_playback_progress(self, method, video_id, position):
-        url = 'https://disco-api.dplay.{locale_suffix}/playback/report/video/{video_id}'.format(locale_suffix=self.locale_suffix, video_id=video_id)
+        url = 'https://disco-api.dplay.{locale_suffix}/playback/v2/report/video/{video_id}'.format(locale_suffix=self.locale_suffix, video_id=video_id)
 
         params = {
             'position': position
@@ -273,6 +378,12 @@ class Dplay(object):
 
         data = json.loads(self.make_request(url, 'get', params=params))
         return data
+
+    def add_or_delete_favorite(self, method, show_id):
+        # POST for adding and DELETE for delete
+        url = 'https://disco-api.dplay.{locale_suffix}/users/me/favorites/shows/{show_id}'.format(locale_suffix=self.locale_suffix, show_id=show_id)
+
+        return self.make_request(url, method)
 
     def webvtt_to_srt_conversion(self, sub_webvtt):
         caption_set = WebVTTReader().read(sub_webvtt)
@@ -321,7 +432,7 @@ class Dplay(object):
 
         params = {'usePreAuth': 'true'}
 
-        url = 'https://disco-api.dplay.{locale_suffix}/playback/{video_type}PlaybackInfo/{video_id}'.format(locale_suffix=self.locale_suffix, video_type=video_type, video_id=video_id)
+        url = 'https://disco-api.dplay.{locale_suffix}/playback/v2/{video_type}PlaybackInfo/{video_id}'.format(locale_suffix=self.locale_suffix, video_type=video_type, video_id=video_id)
 
         data_dict = json.loads(self.make_request(url, 'get', params=params, headers=None))['data']
 

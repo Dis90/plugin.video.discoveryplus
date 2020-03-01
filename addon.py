@@ -11,460 +11,811 @@ handle = int(sys.argv[1])
 helper = KodiHelper(base_url, handle)
 
 def list_pages():
-    collections = helper.d.get_homepage()
-
-    helper.add_item(helper.language(30009), params={'action': 'list_show_categories'})
-    helper.add_item(helper.language(30010), params={'action': 'list_channels'})
+    helper.add_item(helper.language(30001), params={'action': 'list_page', 'page_path': '/home'})
     helper.add_item(helper.language(30016), params={'action': 'list_favorites'})
     helper.add_item(helper.language(30007), params={'action': 'search'})
 
-    # List frontpage show categories
-    for collection in collections['included']:
-        if collection['type'] == 'collection' and collection['attributes'].get('title'):
+    # List menu items (Shows, Categories)
+    page_data = helper.d.parse_page('menu')
 
-            params = {
-                'action': 'list_collection_shows',
-                'collection_data': json.dumps(collection['relationships']['items']['data'])
-            }
+    collectionItems = page_data['collectionItems']
+    images = page_data['images']
+    links = page_data['links']
+    routes = page_data['routes']
 
-            info = {
-                'plot': collection['attributes'].get('name')
-            }
+    # In menu there's only menu links, so no need to loop page_data['data'] and collections
+    for collectionItem in collectionItems:
+        # Get only links
+        if collectionItem['relationships'].get('link'):
+            for link in links:
+                if collectionItem['relationships']['link']['data']['id'] == link['id'] and link['attributes'][
+                    'title'] not in helper.d.unwanted_menu_items:
+                    # Find page path from routes
+                    for route in routes:
+                        if route['id'] == link['relationships']['linkedContentRoutes']['data'][0]['id']:
+                            next_page_path = route['attributes']['url']
 
-            helper.add_item(collection['attributes'].get('title'), params, info=info)
+                    params = {
+                        'action': 'list_page',
+                        'page_path': next_page_path
+                    }
+
+                    link_info = {
+                        'plot': link['attributes'].get('description')
+                    }
+
+                    if link['relationships'].get('images'):
+                        for i in images:
+                            if i['id'] == link['relationships']['images']['data'][0]['id']:
+                                image = i['attributes']['src']
+                    else:
+                        image = None
+
+                    link_art = {
+                        'fanart': image,
+                        'thumb': image
+                    }
+
+                    helper.add_item(link['attributes']['title'], params, info=link_info, content='videos', art=link_art)
 
     helper.eod()
 
-def list_show_categories():
-    helper.add_item(helper.language(30014), params={'action': 'list_shows'})
-    helper.add_item('A - Ö', params={'action': 'list_alphabet'})
+def list_page(page_path=None):
+    page_data = helper.d.parse_page(page_path)
+
+    pages = page_data['pages']
+    pageItems = page_data['pageItems']
+    collections = page_data['collections']
+    collectionItems = page_data['collectionItems']
+    images = page_data['images']
+    links = page_data['links']
+    routes = page_data['routes']
+    channels = page_data['channels']
+
+    if page_data['data']['type'] == 'route':
+        for page in pages:
+            # If only one pageItem in page -> relationships -> items -> data, list content page (categories)
+            if len(page['relationships']['items']['data']) == 1:
+                for collection in collections:
+                    if collection['attributes'].get('component'):
+
+                        # List genre categories content (Popular, All, Eurosport channels, categories etc)
+                        if collection['attributes']['component']['id'] == 'content-grid' and collection[
+                            'attributes'].get('title'):
+                            if collection['attributes'].get('kind'):
+                                if collection['attributes'][
+                                    'kind'] == 'automatic':  # automatic = popular shows, frontpage categories
+                                    params = {
+                                        'action': 'list_collection_items',
+                                        'page_path': page_path,
+                                        'collection_id': collection['id']
+                                    }
+
+                                    info = {
+                                        'mediatype': 'video'
+                                    }
+
+                                    helper.add_item(collection['attributes']['title'], params, info=info, content='videos', folder_name=page['attributes'].get('pageMetadataTitle'))
+
+                                if collection['attributes']['kind'] == 'manual':  # manual = categories
+                                    for c in collection['relationships']['items']['data']:
+                                        for collectionItem in collectionItems:
+                                            if c['id'] == collectionItem['id']:
+                                                # List category page content (Reality, Comedy etc)
+                                                if collectionItem['relationships'].get('link'):
+                                                    for link in links:
+                                                        if collectionItem['relationships']['link']['data']['id'] == link['id']:
+                                                            # Find page path from routes
+                                                            for route in routes:
+                                                                if route['id'] == \
+                                                                        link['relationships']['linkedContentRoutes'][
+                                                                            'data'][0]['id']:
+                                                                    next_page_path = route['attributes']['url']
+
+                                                            params = {
+                                                                'action': 'list_page',
+                                                                'page_path': next_page_path
+                                                            }
+
+                                                            info = {
+                                                                'mediatype': 'video'
+                                                            }
+
+                                                            if link['relationships'].get('images'):
+                                                                for i in images:
+                                                                    if i['id'] == \
+                                                                            link['relationships']['images']['data'][0][
+                                                                                'id']:
+                                                                        image = i['attributes']['src']
+                                                            else:
+                                                                image = None
+
+                                                            category_art = {
+                                                                'fanart': image,
+                                                                'thumb': image
+                                                            }
+
+                                                            helper.add_item(link['attributes']['title'], params, info=info, content='videos',
+                                                                            art=category_art, folder_name=page['attributes'].get('pageMetadataTitle'))
+
+                            else:  # Fix for categories without 'kind', example eurosport -> channels
+                                params = {
+                                    'action': 'list_collection_items',
+                                    'page_path': page_path,
+                                    'collection_id': collection['id']
+                                }
+
+                                helper.add_item(collection['attributes']['title'], params)
+
+            # More than one pageItem (homepage, seasons, channels)
+            else:
+                for page_relationship in page['relationships']['items']['data']:
+                    for pageItem in pageItems:
+                        if page_relationship['id'] == pageItem['id']:
+                            for collection in collections:
+                                # PageItems have only one collection
+                                if pageItem['relationships']['collection']['data']['id'] == collection['id']:
+
+                                    # Homepage, Channel -> New videos, Shows.
+                                    # Hide promotion grids.
+                                    if collection['attributes']['component']['id'] == 'content-grid':
+                                        params = {
+                                            'action': 'list_collection_items',
+                                            'page_path': page_path,
+                                            'collection_id': collection['id']
+                                        }
+
+                                        info = {
+                                            'mediatype': 'video'
+                                        }
+
+                                        helper.add_item(collection['attributes']['title'], params, info=info,
+                                                    content='tvshows',
+                                                    folder_name=page['attributes'].get('pageMetadataTitle'))
+
+                                    # List series season grid
+                                    if collection['attributes']['component']['id'] == 'tabbed-content':
+                                        for option in collection['attributes']['component']['filters'][0]['options']:
+                                            title = helper.language(30011) + ' ' + str(option['id'])
+                                            params = {
+                                                'action': 'list_videos',
+                                                'collection_id': collection['id'],# 66290614510668341673562607828298581172
+                                                'mandatoryParams': collection['attributes']['component'][
+                                                    'mandatoryParams'],  # pf[show.id]=12423
+                                                'parameter': option['parameter']  # pf[seasonNumber]=1
+                                            }
+
+                                            info = {
+                                                'mediatype': 'season'
+                                            }
+
+                                            helper.add_item(title, params, info=info, content='tvshows',
+                                                        folder_name=page['attributes'].get('pageMetadataTitle'))
+
+                                    # If listing channel pages, list livestream if available
+                                    if collection['attributes']['name'] == 'generic-channel-blueprint-page-shows-abc':
+                                        # Get all channels in page data
+                                        for channel in channels:
+                                            if channel['attributes'].get('hasLiveStream'):
+                                                params = {
+                                                    'action': 'play',
+                                                    'video_id': channel['id'],
+                                                    'video_type': 'channel'
+                                                }
+
+                                                channel_info = {
+                                                    'mediatype': 'video',
+                                                    'title': channel['attributes'].get('name'),
+                                                    'plot': channel['attributes'].get('description'),
+                                                    'playcount': '0'
+                                                }
+
+                                                if channel['relationships'].get('images'):
+                                                    for i in images:
+                                                        if i['id'] == channel['relationships']['images']['data'][0][
+                                                            'id']:
+                                                            fanart_image = i['attributes']['src']
+                                                        if i['id'] == channel['relationships']['images']['data'][-1][
+                                                            'id']:
+                                                            thumb_image = i['attributes']['src']
+                                                else:
+                                                    fanart_image = None
+                                                    thumb_image = None
+
+                                                channel_art = {
+                                                    'fanart': fanart_image,
+                                                    'thumb': thumb_image
+                                                }
+
+                                                if channel['relationships'].get('images'):
+                                                    channel_art['clearlogo'] = thumb_image if len(
+                                                        channel['relationships']['images']['data']) >= 2 else None
+
+                                                helper.add_item(
+                                                    helper.language(30014) + ' ' + channel['attributes'].get('name'),
+                                                    params=params,
+                                                    art=channel_art, info=channel_info, content='videos',
+                                                    playable=True)
+
+                                    # Channels page
+                                    # Use generic-hero (promotion) only in channels page
+                                    elif collection['attributes']['component']['id'] == 'generic-hero':
+                                        # Get channel name and path
+                                        for c in collection['relationships']['items']['data']:
+                                            for collectionItem in collectionItems:
+                                                if c['id'] == collectionItem['id']:
+                                                    if collectionItem['relationships'].get('channel'):
+                                                        # Get all channels in page data
+                                                        for channel in channels:
+                                                            if collectionItem['relationships']['channel']['data']['id'] == channel[
+                                                                'id']:
+                                                                # Find page path from routes
+                                                                for route in routes:
+                                                                    if route['id'] == \
+                                                                            channel['relationships']['routes']['data'][
+                                                                                0]['id']:
+                                                                        next_page_path = route['attributes']['url']
+
+                                                                params = {
+                                                                    'action': 'list_page',
+                                                                    'page_path': next_page_path
+                                                                }
+
+                                                                channel_info = {
+                                                                    'mediatype': 'video',
+                                                                    'title': channel['attributes'].get('name'),
+                                                                    'plot': channel['attributes'].get('description')
+                                                                }
+
+                                                                if channel['relationships'].get('images'):
+                                                                    for i in images:
+                                                                        if i['id'] == \
+                                                                                channel['relationships']['images'][
+                                                                                    'data'][0]['id']:
+                                                                            fanart_image = i['attributes']['src']
+                                                                        if i['id'] == \
+                                                                                channel['relationships']['images'][
+                                                                                    'data'][-1]['id']:
+                                                                            thumb_image = i['attributes']['src']
+                                                                else:
+                                                                    fanart_image = None
+                                                                    thumb_image = None
+
+                                                                channel_art = {
+                                                                    'fanart': fanart_image,
+                                                                    'thumb': thumb_image
+                                                                }
+
+                                                                if channel['relationships'].get('images'):
+                                                                    channel_art['clearlogo'] = thumb_image if len(
+                                                                        channel['relationships']['images'][
+                                                                            'data']) >= 2 else None
+
+
+                                                                helper.add_item(channel['attributes'].get('name'),
+                                                                                params, info=channel_info, content='videos', art=channel_art, folder_name=page['attributes'].get('pageMetadataTitle'))
+
     helper.eod()
 
-def list_shows(search_query=None, letter=None):
-    if search_query:
-        shows = helper.d.get_shows(search_query=search_query)
-    elif letter:
-        shows = helper.d.get_shows(letter=letter)
-    else: # List popular shows
-        shows = helper.d.get_shows()
+def list_collection_items(page_path, collection_id):
+    page_data = helper.d.parse_page(page_path)
 
-    for show in shows['data']:
+    favorites = helper.d.get_favorites()
+    user_favorites = ",".join([str(x['id']) for x in favorites['data']['relationships']['favorites']['data']])
+
+    # First get all metadata
+    images = page_data['images']
+    collections = page_data['collections']
+    collectionItems = page_data['collectionItems']
+    shows = page_data['shows']
+    videos = page_data['videos']
+    channels = page_data['channels']
+    genres = page_data['genres']
+    routes = page_data['routes']
+
+    for collection in collections:
+        if collection['id'] == collection_id:
+            for collectionItem in collectionItems:
+                for collection_relationship in collection['relationships']['items']['data']:
+                    if collectionItem['id'] == collection_relationship['id']:
+
+                        # List shows
+                        if collectionItem['relationships'].get('show'):
+                            for show in shows:
+                                if collectionItem['relationships']['show']['data']['id'] == show['id']:
+                                    attributes = show['attributes']
+                                    relationships = show['relationships']
+
+                                    title = attributes['name'].encode('utf-8')
+
+                                    # Find page path from routes
+                                    for route in routes:
+                                        if route['id'] == relationships['routes']['data'][0]['id']:
+                                            next_page_path = route['attributes']['url']
+
+                                    params = {
+                                        'action': 'list_page',
+                                        'page_path': next_page_path
+                                    }
+
+                                    g = []
+                                    if relationships.get('genres'):
+                                        for genre in genres:
+                                            for show_genre in relationships['genres']['data']:
+                                                if genre['id'] == show_genre['id']:
+                                                    g.append(genre['attributes']['name'])
+
+                                    if relationships.get('primaryChannel'):
+                                        for channel in channels:
+                                            if channel['id'] == relationships['primaryChannel']['data']['id']:
+                                                primaryChannel = channel['attributes']['name']
+                                    else:
+                                        primaryChannel = None
+
+                                    info = {
+                                        'mediatype': 'tvshow',
+                                        'plot': attributes.get('description'),
+                                        'genre': g,
+                                        'studio': primaryChannel
+                                    }
+
+                                    # Add or delete favorite context menu
+                                    if str(show['id']) not in user_favorites:
+                                        menu = []
+                                        menu.append((helper.language(30009),
+                                                     'RunPlugin(plugin://' + helper.addon_name + '/?action=add_favorite&show_id=' + str(
+                                                         show['id'])  + ')',))
+                                    else:
+                                        menu = []
+                                        menu.append((helper.language(30010),
+                                                     'RunPlugin(plugin://' + helper.addon_name + '/?action=delete_favorite&show_id=' + str(
+                                                         show['id'])  + ')',))
+
+                                    if relationships.get('images'):
+                                        for image in images:
+                                            if image['id'] == relationships['images']['data'][0]['id']:
+                                                fanart_image = image['attributes']['src']
+                                            if image['id'] == relationships['images']['data'][-1]['id']:
+                                                thumb_image = image['attributes']['src']
+                                    else:
+                                        fanart_image = None
+                                        thumb_image = None
+
+                                    show_art = {
+                                        'fanart': fanart_image,
+                                        'thumb': thumb_image
+                                    }
+
+                                    if relationships.get('images'):
+                                        show_art['clearlogo'] = thumb_image if len(
+                                            relationships['images']['data']) == 2 else None
+
+                                    helper.add_item(title, params, info=info, art=show_art, content='tvshows', menu=menu, folder_name=collection['attributes'].get('title'))
+
+                        # List videos
+                        if collectionItem['relationships'].get('video'):
+                            for video in videos:
+                                if collectionItem['relationships']['video']['data']['id'] == video['id']:
+                                    attributes = video['attributes']
+                                    relationships = video['relationships']
+
+                                    # Dplay+ content check
+                                    # If first package is Registered show has been or is available for free
+                                    if attributes['availabilityWindows'][0][
+                                        'package'] == 'Registered':
+                                        # Check if there is ending time for free availability
+                                        if attributes['availabilityWindows'][0].get('playableEnd'):
+                                            # Check if show is still available for free
+                                            if helper.d.parse_datetime(
+                                                    attributes['availabilityWindows'][0][
+                                                        'playableStart']) < helper.d.get_current_time() < helper.d.parse_datetime(
+                                                attributes['availabilityWindows'][0]['playableEnd']):
+
+                                                dplayplus = False  # Show is still available for free
+                                            else:  # Show is not anymore available for free
+                                                dplayplus = True
+                                        else:  # No ending time for free availability
+                                            dplayplus = False
+                                    else:
+                                        dplayplus = True  # Dplay+ subscription is needed
+
+                                    if dplayplus == True:
+                                        list_title = attributes.get('name').lstrip() + ' [Dplay+]'
+                                    else:
+                                        list_title = attributes.get('name').lstrip()
+
+                                    params = {
+                                        'action': 'play',
+                                        'video_id': video['id'],
+                                        'video_type': 'video'
+                                    }
+
+                                    for s in shows:
+                                        if s['id'] == relationships['show']['data']['id']:
+                                            show_title = s['attributes']['name']
+
+                                    g = []
+                                    if relationships.get('genres'):
+                                        for genre in genres:
+                                            for video_genre in relationships['genres']['data']:
+                                                if genre['id'] == video_genre['id']:
+                                                    g.append(genre['attributes']['name'])
+
+                                    if relationships.get('primaryChannel'):
+                                        for channel in channels:
+                                            if channel['id'] == relationships['primaryChannel']['data']['id']:
+                                                primaryChannel = channel['attributes']['name']
+                                    else:
+                                        primaryChannel = None
+
+                                    if relationships.get('images'):
+                                        for i in images:
+                                            if i['id'] == relationships['images']['data'][0]['id']:
+                                                fanart_image = i['attributes']['src']
+                                    else:
+                                        fanart_image = None
+
+                                    duration = attributes['videoDuration'] / 1000.0 if attributes.get(
+                                        'videoDuration') else None
+
+                                    # If episode is not yet playable, show playable time in plot
+                                    if attributes.get('earliestPlayableStart'):
+                                        if helper.d.parse_datetime(
+                                                attributes['earliestPlayableStart']) > helper.d.get_current_time():
+                                            playable = str(
+                                                helper.d.parse_datetime(attributes['earliestPlayableStart']).strftime(
+                                                    '%d.%m.%Y %H:%M'))
+                                            if attributes.get('description'):
+                                                plot = helper.language(30002) + playable + ' ' + attributes.get(
+                                                    'description')
+                                            else:
+                                                plot = helper.language(30002) + playable
+                                        else:
+                                            plot = attributes.get('description')
+
+                                    episode_info = {
+                                        'mediatype': 'episode',
+                                        'title': attributes.get('name').lstrip(),
+                                        'tvshowtitle': show_title,
+                                        'season': attributes.get('seasonNumber'),
+                                        'episode': attributes.get('episodeNumber'),
+                                        'plot': plot,
+                                        'genre': g,
+                                        'studio': primaryChannel,
+                                        'duration': duration,
+                                        'aired': attributes.get('airDate')
+                                    }
+
+                                    # Watched status from Dplay
+                                    if attributes['viewingHistory']['viewed']:
+                                        if attributes['viewingHistory']['completed']:  # Watched video
+                                            episode_info['playcount'] = '1'
+                                            resume = 0
+                                            total = duration
+                                        else:  # Partly watched video
+                                            episode_info['playcount'] = '0'
+                                            resume = attributes['viewingHistory']['position'] / 1000.0
+                                            total = duration
+                                    else:  # Unwatched video
+                                        episode_info['playcount'] = '0'
+                                        resume = 0
+                                        total = 1
+
+                                    episode_art = {
+                                        'fanart': fanart_image,
+                                        'thumb': fanart_image
+                                    }
+
+                                    helper.add_item(list_title, params=params, info=episode_info, art=episode_art,
+                                                content='episodes', playable=True, resume=resume, total=total,
+                                                folder_name=collection['attributes'].get('title'))
+
+                        # Used when coming from collection (example Eurosport -> Channels)
+                        if collectionItem['relationships'].get('channel'):  # Is channel
+                            for channel in channels:
+                                if collectionItem['relationships']['channel']['data']['id'] == channel['id']:
+                                    attributes = channel['attributes']
+                                    relationships = channel['relationships']
+
+                                    if attributes.get('hasLiveStream'):
+                                        params = {
+                                            'action': 'play',
+                                            'video_id': channel['id'],
+                                            'video_type': 'channel'
+                                        }
+
+                                        channel_info = {
+                                            'mediatype': 'video',
+                                            'title': attributes.get('name'),
+                                            'plot': attributes.get('description'),
+                                            'playcount': '0'
+                                        }
+
+                                        if relationships.get('images'):
+                                            for i in images:
+                                                if i['id'] == relationships['images']['data'][0]['id']:
+                                                    fanart_image = i['attributes']['src']
+                                                if i['id'] == relationships['images']['data'][-1]['id']:
+                                                    thumb_image = i['attributes']['src']
+                                        else:
+                                            fanart_image = None
+                                            thumb_image = None
+
+                                        channel_art = {
+                                            'fanart': fanart_image,
+                                            'thumb': thumb_image
+                                        }
+
+                                        if relationships.get('images'):
+                                            channel_art['clearlogo'] = thumb_image if len(
+                                                relationships['images']['data']) >= 2 else None
+
+                                        helper.add_item(helper.language(30014) + ' ' + attributes.get('name'), params=params,
+                                                        info=channel_info, content='videos', art=channel_art,
+                                                        playable=True, folder_name=collection['attributes'].get('title'))
+
+    helper.eod()
+
+def list_search_shows(search_query):
+    page_data = helper.d.parse_page(page_path='search', search_query=search_query)
+
+    favorites = helper.d.get_favorites()
+    user_favorites = ",".join([str(x['id']) for x in favorites['data']['relationships']['favorites']['data']])
+
+    images = page_data['images']
+    routes = page_data['routes']
+
+    for show in page_data['data']:
         title = show['attributes']['name'].encode('utf-8')
 
+        # Find page path from routes
+        for route in routes:
+            if route['id'] == show['relationships']['routes']['data'][0]['id']:
+                next_page_path = route['attributes']['url']
+
         params = {
-            'action': 'list_seasons',
-            'show_id': show['id'],
-            'seasons': json.dumps(show['attributes']['seasonNumbers'])
-            }
+            'action': 'list_page',
+            'page_path': next_page_path
+        }
 
         info = {
             'mediatype': 'tvshow',
             'plot': show['attributes'].get('description')
         }
 
-        fanart_image = json.loads(helper.d.get_metadata(json.dumps(shows['included']), show['relationships']['images']['data'][0]['id']))['src'] if show['relationships'].get('images') else None
-        thumb_image = json.loads(helper.d.get_metadata(json.dumps(shows['included']), show['relationships']['images']['data'][-1]['id']))['src'] if show['relationships'].get('images') else None
+        # Add or delete favorite context menu
+        if str(show['id']) not in user_favorites:
+            menu = []
+            menu.append((helper.language(30009),
+                         'RunPlugin(plugin://' + helper.addon_name + '/?action=add_favorite&show_id=' + str(
+                             show['id']) + ')',))
+        else:
+            menu = []
+            menu.append((helper.language(30010),
+                         'RunPlugin(plugin://' + helper.addon_name + '/?action=delete_favorite&show_id=' + str(
+                             show['id']) + ')',))
+
+        if show['relationships'].get('images'):
+            for i in images:
+                if i['id'] == show['relationships']['images']['data'][0]['id']:
+                    fanart_image = i['attributes']['src']
+                if i['id'] == show['relationships']['images']['data'][-1]['id']:
+                    thumb_image = i['attributes']['src']
+        else:
+            fanart_image = None
+            thumb_image = None
 
         show_art = {
             'fanart': fanart_image,
             'thumb': thumb_image
-            }
+        }
 
         if show['relationships'].get('images'):
-            show_art['clearlogo'] = thumb_image if len(show['relationships']['images']['data']) == 2 else None
+            show_art['clearlogo'] = thumb_image if len(
+                show['relationships']['images']['data']) == 2 else None
 
-        helper.add_item(title, params, info=info, art=show_art, content='tvshows')
+        helper.add_item(title, params, info=info, art=show_art, content='tvshows', menu=menu)
     helper.eod()
 
 def list_favorites():
-    favorites = helper.d.get_favorites()
+    page_data = helper.d.parse_page('favorites')
 
-    for favorite in favorites['data']['relationships']['favorites']['data']:
-        show_id = favorite['id']
+    images = page_data['images']
+    shows = page_data['shows']
+    routes = page_data['routes']
 
-        for show_data in favorites['included']:
-            if show_data['id'] == show_id:
-                if show_data['attributes'].get('name'):  # parse content
+    for favorite in page_data['data']['relationships']['favorites']['data']:
+        for show_data in shows:
+            if show_data['id'] == favorite['id']:
 
-                    title = show_data['attributes']['name'].encode('utf-8')
+                title = show_data['attributes']['name'].encode('utf-8')
 
-                    params = {
-                        'action': 'list_seasons',
-                        'show_id': show_data['id'],
-                        'seasons': json.dumps(show_data['attributes']['seasonNumbers'])
-                    }
+                # Find page path from routes
+                for route in routes:
+                    if route['id'] == show_data['relationships']['routes']['data'][0]['id']:
+                        next_page_path = route['attributes']['url']
 
-                    info = {
-                        'mediatype': 'tvshow',
-                        'plot': show_data['attributes'].get('description')
-                    }
+                params = {
+                    'action': 'list_page',
+                    'page_path': next_page_path
+                }
 
-                    fanart_image = json.loads(helper.d.get_metadata(json.dumps(favorites['included']),
-                                                                show_data['relationships']['images']['data'][
-                                                                    0]['id']))['src'] if show_data[
-                        'relationships'].get('images') else None
-                    thumb_image = json.loads(helper.d.get_metadata(json.dumps(favorites['included']),
-                                                               show_data['relationships']['images']['data'][
-                                                                   -1]['id']))['src'] if show_data[
-                        'relationships'].get('images') else None
 
-                    show_art = {
-                        'fanart': fanart_image,
-                        'thumb': thumb_image
-                    }
+                info = {
+                    'mediatype': 'tvshow',
+                    'plot': show_data['attributes'].get('description')
+                }
 
-                    if show_data['relationships'].get('images'):
-                        show_art['clearlogo'] = thumb_image if len(
-                            show_data['relationships']['images']['data']) == 2 else None
+                menu = []
+                menu.append((helper.language(30010),
+                             'RunPlugin(plugin://' + helper.addon_name + '/?action=delete_favorite&show_id=' + str(
+                                 favorite['id']) + ')',))
 
-                    helper.add_item(title, params, info=info, art=show_art, content='tvshows')
+                if show_data['relationships'].get('images'):
+                    for i in images:
+                        if i['id'] == show_data['relationships']['images']['data'][0]['id']:
+                            fanart_image = i['attributes']['src']
+                        if i['id'] == show_data['relationships']['images']['data'][-1]['id']:
+                            thumb_image = i['attributes']['src']
+                else:
+                    fanart_image = None
+                    thumb_image = None
+
+                show_art = {
+                    'fanart': fanart_image,
+                    'thumb': thumb_image
+                }
+
+                if show_data['relationships'].get('images'):
+                    show_art['clearlogo'] = thumb_image if len(
+                        show_data['relationships']['images']['data']) == 2 else None
+
+                helper.add_item(title, params, info=info, art=show_art, content='tvshows', menu=menu, folder_name=helper.language(30016))
 
     helper.eod()
 
-def list_alphabet():
-    alpha = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'Å', 'Ä', 'Ö', '#']
+def list_videos(collection_id, mandatoryParams, parameter=None):
+    if parameter:
+        page_data = helper.d.parse_page(collection_id=collection_id, mandatoryParams=mandatoryParams, parameter=parameter)
+    else:
+        page_data = helper.d.parse_page(collection_id=collection_id, mandatoryParams=mandatoryParams)
 
-    for letter in alpha:
+    # First get all metadata
+    images = page_data['images']
+    collectionItems = page_data['collectionItems']
+    shows = page_data['shows']
+    videos = page_data['videos']
+    genres = page_data['genres']
+    channels = page_data['channels']
 
-        params = {
-            'action': 'list_shows',
-            'letter': letter
-        }
+    # Get order of episodes from page_data['data']
+    for collection in page_data['data']['relationships']['items']['data']:
+        for collectionItem in collectionItems:
+            # Match collectionItem id's from collection listing to all collectionItems in data
+            if collection['id'] == collectionItem['id']:
+                for video in videos:
+                    # Match collectionItem's video id to all video id's in data
+                    if collectionItem['relationships']['video']['data']['id'] == video['id']:
+                        attributes = video['attributes']
+                        relationships = video['relationships']
 
-        helper.add_item(letter, params=params)
-    helper.eod()
+                        # Dplay+ content check
+                        # If first package is Registered show has been or is available for free
+                        if attributes['availabilityWindows'][0][
+                            'package'] == 'Registered':
+                            # Check if there is ending time for free availability
+                            if attributes['availabilityWindows'][0].get('playableEnd'):
+                                # Check if show is still available for free
+                                if helper.d.parse_datetime(
+                                        attributes['availabilityWindows'][0][
+                                            'playableStart']) < helper.d.get_current_time() < helper.d.parse_datetime(
+                                    attributes['availabilityWindows'][0]['playableEnd']):
 
-# There has to be better way to do this!
-def list_collection_shows(collection_data):
-    collections = helper.d.get_homepage()
+                                    dplayplus = False  # Show is still available for free
+                                else:  # Show is not anymore available for free
+                                    dplayplus = True
+                            else:  # No ending time for free availability
+                                dplayplus = False
+                        else:
+                            dplayplus = True  # Dplay+ subscription is needed
 
-    # List all collectionsItem id's in collection_data
-    for collection in json.loads(collection_data):
-        # Get frontpage data
-        for collectionItem in collections['included']:
-            # Match collectionItem id's to get actual show id
-            if collectionItem['id'] == collection['id']:
-                # Is it show or video?
-                if collectionItem['relationships'].get('show'):
-                    show_id = collectionItem['relationships']['show']['data']['id']
+                        if dplayplus == True:
+                            list_title = attributes.get('name').lstrip() + ' [Dplay+]'
+                        else:
+                            list_title = attributes.get('name').lstrip()
 
-                    for show_data in collections['included']:
-                        if show_data['id'] == show_id:
-                            if show_data['attributes'].get('name'): # parse content
+                        params = {
+                            'action': 'play',
+                            'video_id': video['id'],
+                            'video_type': 'video'
+                        }
 
-                                title = show_data['attributes']['name'].encode('utf-8')
+                        for s in shows:
+                            if s['id'] == relationships['show']['data']['id']:
+                                show_title = s['attributes']['name']
 
-                                params = {
-                                    'action': 'list_seasons',
-                                    'show_id': show_data['id'],
-                                    'seasons': json.dumps(show_data['attributes']['seasonNumbers'])
-                                }
+                        g = []
+                        if relationships.get('genres'):
+                            for genre in genres:
+                                for video_genre in relationships['genres']['data']:
+                                    if genre['id'] == video_genre['id']:
+                                        g.append(genre['attributes']['name'])
 
-                                info = {
-                                    'mediatype': 'tvshow',
-                                    'plot': show_data['attributes'].get('description')
-                                }
+                        if relationships.get('primaryChannel'):
+                            for channel in channels:
+                                if channel['id'] == relationships['primaryChannel']['data']['id']:
+                                    primaryChannel = channel['attributes']['name']
+                        else:
+                            primaryChannel = None
 
-                                fanart_image = json.loads(helper.d.get_metadata(json.dumps(collections['included']),
-                                                                                show_data['relationships']['images']['data'][
-                                                                                    0]['id']))['src'] if show_data[
-                                    'relationships'].get('images') else None
-                                thumb_image = json.loads(helper.d.get_metadata(json.dumps(collections['included']),
-                                                                               show_data['relationships']['images']['data'][
-                                                                                   -1]['id']))['src'] if show_data[
-                                    'relationships'].get('images') else None
+                        if relationships.get('images'):
+                            for i in images:
+                                if i['id'] == relationships['images']['data'][0]['id']:
+                                    fanart_image = i['attributes']['src']
+                        else:
+                            fanart_image = None
 
-                                show_art = {
-                                    'fanart': fanart_image,
-                                    'thumb': thumb_image
-                                }
+                        duration = attributes['videoDuration'] / 1000.0 if attributes.get('videoDuration') else None
 
-                                if show_data['relationships'].get('images'):
-                                    show_art['clearlogo'] = thumb_image if len(
-                                        show_data['relationships']['images']['data']) == 2 else None
-
-                                helper.add_item(title, params, info=info, art=show_art, content='tvshows')
-
-                else: # Is video
-                    video_id = collectionItem['relationships']['video']['data']['id']
-
-                    for video_data in collections['included']:
-                        if video_data['id'] == video_id:
-
-                            # Dplay+ content check
-                            # If first package is Registered show has been or is available for free
-                            if video_data['attributes']['availabilityWindows'][0]['package'] == 'Registered':
-                                # Check if there is ending time for free availability
-                                if video_data['attributes']['availabilityWindows'][0].get('playableEnd'):
-                                    # Check if show is still available for free
-                                    if helper.d.parse_datetime(video_data['attributes']['availabilityWindows'][0][
-                                                                   'playableStart']) < helper.d.get_current_time() < helper.d.parse_datetime(
-                                        video_data['attributes']['availabilityWindows'][0]['playableEnd']):
-
-                                        dplayplus = False  # Show is still available for free
-                                    else:  # Show is not anymore available for free
-                                        dplayplus = True
-                                else:  # No ending time for free availability
-                                    dplayplus = False
+                        # If episode is not yet playable, show playable time in plot
+                        if attributes.get('earliestPlayableStart'):
+                            if helper.d.parse_datetime(attributes['earliestPlayableStart']) > helper.d.get_current_time():
+                                playable = str(helper.d.parse_datetime(attributes['earliestPlayableStart']).strftime('%d.%m.%Y %H:%M'))
+                                if attributes.get('description'):
+                                    plot = helper.language(30002) + playable + ' ' + attributes.get('description')
+                                else:
+                                    plot = helper.language(30002) + playable
                             else:
-                                dplayplus = True  # Dplay+ subscription is needed
+                                plot = attributes.get('description')
 
-                            if dplayplus == True:
-                                list_title = video_data['attributes'].get('name').lstrip() + ' [Dplay+]'
-                            else:
-                                list_title = video_data['attributes'].get('name').lstrip()
+                        episode_info = {
+                            'mediatype': 'episode',
+                            'title': attributes.get('name').lstrip(),
+                            'tvshowtitle': show_title,
+                            'season': attributes.get('seasonNumber'),
+                            'episode': attributes.get('episodeNumber'),
+                            'plot': plot,
+                            'genre': g,
+                            'studio': primaryChannel,
+                            'duration': duration,
+                            'aired': attributes.get('airDate')
+                        }
 
-                            params = {
-                                'action': 'play',
-                                'video_id': video_data['id'],
-                                'video_type': 'video'
-                            }
-
-                            show_title = json.loads(helper.d.get_metadata(json.dumps(collections['included']), video_data['relationships']['show']['data']['id']))['name']
-
-                            fanart_image = json.loads(helper.d.get_metadata(json.dumps(collections['included']),
-                                                                            video_data['relationships']['images']['data'][0][
-                                                                                'id']))['src'] if video_data[
-                                'relationships'].get('images') else None
-
-                            duration = video_data['attributes']['videoDuration'] / 1000.0 if video_data['attributes'].get(
-                                'videoDuration') else None
-
-                            episode_info = {
-                                'mediatype': 'episode',
-                                'title': video_data['attributes'].get('name').lstrip(),
-                                'tvshowtitle': show_title,
-                                'season': video_data['attributes'].get('seasonNumber'),
-                                'episode': video_data['attributes'].get('episodeNumber'),
-                                'plot': video_data['attributes'].get('description'),
-                                'duration': duration,
-                                'aired': video_data['attributes'].get('airDate')
-                            }
-
-                            # Watched status from Dplay
-                            if video_data['attributes']['viewingHistory']['viewed']:
-                                if video_data['attributes']['viewingHistory']['completed']: # Watched video
-                                    episode_info['playcount'] = 1
-                                    resume = 0
-                                    total = duration
-                                else: # Partly watched video
-                                    resume = video_data['attributes']['viewingHistory']['position'] / 1000.0
-                                    total = duration
-                            else: # Unwatched video
-                                episode_info['playcount'] = 0
+                        # Watched status from Dplay
+                        if attributes['viewingHistory']['viewed']:
+                            if attributes['viewingHistory']['completed']:  # Watched video
+                                episode_info['playcount'] = '1'
                                 resume = 0
-                                total = 1
+                                total = duration
+                            else:  # Partly watched video
+                                episode_info['playcount'] = '0'
+                                resume = attributes['viewingHistory']['position'] / 1000.0
+                                total = duration
+                        else:  # Unwatched video
+                            episode_info['playcount'] = '0'
+                            resume = 0
+                            total = 1
 
-                            episode_art = {
-                                'fanart': fanart_image,
-                                'thumb': fanart_image
-                            }
+                        episode_art = {
+                            'fanart': fanart_image,
+                            'thumb': fanart_image
+                        }
 
-                            helper.add_item(list_title, params=params, info=episode_info, art=episode_art,
-                                            content='episodes', playable=True, resume=resume, total=total)
+                        # parameter = list season
+                        if parameter:
+                            folder_name = show_title + ' / ' + helper.language(30011) + ' ' + str(attributes.get('seasonNumber'))
+                        else:
+                            folder_name = show_title
 
-
-    helper.eod()
-
-def list_seasons(show_id, seasons):
-    for season in json.loads(seasons):
-
-        title = helper.language(30011) + ' ' + str(season)
-        params = {
-            'action': 'list_videos',
-            'show_id': show_id,
-            'season_number': season
-        }
-
-        info = {
-            'mediatype': 'season'
-        }
-
-        helper.add_item(title, params, info=info, content='seasons')
-    helper.eod()
-
-def list_videos(show_id, season_number):
-    videos = helper.d.get_videos(show_id, season_number)
-
-    for i in videos['data']:
-
-        # Dplay+ content check
-        # If first package is Registered show has been or is available for free
-        if i['attributes']['availabilityWindows'][0]['package'] == 'Registered':
-            # Check if there is ending time for free availability
-            if i['attributes']['availabilityWindows'][0].get('playableEnd'):
-                # Check if show is still available for free
-                if helper.d.parse_datetime(i['attributes']['availabilityWindows'][0][
-                                               'playableStart']) < helper.d.get_current_time() < helper.d.parse_datetime(
-                        i['attributes']['availabilityWindows'][0]['playableEnd']):
-
-                    dplayplus = False # Show is still available for free
-                else: # Show is not anymore available for free
-                    dplayplus = True
-            else: # No ending time for free availability
-                dplayplus = False
-        else:
-            dplayplus = True # Dplay+ subscription is needed
-
-
-        if dplayplus == True:
-            list_title = i['attributes'].get('name').lstrip() + ' [Dplay+]'
-        else:
-            list_title = i['attributes'].get('name').lstrip()
-
-        params = {
-            'action': 'play',
-            'video_id': i['id'],
-            'video_type': 'video'
-        }
-
-        show_title = json.loads(helper.d.get_metadata(json.dumps(videos['included']),
-                                                      i['relationships']['show']['data']['id']))['name']
-
-        fanart_image = json.loads(
-            helper.d.get_metadata(json.dumps(videos['included']), i['relationships']['images']['data'][0]['id']))[
-            'src'] if i['relationships'].get('images') else None
-
-        duration = i['attributes']['videoDuration']/1000.0 if i['attributes'].get('videoDuration') else None
-
-        episode_info = {
-            'mediatype': 'episode',
-            'title': i['attributes'].get('name').lstrip(),
-            'tvshowtitle': show_title,
-            'season': i['attributes'].get('seasonNumber'),
-            'episode': i['attributes'].get('episodeNumber'),
-            'plot': i['attributes'].get('description'),
-            'duration': duration,
-            'aired': i['attributes'].get('airDate')
-        }
-
-        # Watched status from Dplay
-        if i['attributes']['viewingHistory']['viewed']:
-            if i['attributes']['viewingHistory']['completed']: # Watched video
-                episode_info['playcount'] = 1
-                resume = 0
-                total = duration
-            else: # Partly watched video
-                resume = i['attributes']['viewingHistory']['position']/1000.0
-                total = duration
-        else: # Unwatched video
-            episode_info['playcount'] = 0
-            resume = 0
-            total = 1
-
-        episode_art = {
-            'fanart': fanart_image,
-            'thumb': fanart_image
-        }
-
-        helper.add_item(list_title, params=params, info=episode_info, art=episode_art, content='episodes', playable=True,
-                    resume=resume, total=total)
+                        helper.add_item(list_title, params=params, info=episode_info, art=episode_art,
+                                        content='episodes', playable=True, resume=resume, total=total, folder_name=folder_name)
 
     helper.eod()
-
-def list_channels():
-    channels = helper.d.get_channels()
-
-    for i in channels['included']:
-        if i['type'] == 'channel':
-            params = {
-                'action': 'list_channel_shows',
-                'channel_id': i['id']
-            }
-
-            channel_info = {
-                'mediatype': 'tvshow',
-                'title': i['attributes'].get('name'),
-                'plot': i['attributes'].get('description')
-            }
-
-            fanart_image = json.loads(
-                helper.d.get_metadata(json.dumps(channels['included']), i['relationships']['images']['data'][0]['id']))[
-                'src'] if i['relationships'].get('images') else None
-            thumb_image = json.loads(helper.d.get_metadata(json.dumps(channels['included']),
-                                                           i['relationships']['images']['data'][1]['id']))['src'] if \
-            i['relationships'].get('images') else None
-
-            channel_art = {
-                'fanart': fanart_image,
-                'thumb': thumb_image
-            }
-
-            helper.add_item(i['attributes'].get('name'), params=params, info=channel_info, art=channel_art)
-    helper.eod()
-
-def list_channel_shows(channel_id):
-    shows = helper.d.get_channel_shows(channel_id)
-
-    for i in shows['included']:
-        # List channel livestream if available
-        if i['type'] == 'channel' and i['id'] == channel_id and i['attributes']['hasLiveStream']:
-            params = {
-                'action': 'play',
-                'video_id': i['id'],
-                'video_type': 'channel'
-            }
-
-            channel_info = {
-                'mediatype': 'video',
-                'title': i['attributes'].get('name'),
-                'plot': i['attributes'].get('description')
-            }
-
-            fanart_image = json.loads(helper.d.get_metadata(json.dumps(shows['included']), i['relationships']['images']['data'][0]['id']))['src'] if i['relationships'].get('images') else None
-            thumb_image = json.loads(helper.d.get_metadata(json.dumps(shows['included']),
-                                                           i['relationships']['images']['data'][1]['id']))['src'] if \
-            i['relationships'].get('images') else None
-
-            channel_art = {
-                'fanart': fanart_image,
-                'thumb': thumb_image
-            }
-
-            if i['relationships'].get('images'):
-                channel_art['clearlogo'] = thumb_image if len(i['relationships']['images']['data']) >= 2 else None
-
-            helper.add_item(i['attributes'].get('name'), params=params, info=channel_info, art=channel_art, playable=True)
-
-        # Channel shows
-        if i['type'] == 'show':
-
-            title = i['attributes']['name'].encode('utf-8')
-
-            params = {
-                'action': 'list_seasons',
-                'show_id': i['id'],
-                'seasons': json.dumps(i['attributes']['seasonNumbers'])
-            }
-
-            info = {
-                'mediatype': 'tvshow',
-                'plot': i['attributes'].get('description')
-            }
-
-            fanart_image = json.loads(
-                helper.d.get_metadata(json.dumps(shows['included']), i['relationships']['images']['data'][0]['id']))[
-                'src'] if i['relationships'].get('images') else None
-            thumb_image = json.loads(helper.d.get_metadata(json.dumps(shows['included']),
-                                                           i['relationships']['images']['data'][-1]['id']))['src'] if \
-            i['relationships'].get('images') else None
-
-            show_art = {
-                'fanart': fanart_image,
-                'thumb': thumb_image,
-            }
-
-            if i['relationships'].get('images'):
-                show_art['clearlogo'] = thumb_image if len(i['relationships']['images']['data']) == 2 else None
-
-            helper.add_item(title, params, info=info, art=show_art, content='tvshows')
-    helper.eod()
-
 
 def search():
     search_query = helper.get_user_input(helper.language(30007))
     if search_query:
-        list_shows(search_query=search_query)
+        list_search_shows(search_query)
     else:
         helper.log('No search query provided.')
         return False
@@ -484,27 +835,17 @@ def router(paramstring):
         if params['setting'] == 'set_locale':
             helper.set_locale()
     elif 'action' in params:
-        if params['action'] == 'list_show_categories':
-            list_show_categories()
-        elif params['action'] == 'list_shows':
-            if 'letter' in params:
-                list_shows(letter=params['letter'])
-            else:
-                list_shows()
+        if params['action'] == 'list_page':
+            list_page(page_path=params['page_path'])
         elif params['action'] == 'list_favorites':
             list_favorites()
-        elif params['action'] == 'list_alphabet':
-            list_alphabet()
-        elif params['action'] == 'list_collection_shows':
-            list_collection_shows(collection_data=params['collection_data'])
-        elif params['action'] == 'list_channels':
-            list_channels()
-        elif params['action'] == 'list_channel_shows':
-            list_channel_shows(channel_id=params['channel_id'])
-        elif params['action'] == 'list_seasons':
-            list_seasons(show_id=params['show_id'], seasons=params['seasons'])
+        elif params['action'] == 'list_collection_items':
+            list_collection_items(page_path=params['page_path'], collection_id=params['collection_id'])
         elif params['action'] == 'list_videos':
-            list_videos(show_id=params['show_id'], season_number=params['season_number'])
+            if params.get('parameter'):
+                list_videos(collection_id=params['collection_id'], mandatoryParams=params['mandatoryParams'], parameter=params['parameter'])
+            else:
+                list_videos(collection_id=params['collection_id'], mandatoryParams=params['mandatoryParams'])
         elif params['action'] == 'play':
             # Play a video from a provided URL.
             helper.play_item(params['video_id'], params['video_type'])
@@ -512,6 +853,13 @@ def router(paramstring):
             helper.play_upnext(next_video_id=params['next_video_id'])
         elif params['action'] == 'search':
             search()
+        elif params['action'] == 'add_favorite':
+            helper.d.add_or_delete_favorite(method='post', show_id=params['show_id'])
+            helper.refresh_list()
+        elif params['action'] == 'delete_favorite':
+            helper.d.add_or_delete_favorite(method='delete',show_id=params['show_id'])
+            helper.refresh_list()
+
     else:
         try:
             if helper.check_for_prerequisites():

@@ -15,8 +15,6 @@ import xbmcplugin
 from xbmcaddon import Addon
 import inputstreamhelper
 from base64 import b64encode
-import time
-from datetime import datetime, timedelta
 
 class KodiHelper(object):
     def __init__(self, base_url=None, handle=None):
@@ -102,7 +100,7 @@ class KodiHelper(object):
 
         return True
 
-    def add_item(self, title, params, items=False, folder=True, playable=False, info=None, art=None, content=False, menu=None, resume=None, total=None):
+    def add_item(self, title, params, items=False, folder=True, playable=False, info=None, art=None, content=False, menu=None, resume=None, total=None, folder_name=None):
         addon = self.get_addon()
         listitem = xbmcgui.ListItem(label=title)
 
@@ -126,6 +124,8 @@ class KodiHelper(object):
             xbmcplugin.setContent(self.handle, content)
         if menu:
             listitem.addContextMenuItems(menu)
+        if folder_name:
+            xbmcplugin.setPluginCategory(self.handle, folder_name)
 
         recursive_url = self.base_url + '?' + urllib.urlencode(params)
 
@@ -138,6 +138,10 @@ class KodiHelper(object):
     def eod(self):
         """Tell Kodi that the end of the directory listing is reached."""
         xbmcplugin.endOfDirectory(self.handle)
+
+    def refresh_list(self):
+        """Refresh listing after adding or deleting favorites"""
+        return xbmc.executebuiltin('Container.Refresh')
 
     # Up Next integration
     def upnext_signal(self, sender, next_info):
@@ -186,12 +190,6 @@ class KodiHelper(object):
         xbmc.executebuiltin('PlayMedia({})'.format(media))
     # End of Up next integration
 
-    def parse_datetime(self, date):
-        """Parse date string to datetime object."""
-        date_time_format = '%Y-%m-%dT%H:%M:%SZ'
-        datetime_obj = datetime(*(time.strptime(date, date_time_format)[0:6]))
-        return datetime_obj
-
     def play_item(self, video_id, video_type):
         try:
             stream = self.d.get_stream(video_id, video_type)
@@ -204,29 +202,35 @@ class KodiHelper(object):
                 playitem.setSubtitles(self.d.get_subtitles(stream['hls_url']))
 
                 # Get current episode info
-                current_ep = self.d.get_current_episode_info(video_id)
+                current_episode = self.d.parse_page(video_id=video_id)
 
-                show_title = json.loads(self.d.get_metadata(json.dumps(current_ep['included']),
-                                                                   current_ep['data']['relationships']['show']['data'][
-                                                                       'id']))['name']
+                images = current_episode['images']
+                shows = current_episode['shows']
 
-                fanart_image = json.loads(self.d.get_metadata(json.dumps(current_ep['included']),
-                                                                     current_ep['data']['relationships']['images'][
-                                                                         'data'][0]['id']))['src'] if \
-                current_ep['data']['relationships'].get('images') else None
+                for s in shows:
+                    if s['id'] == current_episode['data']['relationships']['show']['data']['id']:
+                        show_title = s['attributes']['name']
 
-                duration = current_ep['data']['attributes']['videoDuration'] / 1000.0 if current_ep['data'][
+                if current_episode['data']['relationships'].get('images'):
+                    for i in images:
+                        if i['id'] == current_episode['data']['relationships']['images']['data'][0]['id']:
+                            fanart_image = i['attributes']['src']
+                else:
+                    fanart_image = None
+
+
+                duration = current_episode['data']['attributes']['videoDuration'] / 1000.0 if current_episode['data'][
                     'attributes'].get('videoDuration') else None
 
                 info = {
                     'mediatype': 'episode',
-                    'title': current_ep['data']['attributes'].get('name').lstrip(),
+                    'title': current_episode['data']['attributes'].get('name').lstrip(),
                     'tvshowtitle': show_title,
-                    'season': current_ep['data']['attributes'].get('seasonNumber'),
-                    'episode': current_ep['data']['attributes'].get('episodeNumber'),
-                    'plot': current_ep['data']['attributes'].get('description'),
+                    'season': current_episode['data']['attributes'].get('seasonNumber'),
+                    'episode': current_episode['data']['attributes'].get('episodeNumber'),
+                    'plot': current_episode['data']['attributes'].get('description'),
                     'duration': duration,
-                    'aired': current_ep['data']['attributes'].get('airDate')
+                    'aired': current_episode['data']['attributes'].get('airDate')
                 }
 
                 playitem.setInfo('video', info)
@@ -237,15 +241,6 @@ class KodiHelper(object):
                 }
 
                 playitem.setArt(art)
-
-                if current_ep['data']['attributes']['viewingHistory'].get('position'):
-                    position = current_ep['data']['attributes']['viewingHistory']['position']
-                else:
-                    position = 0
-
-                resume = position / 1000.0
-                playitem.setProperty("ResumeTime", str(resume))
-                playitem.setProperty("TotalTime", str(duration))
 
             elif video_type == 'channel':
                 is_helper = inputstreamhelper.Helper('mpd', drm='com.widevine.alpha')
@@ -293,68 +288,73 @@ class DplayPlayer(xbmc.Player):
 
     def onPlayBackStarted(self):
         self.helper.log('Getting next episode info')
-        next_ep = self.helper.d.get_next_episode_info(self.video_id)
+        next_episode = self.helper.d.parse_page(current_video_id=self.video_id)
 
-        if next_ep['meta']['totalPages'] == 1:
-            self.helper.log('Next episode name: ' + next_ep['data'][0]['attributes'].get('name').encode('utf-8').lstrip())
-
-            next_show_title = json.loads(self.helper.d.get_metadata(json.dumps(next_ep['included']),
-                                                                    next_ep['data'][0]['relationships']['show']['data'][
-                                                                        'id']))['name']
-
-            next_fanart_image = json.loads(self.helper.d.get_metadata(json.dumps(next_ep['included']),
-                                                                      next_ep['data'][0]['relationships']['images'][
-                                                                          'data'][0]['id']))['src'] if \
-            next_ep['data'][0]['relationships'].get('images') else None
-
+        if next_episode.get('data'):
             self.helper.log('Current episode name: ' + self.current_episode_info['title'].encode('utf-8'))
+            self.helper.log('Next episode name: ' + next_episode['data'][0]['attributes'].get('name').encode('utf-8').lstrip())
 
-            current_episode = {}
-            current_episode["episodeid"] = self.video_id
-            current_episode["tvshowid"] = ''
-            current_episode["title"] = self.current_episode_info['title']
-            current_episode["art"] = {}
-            current_episode["art"]["tvshow.poster"] = ''
-            current_episode["art"]["thumb"] = self.current_episode_art['thumb']
-            current_episode["art"]["tvshow.fanart"] = self.current_episode_art['fanart']
-            current_episode["art"]["tvshow.landscape"] = ''
-            current_episode["art"]["tvshow.clearart"] = ''
-            current_episode["art"]["tvshow.clearlogo"] = ''
-            current_episode["plot"] = self.current_episode_info['title']
-            current_episode["showtitle"] = self.current_episode_info['tvshowtitle']
-            current_episode["playcount"] = ''
-            current_episode["season"] = self.current_episode_info['season']
-            current_episode["episode"] = self.current_episode_info['episode']
-            current_episode["rating"] = None
-            current_episode["firstaired"] = self.helper.parse_datetime(self.current_episode_info['aired']).strftime('%d.%m.%Y')
-            current_episode["runtime"] = self.current_episode_info['duration']
+            images = next_episode['images']
+            shows = next_episode['shows']
 
-            next_episode = {}
-            next_episode["episodeid"] = next_ep['data'][0]['id']
-            next_episode["tvshowid"] = ''
-            next_episode["title"] = next_ep['data'][0]['attributes'].get('name').lstrip()
-            next_episode["art"] = {}
-            next_episode["art"]["tvshow.poster"] = ''
-            next_episode["art"]["thumb"] = next_fanart_image
-            next_episode["art"]["tvshow.fanart"] = next_fanart_image
-            next_episode["art"]["tvshow.landscape"] = ''
-            next_episode["art"]["tvshow.clearart"] = ''
-            next_episode["art"]["tvshow.clearlogo"] = ''
-            next_episode["plot"] = next_ep['data'][0]['attributes'].get('description')
-            next_episode["showtitle"] = next_show_title
-            next_episode["playcount"] = ''
-            next_episode["season"] = next_ep['data'][0]['attributes'].get('seasonNumber')
-            next_episode["episode"] = next_ep['data'][0]['attributes'].get('episodeNumber')
-            next_episode["rating"] = None
-            next_episode["firstaired"] = self.helper.parse_datetime(next_ep['data'][0]['attributes'].get('airDate')).strftime('%d.%m.%Y')
-            next_episode["runtime"] = next_ep['data'][0]['attributes'].get('videoDuration') / 1000.0
+            for s in shows:
+                if s['id'] == next_episode['data'][0]['relationships']['show']['data']['id']:
+                    next_episode_show_title = s['attributes']['name']
 
-            next_info = {
-                'current_episode': current_episode,
-                'next_episode': next_episode,
-                'play_url': 'plugin://' + self.helper.addon_name + '/?action=play_upnext&next_video_id=' + next_ep['data'][0]['id'],
-                'notification_time': ''
-            }
+            if next_episode['data'][0]['relationships'].get('images'):
+                for i in images:
+                    if i['id'] == next_episode['data'][0]['relationships']['images']['data'][0]['id']:
+                        next_episode_fanart_image = i['attributes']['src']
+            else:
+                next_episode_fanart_image = None
+
+            next_info = dict(
+                current_episode=dict(
+                    episodeid=self.video_id,
+                    tvshowid='',
+                    title=self.current_episode_info['title'],
+                    art={
+                        'thumb': self.current_episode_art['thumb'],
+                        'tvshow.clearart': '',
+                        'tvshow.clearlogo': '',
+                        'tvshow.fanart': self.current_episode_art['fanart'],
+                        'tvshow.landscape': '',
+                        'tvshow.poster': '',
+                    },
+                    season=self.current_episode_info['season'],
+                    episode=self.current_episode_info['episode'],
+                    showtitle=self.current_episode_info['tvshowtitle'],
+                    plot=self.current_episode_info['title'],
+                    playcount='',
+                    rating=None,
+                    firstaired=self.helper.d.parse_datetime(self.current_episode_info['aired']).strftime('%d.%m.%Y'),
+                    runtime=self.current_episode_info['duration'],
+                ),
+                next_episode=dict(
+                    episodeid=next_episode['data'][0]['id'],
+                    tvshowid='',
+                    title=next_episode['data'][0]['attributes'].get('name').lstrip(),
+                    art={
+                        'thumb': next_episode_fanart_image,
+                        'tvshow.clearart': '',
+                        'tvshow.clearlogo': '',
+                        'tvshow.fanart': next_episode_fanart_image,
+                        'tvshow.landscape:': '',
+                        'tvshow.poster': '',
+                    },
+                    season=next_episode['data'][0]['attributes'].get('seasonNumber'),
+                    episode=next_episode['data'][0]['attributes'].get('episodeNumber'),
+                    showtitle=next_episode_show_title,
+                    plot=next_episode['data'][0]['attributes'].get('description'),
+                    playcount='',
+                    rating=None,
+                    firstaired=self.helper.d.parse_datetime(next_episode['data'][0]['attributes'].get('airDate')).strftime('%d.%m.%Y'),
+                    runtime=next_episode['data'][0]['attributes'].get('videoDuration') / 1000.0,
+                ),
+
+                play_url='plugin://' + self.helper.addon_name + '/?action=play_upnext&next_video_id=' + next_episode['data'][0]['id'],
+                notification_time='',
+            )
 
             self.helper.upnext_signal(sender=self.helper.addon_name, next_info=next_info)
 

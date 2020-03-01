@@ -18,11 +18,11 @@ msgid "General"
 msgstr ""
 
 msgctxt "#30001"
-msgid "Email"
+msgid "Frontpage"
 msgstr ""
 
 msgctxt "#30002"
-msgid "Password"
+msgid "Playable "
 msgstr ""
 
 msgctxt "#30003"
@@ -50,11 +50,11 @@ msgid "No results found for"
 msgstr ""
 
 msgctxt "#30009"
-msgid "Shows"
+msgid "Add to favorites (Dplay)"
 msgstr ""
 
 msgctxt "#30010"
-msgid "Channels"
+msgid "Delete from favorites (Dplay)"
 msgstr ""
 
 msgctxt "#30011"
@@ -70,7 +70,7 @@ msgid "Site"
 msgstr ""
 
 msgctxt "#30014"
-msgid "Most popular shows"
+msgid "Watch"
 msgstr ""
 
 msgctxt "#30015"
