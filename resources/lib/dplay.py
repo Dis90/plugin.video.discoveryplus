@@ -233,7 +233,7 @@ class Dplay(object):
                 collections.append({
                     'id': p['id'],
                     'attributes': p['attributes'],
-                    'relationships': p['relationships']
+                    'relationships': p.get('relationships')
                 })
 
             # CollectionItems

@@ -157,8 +157,8 @@ def list_page(page_path=None):
                                 if pageItem['relationships']['collection']['data']['id'] == collection['id']:
 
                                     # Homepage, Channel -> New videos, Shows.
-                                    # Hide promotion grids.
-                                    if collection['attributes']['component']['id'] == 'content-grid':
+                                    # Hide promotion grids and hide empty grids (example upcoming events when there is no upcoming events).
+                                    if collection['attributes']['component']['id'] == 'content-grid' and collection.get('relationships'):
                                         params = {
                                             'action': 'list_collection_items',
                                             'page_path': page_path,
@@ -564,6 +564,7 @@ def list_search_shows(search_query):
 
     images = page_data['images']
     routes = page_data['routes']
+    genres = page_data['genres']
 
     for show in page_data['data']:
         title = show['attributes']['name'].encode('utf-8')
@@ -578,9 +579,17 @@ def list_search_shows(search_query):
             'page_path': next_page_path
         }
 
+        g = []
+        if show['relationships'].get('genres'):
+            for genre in genres:
+                for show_genre in show['relationships']['genres']['data']:
+                    if genre['id'] == show_genre['id']:
+                        g.append(genre['attributes']['name'])
+
         info = {
             'mediatype': 'tvshow',
-            'plot': show['attributes'].get('description')
+            'plot': show['attributes'].get('description'),
+            'genre': g
         }
 
         # Add or delete favorite context menu
@@ -623,6 +632,8 @@ def list_favorites():
     images = page_data['images']
     shows = page_data['shows']
     routes = page_data['routes']
+    genres = page_data['genres']
+    channels = page_data['channels']
 
     for favorite in page_data['data']['relationships']['favorites']['data']:
         for show_data in shows:
@@ -640,10 +651,25 @@ def list_favorites():
                     'page_path': next_page_path
                 }
 
+                g = []
+                if show_data['relationships'].get('genres'):
+                    for genre in genres:
+                        for show_genre in show_data['relationships']['genres']['data']:
+                            if genre['id'] == show_genre['id']:
+                                g.append(genre['attributes']['name'])
+
+                if show_data['relationships'].get('primaryChannel'):
+                    for channel in channels:
+                        if channel['id'] == show_data['relationships']['primaryChannel']['data']['id']:
+                            primaryChannel = channel['attributes']['name']
+                else:
+                    primaryChannel = None
 
                 info = {
                     'mediatype': 'tvshow',
-                    'plot': show_data['attributes'].get('description')
+                    'plot': show_data['attributes'].get('description'),
+                    'genre': g,
+                    'studio': primaryChannel
                 }
 
                 menu = []
