@@ -8,7 +8,8 @@ import json
 import codecs
 import cookielib
 import time
-from datetime import datetime
+import calendar
+from datetime import datetime, timedelta
 from pycaption import WebVTTReader, SRTWriter
 
 import requests
@@ -448,8 +449,15 @@ class Dplay(object):
         date_time_format = '%Y-%m-%dT%H:%M:%SZ'
         datetime_obj = datetime(*(time.strptime(date, date_time_format)[0:6]))
 
-        return datetime_obj
+        return self.utc_to_local(datetime_obj)
 
     def get_current_time(self):
         """Return the current local time."""
         return datetime.now()
+
+    def utc_to_local(self, utc_dt):
+        # get integer timestamp to avoid precision lost
+        timestamp = calendar.timegm(utc_dt.timetuple())
+        local_dt = datetime.fromtimestamp(timestamp)
+        assert utc_dt.resolution >= timedelta(microseconds=1)
+        return local_dt.replace(microsecond=utc_dt.microsecond)
