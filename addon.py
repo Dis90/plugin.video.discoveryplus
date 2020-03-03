@@ -176,19 +176,21 @@ def list_page(page_path=None):
 
                                     # List series season grid
                                     if collection['attributes']['component']['id'] == 'tabbed-content':
-                                        for option in collection['attributes']['component']['filters'][0]['options']:
-                                            title = helper.language(30011) + ' ' + str(option['id'])
-                                            params = {
-                                                'action': 'list_videos',
-                                                'collection_id': collection['id'],# 66290614510668341673562607828298581172
-                                                'mandatoryParams': collection['attributes']['component'][
-                                                    'mandatoryParams'],  # pf[show.id]=12423
-                                                'parameter': option['parameter']  # pf[seasonNumber]=1
-                                            }
+                                        # Check if there's any seasons of show or sport event
+                                        if collection['attributes']['component'].get('filters'):
+                                            for option in collection['attributes']['component']['filters'][0]['options']:
+                                                title = helper.language(30011) + ' ' + str(option['id'])
+                                                params = {
+                                                    'action': 'list_videos',
+                                                    'collection_id': collection['id'],# 66290614510668341673562607828298581172
+                                                    'mandatoryParams': collection['attributes']['component'][
+                                                        'mandatoryParams'],  # pf[show.id]=12423
+                                                    'parameter': option['parameter']  # pf[seasonNumber]=1
+                                                }
 
-                                            info = {
-                                                'mediatype': 'season'
-                                            }
+                                                info = {
+                                                    'mediatype': 'season'
+                                             }
 
                                             helper.add_item(title, params, info=info, content='tvshows',
                                                         folder_name=page['attributes'].get('pageMetadataTitle'))
