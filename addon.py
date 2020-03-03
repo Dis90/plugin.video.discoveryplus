@@ -29,35 +29,36 @@ def list_pages():
         if collectionItem['relationships'].get('link'):
             for link in links:
                 if collectionItem['relationships']['link']['data']['id'] == link['id'] and link['attributes'][
-                    'kind'] == 'Internal Link' and link['attributes'][
-                    'title'] not in helper.d.unwanted_menu_items:
-                    # Find page path from routes
-                    for route in routes:
-                        if route['id'] == link['relationships']['linkedContentRoutes']['data'][0]['id']:
-                            next_page_path = route['attributes']['url']
+                    'kind'] == 'Internal Link' and link['attributes'].get('title'):
+                    # Hide unwanted menu links
+                    if link['attributes']['title'] not in helper.d.unwanted_menu_items:
+                        # Find page path from routes
+                        for route in routes:
+                            if route['id'] == link['relationships']['linkedContentRoutes']['data'][0]['id']:
+                                next_page_path = route['attributes']['url']
 
-                    params = {
-                        'action': 'list_page',
-                        'page_path': next_page_path
-                    }
+                        params = {
+                            'action': 'list_page',
+                            'page_path': next_page_path
+                        }
 
-                    link_info = {
-                        'plot': link['attributes'].get('description')
-                    }
+                        link_info = {
+                            'plot': link['attributes'].get('description')
+                        }
 
-                    if link['relationships'].get('images'):
-                        for i in images:
-                            if i['id'] == link['relationships']['images']['data'][0]['id']:
-                                image = i['attributes']['src']
-                    else:
-                        image = None
+                        if link['relationships'].get('images'):
+                            for i in images:
+                                if i['id'] == link['relationships']['images']['data'][0]['id']:
+                                    image = i['attributes']['src']
+                        else:
+                            image = None
 
-                    link_art = {
-                        'fanart': image,
-                        'thumb': image
-                    }
+                        link_art = {
+                            'fanart': image,
+                            'thumb': image
+                        }
 
-                    helper.add_item(link['attributes']['title'], params, info=link_info, content='videos', art=link_art)
+                        helper.add_item(link['attributes']['title'], params, info=link_info, content='videos', art=link_art)
 
     helper.eod()
 
