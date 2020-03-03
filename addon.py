@@ -191,9 +191,9 @@ def list_page(page_path=None):
 
                                                 info = {
                                                     'mediatype': 'season'
-                                             }
+                                                }
 
-                                            helper.add_item(title, params, info=info, content='tvshows',
+                                                helper.add_item(title, params, info=info, content='tvshows',
                                                         folder_name=page['attributes'].get('pageMetadataTitle'))
 
                                     # If listing channel pages, list livestream if available
