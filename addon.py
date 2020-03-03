@@ -29,6 +29,7 @@ def list_pages():
         if collectionItem['relationships'].get('link'):
             for link in links:
                 if collectionItem['relationships']['link']['data']['id'] == link['id'] and link['attributes'][
+                    'kind'] == 'Internal Link' and link['attributes'][
                     'title'] not in helper.d.unwanted_menu_items:
                     # Find page path from routes
                     for route in routes:

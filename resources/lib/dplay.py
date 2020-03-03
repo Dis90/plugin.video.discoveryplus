@@ -287,7 +287,7 @@ class Dplay(object):
                 links.append({
                     'id': p['id'],
                     'attributes': p['attributes'],
-                    'relationships': p['relationships']
+                    'relationships': p.get('relationships')
                 })
 
             # Routes
