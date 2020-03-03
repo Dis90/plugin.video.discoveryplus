@@ -333,7 +333,7 @@ class Dplay(object):
 
         params = {
             'include': 'genres,images,primaryChannel.images,contentPackages',
-            'page[size]': 20,
+            'page[size]': 100,
             'query': search_query
         }
 
