@@ -130,7 +130,7 @@ class KodiHelper(object):
             if sort_method == 'sort_label':
                 xbmcplugin.addSortMethod(self.handle, xbmcplugin.SORT_METHOD_UNSORTED)
                 xbmcplugin.addSortMethod(self.handle, xbmcplugin.SORT_METHOD_LABEL)
-            elif sort_method == 'sort_label_ignore_folders':
+            if sort_method == 'sort_label_ignore_folders':
                 xbmcplugin.addSortMethod(self.handle, xbmcplugin.SORT_METHOD_LABEL_IGNORE_FOLDERS)
             if sort_method == 'sort_episodes':
                 xbmcplugin.addSortMethod(self.handle, xbmcplugin.SORT_METHOD_EPISODE)
