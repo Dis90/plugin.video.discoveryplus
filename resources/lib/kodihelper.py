@@ -122,6 +122,8 @@ class KodiHelper(object):
             listitem.setInfo('video', info)
         if content:
             xbmcplugin.setContent(self.handle, content)
+            if content == 'seasons' or content == 'episodes':
+                xbmcplugin.addSortMethod(self.handle, xbmcplugin.SORT_METHOD_EPISODE)
         if menu:
             listitem.addContextMenuItems(menu)
         if folder_name:
