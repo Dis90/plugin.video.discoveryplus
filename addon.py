@@ -627,7 +627,9 @@ def list_search_shows(search_query):
             show_art['clearlogo'] = thumb_image if len(
                 show['relationships']['images']['data']) == 2 else None
 
-        helper.add_item(title, params, info=info, art=show_art, content='tvshows', menu=menu, sort_method='sort_label')
+        folder_name = helper.language(30007) + ' / ' + search_query
+
+        helper.add_item(title, params, info=info, art=show_art, content='tvshows', menu=menu, folder_name=folder_name, sort_method='sort_label')
     helper.eod()
 
 def list_favorites():
