@@ -194,7 +194,7 @@ def list_page(page_path=None):
                                                 }
 
                                                 helper.add_item(title, params, info=info, content='seasons',
-                                                        folder_name=page['attributes'].get('pageMetadataTitle'))
+                                                        folder_name=page['attributes'].get('pageMetadataTitle'), sort_method='sort_label_ignore_folders')
 
                                     # If listing channel pages, list livestream if available
                                     if collection['attributes']['name'] == 'generic-channel-blueprint-page-shows-abc':
@@ -297,7 +297,7 @@ def list_page(page_path=None):
 
 
                                                                 helper.add_item(channel['attributes'].get('name'),
-                                                                                params, info=channel_info, content='videos', art=channel_art, folder_name=page['attributes'].get('pageMetadataTitle'))
+                                                                                params, info=channel_info, content='videos', art=channel_art, folder_name=page['attributes'].get('pageMetadataTitle'), sort_method='sort_label')
 
     helper.eod()
 
@@ -394,7 +394,7 @@ def list_collection_items(page_path, collection_id):
                                         show_art['clearlogo'] = thumb_image if len(
                                             relationships['images']['data']) == 2 else None
 
-                                    helper.add_item(title, params, info=info, art=show_art, content='tvshows', menu=menu, folder_name=collection['attributes'].get('title'))
+                                    helper.add_item(title, params, info=info, art=show_art, content='tvshows', menu=menu, folder_name=collection['attributes'].get('title'), sort_method='sort_label')
 
                         # List videos
                         if collectionItem['relationships'].get('video'):
@@ -512,7 +512,7 @@ def list_collection_items(page_path, collection_id):
 
                                     helper.add_item(list_title, params=params, info=episode_info, art=episode_art,
                                                 content='episodes', playable=True, resume=resume, total=total,
-                                                folder_name=collection['attributes'].get('title'))
+                                                folder_name=collection['attributes'].get('title'), sort_method='sort_episodes')
 
                         # Used when coming from collection (example Eurosport -> Channels)
                         if collectionItem['relationships'].get('channel'):  # Is channel
@@ -556,7 +556,7 @@ def list_collection_items(page_path, collection_id):
 
                                         helper.add_item(helper.language(30014) + ' ' + attributes.get('name'), params=params,
                                                         info=channel_info, content='videos', art=channel_art,
-                                                        playable=True, folder_name=collection['attributes'].get('title'))
+                                                        playable=True, folder_name=collection['attributes'].get('title'), sort_method='sort_label')
 
     helper.eod()
 
@@ -627,7 +627,7 @@ def list_search_shows(search_query):
             show_art['clearlogo'] = thumb_image if len(
                 show['relationships']['images']['data']) == 2 else None
 
-        helper.add_item(title, params, info=info, art=show_art, content='tvshows', menu=menu)
+        helper.add_item(title, params, info=info, art=show_art, content='tvshows', menu=menu, sort_method='sort_label')
     helper.eod()
 
 def list_favorites():
@@ -700,7 +700,7 @@ def list_favorites():
                     show_art['clearlogo'] = thumb_image if len(
                         show_data['relationships']['images']['data']) == 2 else None
 
-                helper.add_item(title, params, info=info, art=show_art, content='tvshows', menu=menu, folder_name=helper.language(30016))
+                helper.add_item(title, params, info=info, art=show_art, content='tvshows', menu=menu, folder_name=helper.language(30016), sort_method='sort_label')
 
     helper.eod()
 
@@ -838,7 +838,7 @@ def list_videos(collection_id, mandatoryParams, parameter=None):
                             folder_name = show_title
 
                         helper.add_item(list_title, params=params, info=episode_info, art=episode_art,
-                                        content='episodes', playable=True, resume=resume, total=total, folder_name=folder_name)
+                                        content='episodes', playable=True, resume=resume, total=total, folder_name=folder_name, sort_method='sort_episodes')
 
     helper.eod()
 

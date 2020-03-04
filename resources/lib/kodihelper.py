@@ -100,7 +100,7 @@ class KodiHelper(object):
 
         return True
 
-    def add_item(self, title, params, items=False, folder=True, playable=False, info=None, art=None, content=False, menu=None, resume=None, total=None, folder_name=None):
+    def add_item(self, title, params, items=False, folder=True, playable=False, info=None, art=None, content=False, menu=None, resume=None, total=None, folder_name=None, sort_method=None):
         addon = self.get_addon()
         listitem = xbmcgui.ListItem(label=title)
 
@@ -122,12 +122,19 @@ class KodiHelper(object):
             listitem.setInfo('video', info)
         if content:
             xbmcplugin.setContent(self.handle, content)
-            if content == 'seasons' or content == 'episodes':
-                xbmcplugin.addSortMethod(self.handle, xbmcplugin.SORT_METHOD_EPISODE)
         if menu:
             listitem.addContextMenuItems(menu)
         if folder_name:
             xbmcplugin.setPluginCategory(self.handle, folder_name)
+        if sort_method:
+            if sort_method == 'sort_label':
+                xbmcplugin.addSortMethod(self.handle, xbmcplugin.SORT_METHOD_UNSORTED)
+                xbmcplugin.addSortMethod(self.handle, xbmcplugin.SORT_METHOD_LABEL)
+            elif sort_method == 'sort_label_ignore_folders':
+                xbmcplugin.addSortMethod(self.handle, xbmcplugin.SORT_METHOD_LABEL_IGNORE_FOLDERS)
+            if sort_method == 'sort_episodes':
+                xbmcplugin.addSortMethod(self.handle, xbmcplugin.SORT_METHOD_EPISODE)
+                xbmcplugin.addSortMethod(self.handle, xbmcplugin.SORT_METHOD_VIDEO_TITLE)
 
         recursive_url = self.base_url + '?' + urllib.urlencode(params)
 
