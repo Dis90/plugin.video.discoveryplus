@@ -86,7 +86,9 @@ class KodiHelper(object):
         self.d.get_token() # Get new token before checking credentials
         if self.d.get_user_data()['attributes']['anonymous'] == True:
             self.dialog('ok', self.language(30006), self.language(30015)) # Request to use Firefox to login
-        return True
+            return None
+        else:
+            return True
 
     def set_locale(self, locale=None):
         countries = ['fi_FI', 'sv_SE', 'da_DK', 'nb_NO']
