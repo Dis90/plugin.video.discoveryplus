@@ -205,97 +205,99 @@ class Dplay(object):
             data = {
                 'type': page['data']['type'],
                 'attributes': page['data'].get('attributes'),
-                'relationships': page['data']['relationships']
+                'relationships': page['data'].get('relationships')
             }
         else:
             data = []
             for d in page['data']:
                 data.append(d)
 
-        for p in page['included']:
+        if page.get('included'):
+            for p in page['included']:
 
-            # Pages
-            if p['type'] == 'page':
-                pages.append({
-                    'id': p['id'],
-                    'attributes': p['attributes'],
-                    'relationships': p['relationships']
-                })
+                # Pages
+                if p['type'] == 'page':
+                    pages.append({
+                        'id': p['id'],
+                        'attributes': p['attributes'],
+                        'relationships': p['relationships']
+                    })
 
-            # PageItems
-            if p['type'] == 'pageItem':
-                pageItems.append({
-                    'id': p['id'],
-                    'relationships': p['relationships']
-                })
+                # PageItems
+                if p['type'] == 'pageItem':
+                    pageItems.append({
+                        'id': p['id'],
+                        'relationships': p['relationships']
+                    })
 
-            # Collections
-            if p['type'] == 'collection':
-                collections.append({
-                    'id': p['id'],
-                    'attributes': p['attributes'],
-                    'relationships': p.get('relationships')
-                })
+                # Collections
+                if p['type'] == 'collection':
+                    collections.append({
+                        'id': p['id'],
+                        'attributes': p['attributes'],
+                        'relationships': p.get('relationships')
+                    })
 
-            # CollectionItems
-            if p['type'] == 'collectionItem':
-                collectionItems.append({
-                    'id': p['id'],
-                    'relationships': p['relationships']
-                })
+                # CollectionItems
+                if p['type'] == 'collectionItem':
+                    collectionItems.append({
+                        'id': p['id'],
+                        'attributes': p.get('attributes'),
+                        'relationships': p['relationships']
+                    })
 
-            # Images
-            if p['type'] == 'image':
-                images.append({
-                    'id': p['id'],
-                    'attributes': p['attributes']
-                })
+                # Images
+                if p['type'] == 'image':
+                    images.append({
+                        'id': p['id'],
+                        'attributes': p['attributes']
+                    })
 
-            # Shows
-            if p['type'] == 'show':
-                shows.append({
-                    'id': p['id'],
-                    'attributes': p['attributes'],
-                    'relationships': p['relationships']
-                })
+                # Shows
+                if p['type'] == 'show':
+                    shows.append({
+                        'id': p['id'],
+                        'attributes': p['attributes'],
+                        'relationships': p['relationships']
+                    })
 
-            # Videos
-            if p['type'] == 'video':
-                videos.append({
-                    'id': p['id'],
-                    'attributes': p['attributes'],
-                    'relationships': p['relationships']
-                })
+                # Videos
+                if p['type'] == 'video':
+                    videos.append({
+                        'id': p['id'],
+                        'attributes': p['attributes'],
+                        'relationships': p['relationships']
+                    })
 
-            # Channels
-            if p['type'] == 'channel':
-                channels.append({
-                    'id': p['id'],
-                    'attributes': p['attributes'],
-                    'relationships': p['relationships']
-                })
+                # Channels
+                if p['type'] == 'channel':
+                    channels.append({
+                        'id': p['id'],
+                        'attributes': p['attributes'],
+                        'relationships': p['relationships']
+                    })
 
-            # Genres
-            if p['type'] == 'genre':
-                genres.append({
-                    'id': p['id'],
-                    'attributes': p['attributes']
-                })
+                # Genres
+                if p['type'] == 'genre':
+                    genres.append({
+                        'id': p['id'],
+                        'attributes': p['attributes']
+                    })
 
-            # Links (menu, categories)
-            if p['type'] == 'link':
-                links.append({
-                    'id': p['id'],
-                    'attributes': p['attributes'],
-                    'relationships': p.get('relationships')
-                })
+                # Links (menu, categories)
+                if p['type'] == 'link':
+                    links.append({
+                        'id': p['id'],
+                        'attributes': p['attributes'],
+                        'relationships': p.get('relationships')
+                    })
 
-            # Routes
-            if p['type'] == 'route':
-                routes.append({
-                    'id': p['id'],
-                    'attributes': p['attributes']
-                })
+                # Routes
+                if p['type'] == 'route':
+                    routes.append({
+                        'id': p['id'],
+                        'attributes': p['attributes']
+                    })
 
         page_sorted = ({'data': data, 'pages': pages, 'pageItems': pageItems, 'collections': collections, 'collectionItems': collectionItems, 'images': images, 'shows': shows, 'videos': videos, 'channels': channels, 'genres': genres, 'links': links, 'routes': routes})
 
