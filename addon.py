@@ -77,8 +77,7 @@ def list_pages():
 def list_page(page_path=None):
     page_data = helper.d.parse_page(page_path)
 
-    favorites = helper.d.get_favorites()
-    user_favorites = ",".join([str(x['id']) for x in favorites['data']['relationships']['favorites']['data']])
+    user_favorites = ",".join([str(x['id']) for x in helper.d.get_favorites()['data']['relationships']['favorites']['data']])
 
     pages = page_data['pages']
     pageItems = page_data['pageItems']
@@ -375,8 +374,8 @@ def list_page(page_path=None):
 def list_collection_items(page_path, collection_id):
     page_data = helper.d.parse_page(page_path)
 
-    favorites = helper.d.get_favorites()
-    user_favorites = ",".join([str(x['id']) for x in favorites['data']['relationships']['favorites']['data']])
+    user_favorites = ",".join([str(x['id']) for x in helper.d.get_favorites()['data']['relationships']['favorites']['data']])
+    user_packages = ",".join([str(x) for x in helper.d.get_user_data()['attributes']['packages']])
 
     collections = page_data['collections']
     collectionItems = page_data['collectionItems']
@@ -480,31 +479,6 @@ def list_collection_items(page_path, collection_id):
                                     attributes = video['attributes']
                                     relationships = video['relationships']
 
-                                    # Dplay+ content check
-                                    # If first package is Registered show has been or is available for free
-                                    if attributes['availabilityWindows'][0][
-                                        'package'] == 'Registered':
-                                        # Check if there is ending time for free availability
-                                        if attributes['availabilityWindows'][0].get('playableEnd'):
-                                            # Check if show is still available for free
-                                            if helper.d.parse_datetime(
-                                                    attributes['availabilityWindows'][0][
-                                                        'playableStart']) < helper.d.get_current_time() < helper.d.parse_datetime(
-                                                attributes['availabilityWindows'][0]['playableEnd']):
-
-                                                dplayplus = False  # Show is still available for free
-                                            else:  # Show is not anymore available for free
-                                                dplayplus = True
-                                        else:  # No ending time for free availability
-                                            dplayplus = False
-                                    else:
-                                        dplayplus = True  # Dplay+ subscription is needed
-
-                                    if dplayplus == True:
-                                        list_title = attributes.get('name').lstrip() + ' [Dplay+]'
-                                    else:
-                                        list_title = attributes.get('name').lstrip()
-
                                     params = {
                                         'action': 'play',
                                         'video_id': video['id'],
@@ -554,6 +528,26 @@ def list_collection_items(page_path, collection_id):
                                         else:
                                             plot = attributes.get('description')
 
+                                    # Dplay+ content check
+                                    # Check for Dplay+ content only if user doesn't have subscription
+                                    if 'Premium' not in user_packages:
+                                        if len(attributes['packages']) > 1:
+                                            # Get all available packages in availabilityWindows
+                                            for availabilityWindow in attributes['availabilityWindows']:
+                                                if availabilityWindow['package'] == 'Free':
+                                                    # Check if there is ending time for free availability
+                                                    if availabilityWindow.get('playableEnd'):
+                                                        # Check if video is still available for free
+                                                        if helper.d.parse_datetime(availabilityWindow[
+                                                                                       'playableStart']) < helper.d.get_current_time() < helper.d.parse_datetime(
+                                                            availabilityWindow['playableEnd']):
+                                                            plot = plot
+
+                                                        else:  # Video is not anymore available for free
+                                                            plot = '[Dplay+] ' + plot
+                                        else:  # Only one package in packages = Premium
+                                            plot = '[Dplay+] ' + plot
+
                                     episode_info = {
                                         'mediatype': 'episode',
                                         'title': attributes.get('name').lstrip(),
@@ -587,7 +581,7 @@ def list_collection_items(page_path, collection_id):
                                         'thumb': fanart_image
                                     }
 
-                                    helper.add_item(list_title, params=params, info=episode_info, art=episode_art,
+                                    helper.add_item(attributes.get('name').lstrip(), params=params, info=episode_info, art=episode_art,
                                                 content='episodes', playable=True, resume=resume, total=total,
                                                 folder_name=collection['attributes'].get('title'), sort_method='sort_episodes')
 
@@ -690,8 +684,7 @@ def list_collection_items(page_path, collection_id):
 def list_search_shows(search_query):
     page_data = helper.d.parse_page(page_path='search', search_query=search_query)
 
-    favorites = helper.d.get_favorites()
-    user_favorites = ",".join([str(x['id']) for x in favorites['data']['relationships']['favorites']['data']])
+    user_favorites = ",".join([str(x['id']) for x in helper.d.get_favorites()['data']['relationships']['favorites']['data']])
 
     images = page_data['images']
     genres = page_data['genres']
@@ -839,6 +832,8 @@ def list_videos(collection_id, mandatoryParams, parameter=None):
     else:
         page_data = helper.d.parse_page(collection_id=collection_id, mandatoryParams=mandatoryParams)
 
+    user_packages = ",".join([str(x) for x in helper.d.get_user_data()['attributes']['packages']])
+
     collectionItems = page_data['collectionItems']
     images = page_data['images']
     shows = page_data['shows']
@@ -858,31 +853,6 @@ def list_videos(collection_id, mandatoryParams, parameter=None):
                         if collectionItem['relationships']['video']['data']['id'] == video['id']:
                             attributes = video['attributes']
                             relationships = video['relationships']
-
-                            # Dplay+ content check
-                            # If first package is Registered show has been or is available for free
-                            if attributes['availabilityWindows'][0][
-                                'package'] == 'Registered':
-                                # Check if there is ending time for free availability
-                                if attributes['availabilityWindows'][0].get('playableEnd'):
-                                    # Check if show is still available for free
-                                    if helper.d.parse_datetime(
-                                            attributes['availabilityWindows'][0][
-                                                'playableStart']) < helper.d.get_current_time() < helper.d.parse_datetime(
-                                        attributes['availabilityWindows'][0]['playableEnd']):
-
-                                        dplayplus = False  # Show is still available for free
-                                    else:  # Show is not anymore available for free
-                                        dplayplus = True
-                                else:  # No ending time for free availability
-                                    dplayplus = False
-                            else:
-                                dplayplus = True  # Dplay+ subscription is needed
-
-                            if dplayplus == True:
-                                list_title = attributes.get('name').lstrip() + ' [Dplay+]'
-                            else:
-                                list_title = attributes.get('name').lstrip()
 
                             params = {
                                 'action': 'play',
@@ -931,6 +901,26 @@ def list_videos(collection_id, mandatoryParams, parameter=None):
                                 else:
                                     plot = attributes.get('description')
 
+                            # Dplay+ content check
+                            # Check for Dplay+ content only if user doesn't have subscription
+                            if 'Premium' not in user_packages:
+                                if len(attributes['packages']) > 1:
+                                    # Get all available packages in availabilityWindows
+                                    for availabilityWindow in attributes['availabilityWindows']:
+                                        if availabilityWindow['package'] == 'Free':
+                                            # Check if there is ending time for free availability
+                                            if availabilityWindow.get('playableEnd'):
+                                                # Check if video is still available for free
+                                                if helper.d.parse_datetime(availabilityWindow[
+                                                                               'playableStart']) < helper.d.get_current_time() < helper.d.parse_datetime(
+                                                    availabilityWindow['playableEnd']):
+                                                    plot = plot
+
+                                                else:  # Video is not anymore available for free
+                                                    plot = '[Dplay+] ' + plot
+                                else: # Only one package in packages = Premium
+                                    plot = '[Dplay+] ' + plot
+
                             episode_info = {
                                 'mediatype': 'episode',
                                 'title': attributes.get('name').lstrip(),
@@ -971,7 +961,7 @@ def list_videos(collection_id, mandatoryParams, parameter=None):
                             else:
                                 folder_name = show_title
 
-                            helper.add_item(list_title, params=params, info=episode_info, art=episode_art,
+                            helper.add_item(attributes.get('name').lstrip(), params=params, info=episode_info, art=episode_art,
                                             content='episodes', playable=True, resume=resume, total=total,
                                             folder_name=folder_name, sort_method='sort_episodes')
 
