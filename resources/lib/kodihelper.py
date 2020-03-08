@@ -210,7 +210,7 @@ class KodiHelper(object):
                 playitem.setProperty('inputstreamaddon', 'inputstream.adaptive')
                 # Have to use hls for shows because mpd encryption type 'clearkey' is not supported by inputstream.adaptive
                 playitem.setProperty('inputstream.adaptive.manifest_type', 'hls')
-                playitem.setSubtitles(self.d.get_subtitles(stream['hls_url']))
+                playitem.setSubtitles(self.d.get_subtitles(stream['hls_url'], video_id))
 
                 # Get current episode info
                 current_episode = self.d.parse_page(video_id=video_id)

@@ -3,14 +3,14 @@
 A Kodi-agnostic library for Dplay
 """
 import os
-from io import open
+from io import open, StringIO
+import re
 import json
 import codecs
 import cookielib
 import time
 import calendar
 from datetime import datetime, timedelta
-from pycaption import WebVTTReader, SRTWriter
 
 import requests
 import urlparse
@@ -388,14 +388,76 @@ class Dplay(object):
 
         return self.make_request(url, method)
 
-    def webvtt_to_srt_conversion(self, sub_webvtt):
-        caption_set = WebVTTReader().read(sub_webvtt)
-        output = SRTWriter().write(caption_set)
+    def decode_html_entities(self, s):
+        s = s.strip()
+        s = s.replace('&lt;', '<')
+        s = s.replace('&gt;', '>')
+        s = s.replace('&nbsp;', ' ')
+        # Must do ampersand last
+        s = s.replace('&amp;', '&')
+        return s
 
-        return output
+    def webvtt_to_srt(self, subdata):
+        # Modified from:
+        # https://github.com/spaam/svtplay-dl/blob/master/lib/svtplay_dl/subtitle/__init__.py
+        ssubdata = StringIO(subdata)
+        srt = ""
+        subtract = False
+        number_b = 1
+        number = 0
+        block = 0
+        subnr = False
+
+        for i in ssubdata.readlines():
+            match = re.search(r"^[\r\n]+", i)
+            match2 = re.search(r"([\d:\.]+ --> [\d:\.]+)", i)
+            match3 = re.search(r"^(\d+)\s", i)
+            if i[:6] == "WEBVTT":
+                continue
+            elif "X-TIMESTAMP" in i:
+                continue
+            elif match and number_b > 1:
+                block = 0
+                srt += "\n"
+            elif match2:
+                if not subnr:
+                    srt += "%s\n" % number_b
+                matchx = re.search(r"(?P<h1>\d+):(?P<m1>\d+):(?P<s1>[\d\.]+) --> (?P<h2>\d+):(?P<m2>\d+):(?P<s2>[\d\.]+)", i)
+                if matchx:
+                    hour1 = int(matchx.group("h1"))
+                    hour2 = int(matchx.group("h2"))
+                    if int(number) == 1:
+                        if hour1 > 9:
+                            subtract = True
+                    if subtract:
+                        hour1 -= 10
+                        hour2 -= 10
+                else:
+                    matchx = re.search(r"(?P<m1>\d+):(?P<s1>[\d\.]+) --> (?P<m2>\d+):(?P<s2>[\d\.]+)", i)
+                    hour1 = 0
+                    hour2 = 0
+                time = "{:02d}:{}:{} --> {:02d}:{}:{}\n".format(
+                    hour1, matchx.group("m1"), matchx.group("s1").replace(".", ","), hour2, matchx.group("m2"), matchx.group("s2").replace(".", ",")
+                )
+                srt += time
+                block = 1
+                subnr = False
+                number_b += 1
+
+            elif match3 and block == 0:
+                number = match3.group(1)
+                srt += "%s\n" % number
+                subnr = True
+            else:
+                sub = re.sub("<[^>]*>", "", i)
+                srt += sub.strip()
+                srt += "\n"
+
+        srt = self.decode_html_entities(srt)
+        return srt
 
     # Delete this when Kodi starts to support webvtt subtitles over .m3u8 hls stream
-    def get_subtitles(self, video_url):
+    def get_subtitles(self, video_url, video_id):
         playlist = self.make_request(video_url, 'get', headers=None, text=True)
         self.log('Video playlist url: ' + video_url)
 
@@ -417,15 +479,20 @@ class Dplay(object):
                 self.log('Full subtitle url: ' + subtitle_url)
 
                 lang_code = line.split(',')[3].split('"')[1] # Subtitle language, returns fi, sv, da or no
-                # Download subtitles
-                sub_str = self.make_request(subtitle_url, 'get')
-                # Convert WEBVTT subtitles to SRT subtitles
-                sub_str = sub_str.decode('utf-8', 'ignore')
-                sub_str = self.webvtt_to_srt_conversion(sub_str)
-                # Save subtitle files to addon tmp dir
-                path = os.path.join(self.tempdir, '{0}.srt'.format(lang_code))
-                with open(path, 'w', encoding='utf-8') as subfile:
-                    subfile.write(sub_str)
+
+                # Save subtitle files to addon temp folder
+                path = os.path.join(self.tempdir, '{0}.{1}.srt'.format(video_id, lang_code))
+                # Don't download subtitles if files already exist in addon temp folder
+                if os.path.exists(path) is False:
+                    with open(path, 'w', encoding='utf-8') as subfile:
+                        # Download subtitles
+                        sub_str = self.make_request(subtitle_url, 'get')
+
+                        # Convert WEBVTT subtitles to SRT subtitles
+                        sub_str = sub_str.decode('utf-8', 'ignore')
+                        sub_str = self.webvtt_to_srt(sub_str)
+
+                        subfile.write(sub_str)
                 paths.append(path)
 
         return paths
