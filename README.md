@@ -5,7 +5,6 @@ Dplay addon for Kodi
 This addon is unofficial and it is not supported by Discovery Networks, so it can break at anytime.
 
 # Requirements
-- pycaption from https://github.com/aussieaddons/script.module.pycaption/releases
 - Firefox (used for login)
 
 # Supported platforms
