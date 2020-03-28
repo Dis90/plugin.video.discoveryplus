@@ -297,9 +297,9 @@ def list_page(page_path=None):
                                                 title = helper.language(30011) + ' ' + str(option['id'])
                                                 params = {
                                                     'action': 'list_videos',
-                                                    'collection_id': collection['id'],# 66290614510668341673562607828298581172
-                                                    'mandatoryParams': collection['attributes']['component'][
-                                                        'mandatoryParams'],  # pf[show.id]=12423
+                                                    'collection_id': collection['id'], # 66290614510668341673562607828298581172
+                                                    'mandatoryParams': collection['attributes']['component'].get(
+                                                        'mandatoryParams'),  # pf[show.id]=12423
                                                     'parameter': option['parameter']  # pf[seasonNumber]=1
                                                 }
 
@@ -826,9 +826,11 @@ def list_favorites():
 
     helper.eod()
 
-def list_videos(collection_id, mandatoryParams, parameter=None):
-    if parameter:
+def list_videos(collection_id, mandatoryParams=None, parameter=None):
+    if mandatoryParams and parameter:
         page_data = helper.d.parse_page(collection_id=collection_id, mandatoryParams=mandatoryParams, parameter=parameter)
+    elif mandatoryParams is None and parameter:
+        page_data = helper.d.parse_page(collection_id=collection_id, parameter=parameter)
     else:
         page_data = helper.d.parse_page(collection_id=collection_id, mandatoryParams=mandatoryParams)
 
@@ -997,8 +999,10 @@ def router(paramstring):
         elif params['action'] == 'list_collection_items':
             list_collection_items(page_path=params['page_path'], collection_id=params['collection_id'])
         elif params['action'] == 'list_videos':
-            if params.get('parameter'):
+            if params.get('mandatoryParams') and params.get('parameter'):
                 list_videos(collection_id=params['collection_id'], mandatoryParams=params['mandatoryParams'], parameter=params['parameter'])
+            elif params.get('mandatoryParams') is None and params.get('parameter'):
+                list_videos(collection_id=params['collection_id'], parameter=params['parameter'])
             else:
                 list_videos(collection_id=params['collection_id'], mandatoryParams=params['mandatoryParams'])
         elif params['action'] == 'play':

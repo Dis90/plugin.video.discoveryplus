@@ -314,9 +314,11 @@ class Dplay(object):
         data = json.loads(self.make_request(url, 'get', params=params))
         return data
 
-    def get_collections(self, collection_id, mandatoryParams, parameter=None):
-        if parameter:
+    def get_collections(self, collection_id, mandatoryParams=None, parameter=None):
+        if mandatoryParams and parameter:
             url = 'https://disco-api.dplay.{locale_suffix}/cms/collections/{collection_id}?{mandatoryParams}&{parameter}'.format(locale_suffix=self.locale_suffix, collection_id=collection_id, mandatoryParams=mandatoryParams, parameter=parameter)
+        elif mandatoryParams is None and parameter:
+            url = 'https://disco-api.dplay.{locale_suffix}/cms/collections/{collection_id}?{parameter}'.format(locale_suffix=self.locale_suffix, collection_id=collection_id, parameter=parameter)
         else:
             url = 'https://disco-api.dplay.{locale_suffix}/cms/collections/{collection_id}?{mandatoryParams}'.format(locale_suffix=self.locale_suffix, collection_id=collection_id, mandatoryParams=mandatoryParams)
 
