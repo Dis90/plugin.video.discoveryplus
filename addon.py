@@ -527,6 +527,8 @@ def list_collection_items(page_path, collection_id):
                                                 plot = helper.language(30002) + playable
                                         else:
                                             plot = attributes.get('description')
+                                    else:
+                                        plot = attributes.get('description')
 
                                     # Dplay+ content check
                                     # Check for Dplay+ content only if user doesn't have subscription
@@ -902,6 +904,8 @@ def list_videos(collection_id, mandatoryParams=None, parameter=None):
                                         plot = helper.language(30002) + playable
                                 else:
                                     plot = attributes.get('description')
+                            else:
+                                plot = attributes.get('description')
 
                             # Dplay+ content check
                             # Check for Dplay+ content only if user doesn't have subscription
