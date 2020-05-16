@@ -160,7 +160,11 @@ def list_page(page_path=None):
                                                             'mediatype': 'tvshow',
                                                             'plot': attributes.get('description'),
                                                             'genre': g,
-                                                            'studio': primaryChannel
+                                                            'studio': primaryChannel,
+                                                            'season': len(attributes.get('seasonNumbers')),
+                                                            'totalSeasons': len(attributes.get('seasonNumbers')),
+                                                            'episode': attributes.get('episodeCount'),
+                                                            'totalEpisodes': attributes.get('episodeCount')
                                                         }
 
                                                         # Add or delete favorite context menu
@@ -430,7 +434,11 @@ def list_collection_items(page_path, collection_id):
                                         'mediatype': 'tvshow',
                                         'plot': attributes.get('description'),
                                         'genre': g,
-                                        'studio': primaryChannel
+                                        'studio': primaryChannel,
+                                        'season': len(attributes.get('seasonNumbers')),
+                                        'totalSeasons': len(attributes.get('seasonNumbers')),
+                                        'episode': attributes.get('episodeCount'),
+                                        'totalEpisodes': attributes.get('episodeCount')
                                     }
 
                                     # Add or delete favorite context menu
@@ -715,7 +723,11 @@ def list_search_shows(search_query):
         info = {
             'mediatype': 'tvshow',
             'plot': show['attributes'].get('description'),
-            'genre': g
+            'genre': g,
+            'season': len(show['attributes'].get('seasonNumbers')),
+            'totalSeasons': len(show['attributes'].get('seasonNumbers')),
+            'episode': show['attributes'].get('episodeCount'),
+            'totalEpisodes': show['attributes'].get('episodeCount')
         }
 
         # Add or delete favorite context menu
@@ -797,7 +809,11 @@ def list_favorites():
                     'mediatype': 'tvshow',
                     'plot': show_data['attributes'].get('description'),
                     'genre': g,
-                    'studio': primaryChannel
+                    'studio': primaryChannel,
+                    'season': len(show_data['attributes'].get('seasonNumbers')),
+                    'totalSeasons': len(show_data['attributes'].get('seasonNumbers')),
+                    'episode': show_data['attributes'].get('episodeCount'),
+                    'totalEpisodes': show_data['attributes'].get('episodeCount')
                 }
 
                 menu = []
