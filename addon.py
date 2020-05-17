@@ -311,7 +311,54 @@ def list_page(page_path=None):
                                                     'mediatype': 'season'
                                                 }
 
-                                                helper.add_item(title, params, info=info, content='seasons',
+                                                # Show metadata
+                                                show = shows[0]
+
+                                                info['tvshowtitle'] = show['attributes'].get('name')
+                                                info['plot'] = show['attributes'].get('description')
+                                                info['season'] = len(show['attributes']['seasonNumbers'])
+                                                info['episode'] = show['attributes']['episodeCount']
+
+                                                g = []
+                                                if show['relationships'].get('genres'):
+                                                    for genre in genres:
+                                                        for show_genre in show['relationships']['genres']['data']:
+                                                            if genre['id'] == show_genre['id']:
+                                                                g.append(genre['attributes']['name'])
+
+                                                if show['relationships'].get('primaryChannel'):
+                                                    for channel in channels:
+                                                        if channel['id'] == show['relationships']['primaryChannel']['data'][
+                                                                'id']:
+                                                            primaryChannel = channel['attributes']['name']
+                                                else:
+                                                    primaryChannel = None
+
+                                                info['genre'] = g
+                                                info['studio'] = primaryChannel
+
+                                                if show['relationships'].get('images'):
+                                                    for image in images:
+                                                        if image['id'] == show['relationships']['images']['data'][0]['id']:
+                                                            if image['attributes'].get('src'):
+                                                                fanart_image = image['attributes']['src']
+                                                            else:
+                                                                fanart_image = None
+                                                        if image['id'] == show['relationships']['images']['data'][-1]['id']:
+                                                            if image['attributes'].get('src'):
+                                                                thumb_image = image['attributes']['src']
+                                                            else:
+                                                                thumb_image = None
+                                                else:
+                                                    fanart_image = None
+                                                    thumb_image = None
+
+                                                show_art = {
+                                                    'fanart': fanart_image,
+                                                    'thumb': thumb_image
+                                                }
+
+                                                helper.add_item(title, params, info=info, art=show_art, content='seasons',
                                                         folder_name=page['attributes'].get('pageMetadataTitle'), sort_method='sort_label')
 
 
