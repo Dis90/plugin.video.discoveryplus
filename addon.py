@@ -57,15 +57,15 @@ def list_pages():
                                             }
 
                                             if link['relationships'].get('images'):
-                                                for i in images:
-                                                    if i['id'] == link['relationships']['images']['data'][0]['id']:
-                                                        image = i['attributes']['src']
+                                                for image in images:
+                                                    if image['id'] == link['relationships']['images']['data'][0]['id']:
+                                                        thumb_image = image['attributes']['src']
                                             else:
-                                                image = None
+                                                thumb_image = None
 
                                             link_art = {
-                                                'fanart': image,
-                                                'thumb': image
+                                                'fanart': thumb_image,
+                                                'thumb': thumb_image
                                             }
                                             # Have to use collection title instead link title because some links doesn't have title
                                             helper.add_item(collection['attributes']['title'], params, info=link_info,
@@ -125,14 +125,12 @@ def list_page(page_path=None):
                                                 for show in shows:
                                                     if collectionItem['relationships']['show']['data']['id'] == show[
                                                         'id']:
-                                                        attributes = show['attributes']
-                                                        relationships = show['relationships']
 
-                                                        title = attributes['name'].encode('utf-8')
+                                                        title = show['attributes']['name'].encode('utf-8')
 
                                                         # Find page path from routes
                                                         for route in routes:
-                                                            if route['id'] == relationships['routes']['data'][0]['id']:
+                                                            if route['id'] == show['relationships']['routes']['data'][0]['id']:
                                                                 next_page_path = route['attributes']['url']
 
                                                         params = {
@@ -141,16 +139,16 @@ def list_page(page_path=None):
                                                         }
 
                                                         g = []
-                                                        if relationships.get('genres'):
+                                                        if show['relationships'].get('genres'):
                                                             for genre in genres:
-                                                                for show_genre in relationships['genres']['data']:
+                                                                for show_genre in show['relationships']['genres']['data']:
                                                                     if genre['id'] == show_genre['id']:
                                                                         g.append(genre['attributes']['name'])
 
-                                                        if relationships.get('primaryChannel'):
+                                                        if show['relationships'].get('primaryChannel'):
                                                             for channel in channels:
                                                                 if channel['id'] == \
-                                                                        relationships['primaryChannel']['data'][
+                                                                        show['relationships']['primaryChannel']['data'][
                                                                             'id']:
                                                                     primaryChannel = channel['attributes']['name']
                                                         else:
@@ -158,13 +156,13 @@ def list_page(page_path=None):
 
                                                         info = {
                                                             'mediatype': 'tvshow',
-                                                            'plot': attributes.get('description'),
+                                                            'plot': show['attributes'].get('description'),
                                                             'genre': g,
                                                             'studio': primaryChannel,
-                                                            'season': len(attributes.get('seasonNumbers')),
-                                                            'totalSeasons': len(attributes.get('seasonNumbers')),
-                                                            'episode': attributes.get('episodeCount'),
-                                                            'totalEpisodes': attributes.get('episodeCount')
+                                                            'season': len(show['attributes'].get('seasonNumbers')),
+                                                            'totalSeasons': len(show['attributes'].get('seasonNumbers')),
+                                                            'episode': show['attributes'].get('episodeCount'),
+                                                            'totalEpisodes': show['attributes'].get('episodeCount')
                                                         }
 
                                                         # Add or delete favorite context menu
@@ -179,15 +177,15 @@ def list_page(page_path=None):
                                                                          'RunPlugin(plugin://' + helper.addon_name + '/?action=delete_favorite&show_id=' + str(
                                                                              show['id']) + ')',))
 
-                                                        if relationships.get('images'):
+                                                        if show['relationships'].get('images'):
                                                             for image in images:
-                                                                if image['id'] == relationships['images']['data'][0][
+                                                                if image['id'] == show['relationships']['images']['data'][0][
                                                                     'id']:
                                                                     if image['attributes'].get('src'):
                                                                         fanart_image = image['attributes']['src']
                                                                     else:
                                                                         fanart_image = None
-                                                                if image['id'] == relationships['images']['data'][-1][
+                                                                if image['id'] == show['relationships']['images']['data'][-1][
                                                                     'id']:
                                                                     if image['attributes'].get('src'):
                                                                         thumb_image = image['attributes']['src']
@@ -202,9 +200,9 @@ def list_page(page_path=None):
                                                             'thumb': thumb_image
                                                         }
 
-                                                        if relationships.get('images'):
+                                                        if show['relationships'].get('images'):
                                                             show_art['clearlogo'] = thumb_image if len(
-                                                                relationships['images']['data']) == 2 else None
+                                                                show['relationships']['images']['data']) == 2 else None
 
                                                         helper.add_item(title, params, info=info, art=show_art,
                                                                         content='tvshows',
@@ -243,17 +241,17 @@ def list_page(page_path=None):
                                                                 }
 
                                                                 if channel['relationships'].get('images'):
-                                                                    for i in images:
-                                                                        if i['id'] == \
+                                                                    for image in images:
+                                                                        if image['id'] == \
                                                                                 channel['relationships']['images'][
                                                                                     'data'][0][
                                                                                     'id']:
-                                                                            fanart_image = i['attributes']['src']
-                                                                        if i['id'] == \
+                                                                            fanart_image = image['attributes']['src']
+                                                                        if image['id'] == \
                                                                                 channel['relationships']['images'][
                                                                                     'data'][-1][
                                                                                     'id']:
-                                                                            thumb_image = i['attributes']['src']
+                                                                            thumb_image = image['attributes']['src']
                                                                 else:
                                                                     fanart_image = None
                                                                     thumb_image = None
@@ -393,15 +391,15 @@ def list_page(page_path=None):
                                                                 }
 
                                                                 if channel['relationships'].get('images'):
-                                                                    for i in images:
-                                                                        if i['id'] == \
+                                                                    for image in images:
+                                                                        if image['id'] == \
                                                                                 channel['relationships']['images'][
                                                                                     'data'][0]['id']:
-                                                                            fanart_image = i['attributes']['src']
-                                                                        if i['id'] == \
+                                                                            fanart_image = image['attributes']['src']
+                                                                        if image['id'] == \
                                                                                 channel['relationships']['images'][
                                                                                     'data'][-1]['id']:
-                                                                            thumb_image = i['attributes']['src']
+                                                                            thumb_image = image['attributes']['src']
                                                                 else:
                                                                     fanart_image = None
                                                                     thumb_image = None
@@ -448,14 +446,12 @@ def list_collection_items(page_path, collection_id):
                         if collectionItem['relationships'].get('show'):
                             for show in shows:
                                 if collectionItem['relationships']['show']['data']['id'] == show['id']:
-                                    attributes = show['attributes']
-                                    relationships = show['relationships']
 
-                                    title = attributes['name'].encode('utf-8')
+                                    title = show['attributes']['name'].encode('utf-8')
 
                                     # Find page path from routes
                                     for route in routes:
-                                        if route['id'] == relationships['routes']['data'][0]['id']:
+                                        if route['id'] == show['relationships']['routes']['data'][0]['id']:
                                             next_page_path = route['attributes']['url']
 
                                     params = {
@@ -464,28 +460,28 @@ def list_collection_items(page_path, collection_id):
                                     }
 
                                     g = []
-                                    if relationships.get('genres'):
+                                    if show['relationships'].get('genres'):
                                         for genre in genres:
-                                            for show_genre in relationships['genres']['data']:
+                                            for show_genre in show['relationships']['genres']['data']:
                                                 if genre['id'] == show_genre['id']:
                                                     g.append(genre['attributes']['name'])
 
-                                    if relationships.get('primaryChannel'):
+                                    if show['relationships'].get('primaryChannel'):
                                         for channel in channels:
-                                            if channel['id'] == relationships['primaryChannel']['data']['id']:
+                                            if channel['id'] == show['relationships']['primaryChannel']['data']['id']:
                                                 primaryChannel = channel['attributes']['name']
                                     else:
                                         primaryChannel = None
 
                                     info = {
                                         'mediatype': 'tvshow',
-                                        'plot': attributes.get('description'),
+                                        'plot': show['attributes'].get('description'),
                                         'genre': g,
                                         'studio': primaryChannel,
-                                        'season': len(attributes.get('seasonNumbers')),
-                                        'totalSeasons': len(attributes.get('seasonNumbers')),
-                                        'episode': attributes.get('episodeCount'),
-                                        'totalEpisodes': attributes.get('episodeCount')
+                                        'season': len(show['attributes'].get('seasonNumbers')),
+                                        'totalSeasons': len(show['attributes'].get('seasonNumbers')),
+                                        'episode': show['attributes'].get('episodeCount'),
+                                        'totalEpisodes': show['attributes'].get('episodeCount')
                                     }
 
                                     # Add or delete favorite context menu
@@ -500,14 +496,14 @@ def list_collection_items(page_path, collection_id):
                                                      'RunPlugin(plugin://' + helper.addon_name + '/?action=delete_favorite&show_id=' + str(
                                                          show['id'])  + ')',))
 
-                                    if relationships.get('images'):
+                                    if show['relationships'].get('images'):
                                         for image in images:
-                                            if image['id'] == relationships['images']['data'][0]['id']:
+                                            if image['id'] == show['relationships']['images']['data'][0]['id']:
                                                 if image['attributes'].get('src'):
                                                     fanart_image = image['attributes']['src']
                                                 else:
                                                     fanart_image = None
-                                            if image['id'] == relationships['images']['data'][-1]['id']:
+                                            if image['id'] == show['relationships']['images']['data'][-1]['id']:
                                                 if image['attributes'].get('src'):
                                                     thumb_image = image['attributes']['src']
                                                 else:
@@ -521,9 +517,9 @@ def list_collection_items(page_path, collection_id):
                                         'thumb': thumb_image
                                     }
 
-                                    if relationships.get('images'):
+                                    if show['relationships'].get('images'):
                                         show_art['clearlogo'] = thumb_image if len(
-                                            relationships['images']['data']) == 2 else None
+                                            show['relationships']['images']['data']) == 2 else None
 
                                     helper.add_item(title, params, info=info, art=show_art, content='tvshows', menu=menu, folder_name=collection['attributes'].get('title'), sort_method='unsorted')
 
@@ -531,8 +527,6 @@ def list_collection_items(page_path, collection_id):
                         if collectionItem['relationships'].get('video'):
                             for video in videos:
                                 if collectionItem['relationships']['video']['data']['id'] == video['id']:
-                                    attributes = video['attributes']
-                                    relationships = video['relationships']
 
                                     params = {
                                         'action': 'play',
@@ -541,56 +535,56 @@ def list_collection_items(page_path, collection_id):
                                     }
 
                                     for s in shows:
-                                        if s['id'] == relationships['show']['data']['id']:
+                                        if s['id'] == video['relationships']['show']['data']['id']:
                                             show_title = s['attributes']['name']
 
                                     g = []
-                                    if relationships.get('genres'):
+                                    if video['relationships'].get('genres'):
                                         for genre in genres:
-                                            for video_genre in relationships['genres']['data']:
+                                            for video_genre in video['relationships']['genres']['data']:
                                                 if genre['id'] == video_genre['id']:
                                                     g.append(genre['attributes']['name'])
 
-                                    if relationships.get('primaryChannel'):
+                                    if video['relationships'].get('primaryChannel'):
                                         for channel in channels:
-                                            if channel['id'] == relationships['primaryChannel']['data']['id']:
+                                            if channel['id'] == video['relationships']['primaryChannel']['data']['id']:
                                                 primaryChannel = channel['attributes']['name']
                                     else:
                                         primaryChannel = None
 
-                                    if relationships.get('images'):
-                                        for i in images:
-                                            if i['id'] == relationships['images']['data'][0]['id']:
-                                                fanart_image = i['attributes']['src']
+                                    if video['relationships'].get('images'):
+                                        for image in images:
+                                            if image['id'] == video['relationships']['images']['data'][0]['id']:
+                                                fanart_image = image['attributes']['src']
                                     else:
                                         fanart_image = None
 
-                                    duration = attributes['videoDuration'] / 1000.0 if attributes.get(
+                                    duration = video['attributes']['videoDuration'] / 1000.0 if video['attributes'].get(
                                         'videoDuration') else None
 
                                     # If episode is not yet playable, show playable time in plot
-                                    if attributes.get('earliestPlayableStart'):
+                                    if video['attributes'].get('earliestPlayableStart'):
                                         if helper.d.parse_datetime(
-                                                attributes['earliestPlayableStart']) > helper.d.get_current_time():
+                                                video['attributes']['earliestPlayableStart']) > helper.d.get_current_time():
                                             playable = str(
-                                                helper.d.parse_datetime(attributes['earliestPlayableStart']).strftime(
+                                                helper.d.parse_datetime(video['attributes']['earliestPlayableStart']).strftime(
                                                     '%d.%m.%Y %H:%M'))
-                                            if attributes.get('description'):
-                                                plot = helper.language(30002) + playable + ' ' + attributes.get(
+                                            if video['attributes'].get('description'):
+                                                plot = helper.language(30002) + playable + ' ' + video['attributes'].get(
                                                     'description')
                                             else:
                                                 plot = helper.language(30002) + playable
                                         else:
-                                            plot = attributes.get('description')
+                                            plot = video['attributes'].get('description')
                                     else:
-                                        plot = attributes.get('description')
+                                        plot = video['attributes'].get('description')
 
                                     # Dplay+ content check
                                     # Check for Dplay+ content only if user doesn't have subscription
                                     if 'Premium' not in user_packages:
-                                        if len(attributes['packages']) > 1:
+                                        if len(video['attributes']['packages']) > 1:
                                             # Get all available packages in availabilityWindows
-                                            for availabilityWindow in attributes['availabilityWindows']:
+                                            for availabilityWindow in video['attributes']['availabilityWindows']:
                                                 if availabilityWindow['package'] == 'Free':
                                                     # Check if there is ending time for free availability
                                                     if availabilityWindow.get('playableEnd'):
@@ -607,26 +601,26 @@ def list_collection_items(page_path, collection_id):
 
                                     episode_info = {
                                         'mediatype': 'episode',
-                                        'title': attributes.get('name').lstrip(),
+                                        'title': video['attributes'].get('name').lstrip(),
                                         'tvshowtitle': show_title,
-                                        'season': attributes.get('seasonNumber'),
-                                        'episode': attributes.get('episodeNumber'),
+                                        'season': video['attributes'].get('seasonNumber'),
+                                        'episode': video['attributes'].get('episodeNumber'),
                                         'plot': plot,
                                         'genre': g,
                                         'studio': primaryChannel,
                                         'duration': duration,
-                                        'aired': attributes.get('airDate')
+                                        'aired': video['attributes'].get('airDate')
                                     }
 
                                     # Watched status from Dplay
-                                    if attributes['viewingHistory']['viewed']:
-                                        if attributes['viewingHistory']['completed']:  # Watched video
+                                    if video['attributes']['viewingHistory']['viewed']:
+                                        if video['attributes']['viewingHistory']['completed']:  # Watched video
                                             episode_info['playcount'] = '1'
                                             resume = 0
                                             total = duration
                                         else:  # Partly watched video
                                             episode_info['playcount'] = '0'
-                                            resume = attributes['viewingHistory']['position'] / 1000.0
+                                            resume = video['attributes']['viewingHistory']['position'] / 1000.0
                                             total = duration
                                     else:  # Unwatched video
                                         episode_info['playcount'] = '0'
@@ -638,7 +632,7 @@ def list_collection_items(page_path, collection_id):
                                         'thumb': fanart_image
                                     }
 
-                                    helper.add_item(attributes.get('name').lstrip(), params=params, info=episode_info, art=episode_art,
+                                    helper.add_item(video['attributes'].get('name').lstrip(), params=params, info=episode_info, art=episode_art,
                                                 content='episodes', playable=True, resume=resume, total=total,
                                                 folder_name=collection['attributes'].get('title'), sort_method='sort_episodes')
 
@@ -647,10 +641,8 @@ def list_collection_items(page_path, collection_id):
                         if collectionItem['relationships'].get('channel'):
                             for channel in channels:
                                 if collectionItem['relationships']['channel']['data']['id'] == channel['id']:
-                                    attributes = channel['attributes']
-                                    relationships = channel['relationships']
 
-                                    if attributes.get('hasLiveStream'):
+                                    if channel['attributes'].get('hasLiveStream'):
                                         params = {
                                             'action': 'play',
                                             'video_id': channel['id'],
@@ -659,17 +651,17 @@ def list_collection_items(page_path, collection_id):
 
                                         channel_info = {
                                             'mediatype': 'video',
-                                            'title': attributes.get('name'),
-                                            'plot': attributes.get('description'),
+                                            'title': channel['attributes'].get('name'),
+                                            'plot': channel['attributes'].get('description'),
                                             'playcount': '0'
                                         }
 
-                                        if relationships.get('images'):
-                                            for i in images:
-                                                if i['id'] == relationships['images']['data'][0]['id']:
-                                                    fanart_image = i['attributes']['src']
-                                                if i['id'] == relationships['images']['data'][-1]['id']:
-                                                    thumb_image = i['attributes']['src']
+                                        if channel['relationships'].get('images'):
+                                            for image in images:
+                                                if image['id'] == channel['relationships']['images']['data'][0]['id']:
+                                                    fanart_image = image['attributes']['src']
+                                                if image['id'] == channel['relationships']['images']['data'][-1]['id']:
+                                                    thumb_image = image['attributes']['src']
                                         else:
                                             fanart_image = None
                                             thumb_image = None
@@ -679,11 +671,11 @@ def list_collection_items(page_path, collection_id):
                                             'thumb': thumb_image
                                         }
 
-                                        if relationships.get('images'):
+                                        if channel['relationships'].get('images'):
                                             channel_art['clearlogo'] = thumb_image if len(
-                                                relationships['images']['data']) >= 2 else None
+                                                channel['relationships']['images']['data']) >= 2 else None
 
-                                        helper.add_item(helper.language(30014) + ' ' + attributes.get('name'), params=params,
+                                        helper.add_item(helper.language(30014) + ' ' + channel['attributes'].get('name'), params=params,
                                                         info=channel_info, content='videos', art=channel_art,
                                                         playable=True, folder_name=collection['attributes'].get('title'))
 
@@ -708,17 +700,17 @@ def list_collection_items(page_path, collection_id):
                                     }
 
                                     if link['relationships'].get('images'):
-                                        for i in images:
-                                            if i['id'] == \
+                                        for image in images:
+                                            if image['id'] == \
                                                         link['relationships']['images']['data'][0][
                                                             'id']:
-                                                image = i['attributes']['src']
+                                                thumb_image = image['attributes']['src']
                                     else:
-                                        image = None
+                                        thumb_image = None
 
                                     category_art = {
-                                        'fanart': image,
-                                        'thumb': image
+                                        'fanart': thumb_image,
+                                        'thumb': thumb_image
                                     }
 
                                     # Category titles have stored in different places
@@ -790,11 +782,11 @@ def list_search_shows(search_query):
                              show['id']) + ')',))
 
         if show['relationships'].get('images'):
-            for i in images:
-                if i['id'] == show['relationships']['images']['data'][0]['id']:
-                    fanart_image = i['attributes']['src']
-                if i['id'] == show['relationships']['images']['data'][-1]['id']:
-                    thumb_image = i['attributes']['src']
+            for image in images:
+                if image['id'] == show['relationships']['images']['data'][0]['id']:
+                    fanart_image = image['attributes']['src']
+                if image['id'] == show['relationships']['images']['data'][-1]['id']:
+                    thumb_image = image['attributes']['src']
         else:
             fanart_image = None
             thumb_image = None
@@ -869,11 +861,11 @@ def list_favorites():
                                  favorite['id']) + ')',))
 
                 if show_data['relationships'].get('images'):
-                    for i in images:
-                        if i['id'] == show_data['relationships']['images']['data'][0]['id']:
-                            fanart_image = i['attributes']['src']
-                        if i['id'] == show_data['relationships']['images']['data'][-1]['id']:
-                            thumb_image = i['attributes']['src']
+                    for image in images:
+                        if image['id'] == show_data['relationships']['images']['data'][0]['id']:
+                            fanart_image = image['attributes']['src']
+                        if image['id'] == show_data['relationships']['images']['data'][-1]['id']:
+                            thumb_image = image['attributes']['src']
                 else:
                     fanart_image = None
                     thumb_image = None
@@ -918,8 +910,6 @@ def list_videos(collection_id, mandatoryParams=None, parameter=None):
                     for video in videos:
                         # Match collectionItem's video id to all video id's in data
                         if collectionItem['relationships']['video']['data']['id'] == video['id']:
-                            attributes = video['attributes']
-                            relationships = video['relationships']
 
                             params = {
                                 'action': 'play',
@@ -927,55 +917,55 @@ def list_videos(collection_id, mandatoryParams=None, parameter=None):
                                 'video_type': 'video'
                             }
 
-                            for s in shows:
-                                if s['id'] == relationships['show']['data']['id']:
-                                    show_title = s['attributes']['name']
+                            for show in shows:
+                                if show['id'] == video['relationships']['show']['data']['id']:
+                                    show_title = show['attributes']['name']
 
                             g = []
-                            if relationships.get('genres'):
+                            if video['relationships'].get('genres'):
                                 for genre in genres:
-                                    for video_genre in relationships['genres']['data']:
+                                    for video_genre in video['relationships']['genres']['data']:
                                         if genre['id'] == video_genre['id']:
                                             g.append(genre['attributes']['name'])
 
-                            if relationships.get('primaryChannel'):
+                            if video['relationships'].get('primaryChannel'):
                                 for channel in channels:
-                                    if channel['id'] == relationships['primaryChannel']['data']['id']:
+                                    if channel['id'] == video['relationships']['primaryChannel']['data']['id']:
                                         primaryChannel = channel['attributes']['name']
                             else:
                                 primaryChannel = None
 
-                            if relationships.get('images'):
-                                for i in images:
-                                    if i['id'] == relationships['images']['data'][0]['id']:
-                                        fanart_image = i['attributes']['src']
+                            if video['relationships'].get('images'):
+                                for image in images:
+                                    if image['id'] == video['relationships']['images']['data'][0]['id']:
+                                        fanart_image = image['attributes']['src']
                             else:
                                 fanart_image = None
 
-                            duration = attributes['videoDuration'] / 1000.0 if attributes.get('videoDuration') else None
+                            duration = video['attributes']['videoDuration'] / 1000.0 if video['attributes'].get('videoDuration') else None
 
                             # If episode is not yet playable, show playable time in plot
-                            if attributes.get('earliestPlayableStart'):
+                            if video['attributes'].get('earliestPlayableStart'):
                                 if helper.d.parse_datetime(
-                                        attributes['earliestPlayableStart']) > helper.d.get_current_time():
+                                        video['attributes']['earliestPlayableStart']) > helper.d.get_current_time():
                                     playable = str(
-                                        helper.d.parse_datetime(attributes['earliestPlayableStart']).strftime(
+                                        helper.d.parse_datetime(video['attributes']['earliestPlayableStart']).strftime(
                                             '%d.%m.%Y %H:%M'))
-                                    if attributes.get('description'):
-                                        plot = helper.language(30002) + playable + ' ' + attributes.get('description')
+                                    if video['attributes'].get('description'):
+                                        plot = helper.language(30002) + playable + ' ' + video['attributes'].get('description')
                                     else:
                                         plot = helper.language(30002) + playable
                                 else:
-                                    plot = attributes.get('description')
+                                    plot = video['attributes'].get('description')
                             else:
-                                plot = attributes.get('description')
+                                plot = video['attributes'].get('description')
 
                             # Dplay+ content check
                             # Check for Dplay+ content only if user doesn't have subscription
                             if 'Premium' not in user_packages:
-                                if len(attributes['packages']) > 1:
+                                if len(video['attributes']['packages']) > 1:
                                     # Get all available packages in availabilityWindows
-                                    for availabilityWindow in attributes['availabilityWindows']:
+                                    for availabilityWindow in video['attributes']['availabilityWindows']:
                                         if availabilityWindow['package'] == 'Free':
                                             # Check if there is ending time for free availability
                                             if availabilityWindow.get('playableEnd'):
@@ -992,26 +982,26 @@ def list_videos(collection_id, mandatoryParams=None, parameter=None):
 
                             episode_info = {
                                 'mediatype': 'episode',
-                                'title': attributes.get('name').lstrip(),
+                                'title': video['attributes'].get('name').lstrip(),
                                 'tvshowtitle': show_title,
-                                'season': attributes.get('seasonNumber'),
-                                'episode': attributes.get('episodeNumber'),
+                                'season': video['attributes'].get('seasonNumber'),
+                                'episode': video['attributes'].get('episodeNumber'),
                                 'plot': plot,
                                 'genre': g,
                                 'studio': primaryChannel,
                                 'duration': duration,
-                                'aired': attributes.get('airDate')
+                                'aired': video['attributes'].get('airDate')
                             }
 
                             # Watched status from Dplay
-                            if attributes['viewingHistory']['viewed']:
-                                if attributes['viewingHistory']['completed']:  # Watched video
+                            if video['attributes']['viewingHistory']['viewed']:
+                                if video['attributes']['viewingHistory']['completed']:  # Watched video
                                     episode_info['playcount'] = '1'
                                     resume = 0
                                     total = duration
                                 else:  # Partly watched video
                                     episode_info['playcount'] = '0'
-                                    resume = attributes['viewingHistory']['position'] / 1000.0
+                                    resume = video['attributes']['viewingHistory']['position'] / 1000.0
                                     total = duration
                             else:  # Unwatched video
                                 episode_info['playcount'] = '0'
@@ -1026,11 +1016,11 @@ def list_videos(collection_id, mandatoryParams=None, parameter=None):
                             # parameter = list season
                             if parameter:
                                 folder_name = show_title + ' / ' + helper.language(30011) + ' ' + str(
-                                    attributes.get('seasonNumber'))
+                                    video['attributes'].get('seasonNumber'))
                             else:
                                 folder_name = show_title
 
-                            helper.add_item(attributes.get('name').lstrip(), params=params, info=episode_info, art=episode_art,
+                            helper.add_item(video['attributes'].get('name').lstrip(), params=params, info=episode_info, art=episode_art,
                                             content='episodes', playable=True, resume=resume, total=total,
                                             folder_name=folder_name, sort_method='sort_episodes')
 
