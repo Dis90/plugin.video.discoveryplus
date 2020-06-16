@@ -504,7 +504,10 @@ class Dplay(object):
 
         params = {'usePreAuth': 'true'}
 
-        url = 'https://disco-api.dplay.{locale_suffix}/playback/v2/{video_type}PlaybackInfo/{video_id}'.format(locale_suffix=self.locale_suffix, video_type=video_type, video_id=video_id)
+        if video_type == 'channel':
+            url = 'https://disco-api.dplay.{locale_suffix}/playback/v2/channelPlaybackInfo/{video_id}'.format(locale_suffix=self.locale_suffix, video_id=video_id)
+        else:
+            url = 'https://disco-api.dplay.{locale_suffix}/playback/v2/videoPlaybackInfo/{video_id}'.format(locale_suffix=self.locale_suffix, video_id=video_id)
 
         data_dict = json.loads(self.make_request(url, 'get', params=params, headers=None))['data']
 

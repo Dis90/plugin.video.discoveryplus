@@ -207,6 +207,7 @@ class KodiHelper(object):
 
             if video_type == 'video':
                 playitem = xbmcgui.ListItem(path=stream['hls_url'])
+
                 playitem.setProperty('inputstreamaddon', 'inputstream.adaptive')
                 # Have to use hls for shows because mpd encryption type 'clearkey' is not supported by inputstream.adaptive
                 playitem.setProperty('inputstream.adaptive.manifest_type', 'hls')
@@ -253,7 +254,8 @@ class KodiHelper(object):
 
                 playitem.setArt(art)
 
-            elif video_type == 'channel':
+            # Widevine is used for channels and other livestreams
+            elif video_type == 'channel' or video_type == 'live':
                 is_helper = inputstreamhelper.Helper('mpd', drm='com.widevine.alpha')
                 if is_helper.check_inputstream():
                     playitem = xbmcgui.ListItem(path=stream['mpd_url'])

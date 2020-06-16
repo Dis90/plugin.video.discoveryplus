@@ -651,20 +651,24 @@ def list_collection_items(page_path, collection_id):
                                                     menu=menu, folder_name=collection['attributes'].get('title'),
                                                     sort_method='unsorted')
 
-                        # List videos
+                        # List videos and live sports
                         if collectionItem['relationships'].get('video'):
                             for video in videos:
                                 if collectionItem['relationships']['video']['data']['id'] == video['id']:
 
                                     params = {
                                         'action': 'play',
-                                        'video_id': video['id'],
-                                        'video_type': 'video'
+                                        'video_id': video['id']
                                     }
 
-                                    for s in shows:
-                                        if s['id'] == video['relationships']['show']['data']['id']:
-                                            show_title = s['attributes']['name']
+                                    if video['attributes']['videoType'] == 'LIVE': # Sport events
+                                        params['video_type'] = 'live'
+                                    else:
+                                        params['video_type'] = 'video'
+
+                                    for show in shows:
+                                        if show['id'] == video['relationships']['show']['data']['id']:
+                                            show_title = show['attributes']['name']
 
                                     g = []
                                     if video['relationships'].get('genres'):
@@ -742,7 +746,7 @@ def list_collection_items(page_path, collection_id):
 
                                     # Watched status from Dplay
                                     if video['attributes']['viewingHistory']['viewed']:
-                                        if video['attributes']['viewingHistory']['completed']:  # Watched video
+                                        if video['attributes']['viewingHistory'].get('completed'):  # Watched video
                                             episode_info['playcount'] = '1'
                                             resume = 0
                                             total = duration
