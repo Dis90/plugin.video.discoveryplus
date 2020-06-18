@@ -73,7 +73,6 @@ class Dplay(object):
                                  item[2],
                                  item[3], item[3] == "",
                                  None, None, {})
-            self.log(c)
             cj.set_cookie(c)
         con.close()
 
