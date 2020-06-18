@@ -197,7 +197,7 @@ class KodiHelper(object):
         # Stop playback before playing next episode otherwise episode is not marked as watched
         xbmc.executebuiltin('PlayerControl(Stop)')
 
-        media = 'plugin://' + self.addon_name + '/?action=play&video_id=' + next_video_id + '&video_type=video'
+        media = 'plugin://' + self.addon_name + '/?action=play&video_id=' + next_video_id + '&video_type=EPISODE'
         xbmc.executebuiltin('PlayMedia({})'.format(media))
     # End of Up next integration
 
@@ -205,14 +205,29 @@ class KodiHelper(object):
         try:
             stream = self.d.get_stream(video_id, video_type)
 
-            if video_type == 'video':
+            # DRM enabled = use Widevine (Live TV, live sport and aired sport events)
+            if stream['drm_enabled']:
+                is_helper = inputstreamhelper.Helper('mpd', drm='com.widevine.alpha')
+                if is_helper.check_inputstream():
+                    playitem = xbmcgui.ListItem(path=stream['mpd_url'])
+                    playitem.setProperty('inputstreamaddon', 'inputstream.adaptive')
+                    playitem.setProperty('inputstream.adaptive.manifest_type', 'mpd')
+                    playitem.setProperty('inputstream.adaptive.license_type', 'com.widevine.alpha')
+                    header = 'PreAuthorization=' + stream['drm_token']
+                    playitem.setProperty('inputstream.adaptive.license_key',
+                                             stream['license_url'] + '|' + header + '|R{SSM}|')
+            else:
                 playitem = xbmcgui.ListItem(path=stream['hls_url'])
-
                 playitem.setProperty('inputstreamaddon', 'inputstream.adaptive')
                 # Have to use hls for shows because mpd encryption type 'clearkey' is not supported by inputstream.adaptive
                 playitem.setProperty('inputstream.adaptive.manifest_type', 'hls')
                 playitem.setSubtitles(self.d.get_subtitles(stream['hls_url'], video_id))
 
+            player = DplayPlayer()
+            player.resolve(playitem)
+
+            # Get metadata to use for Up next only in episodes (can also be aired sport events)
+            if video_type == 'EPISODE':
                 # Get current episode info
                 current_episode = self.d.parse_page(video_id=video_id)
 
@@ -254,21 +269,6 @@ class KodiHelper(object):
 
                 playitem.setArt(art)
 
-            # Widevine is used for channels and other livestreams
-            elif video_type == 'channel' or video_type == 'live':
-                is_helper = inputstreamhelper.Helper('mpd', drm='com.widevine.alpha')
-                if is_helper.check_inputstream():
-                    playitem = xbmcgui.ListItem(path=stream['mpd_url'])
-                    playitem.setProperty('inputstreamaddon', 'inputstream.adaptive')
-                    playitem.setProperty('inputstream.adaptive.manifest_type', 'mpd')
-                    playitem.setProperty('inputstream.adaptive.license_type', 'com.widevine.alpha')
-                    header = 'PreAuthorization=' + stream['drm_token']
-                    playitem.setProperty('inputstream.adaptive.license_key', stream['license_url'] + '|' + header + '|R{SSM}|')
-
-            player = DplayPlayer()
-            player.resolve(playitem)
-
-            if video_type == 'video':
                 player.video_id = video_id
                 player.current_episode_info = info
                 player.current_episode_art = art
@@ -321,6 +321,16 @@ class DplayPlayer(xbmc.Player):
             else:
                 next_episode_fanart_image = None
 
+            if self.current_episode_info.get('aired'):
+                current_episode_aired = self.helper.d.parse_datetime(self.current_episode_info['aired']).strftime('%d.%m.%Y')
+            else:
+                current_episode_aired = ''
+
+            if next_episode['data'][0]['attributes'].get('airDate'):
+                next_episode_aired = self.helper.d.parse_datetime(next_episode['data'][0]['attributes']['airDate']).strftime('%d.%m.%Y')
+            else:
+                next_episode_aired = ''
+
             next_info = dict(
                 current_episode=dict(
                     episodeid=self.video_id,
@@ -340,7 +350,7 @@ class DplayPlayer(xbmc.Player):
                     plot=self.current_episode_info['title'],
                     playcount='',
                     rating=None,
-                    firstaired=self.helper.d.parse_datetime(self.current_episode_info['aired']).strftime('%d.%m.%Y'),
+                    firstaired=current_episode_aired,
                     runtime=self.current_episode_info['duration'],
                 ),
                 next_episode=dict(
@@ -361,7 +371,7 @@ class DplayPlayer(xbmc.Player):
                     plot=next_episode['data'][0]['attributes'].get('description'),
                     playcount='',
                     rating=None,
-                    firstaired=self.helper.d.parse_datetime(next_episode['data'][0]['attributes'].get('airDate')).strftime('%d.%m.%Y'),
+                    firstaired=next_episode_aired,
                     runtime=next_episode['data'][0]['attributes'].get('videoDuration') / 1000.0,
                 ),
 

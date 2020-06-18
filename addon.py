@@ -658,13 +658,9 @@ def list_collection_items(page_path, collection_id):
 
                                     params = {
                                         'action': 'play',
-                                        'video_id': video['id']
+                                        'video_id': video['id'],
+                                        'video_type': video['attributes']['videoType']
                                     }
-
-                                    if video['attributes']['videoType'] == 'LIVE': # Sport events
-                                        params['video_type'] = 'live'
-                                    else:
-                                        params['video_type'] = 'video'
 
                                     for show in shows:
                                         if show['id'] == video['relationships']['show']['data']['id']:
@@ -1048,7 +1044,7 @@ def list_videos(collection_id, mandatoryParams=None, parameter=None):
                             params = {
                                 'action': 'play',
                                 'video_id': video['id'],
-                                'video_type': 'video'
+                                'video_type': video['attributes']['videoType']
                             }
 
                             for show in shows:
