@@ -12,7 +12,7 @@ helper = KodiHelper(base_url, handle)
 
 def list_pages():
     helper.add_item(helper.language(30001), params={'action': 'list_page', 'page_path': '/home'})
-    helper.add_item(helper.language(30016), params={'action': 'list_favorites'})
+    helper.add_item(helper.language(30017), params={'action': 'list_favorites'})
     helper.add_item(helper.language(30007), params={'action': 'search'})
 
     # List menu items (Shows, Categories)
@@ -1177,6 +1177,8 @@ def router(paramstring):
     params = dict(parse_qsl(paramstring))
     # Check the parameters passed to the plugin
     if 'setting' in params:
+        if params['setting'] == 'reset_credentials':
+            helper.reset_credentials()
         if params['setting'] == 'set_locale':
             helper.set_locale()
     elif 'action' in params:
@@ -1212,7 +1214,10 @@ def router(paramstring):
             if helper.check_for_prerequisites():
                 list_pages()
         except helper.d.DplayError as error:
-            helper.dialog('ok', helper.language(30006), error.value)
+            if error.value == 'unauthorized':  # Login error, wrong email or password
+                helper.dialog('ok', helper.language(30006), helper.language(30012))
+            else:
+                helper.dialog('ok', helper.language(30006), error.value)
 
 if __name__ == '__main__':
     # Call the router function and pass the plugin call parameters to it.

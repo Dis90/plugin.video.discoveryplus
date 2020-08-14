@@ -80,15 +80,24 @@ class KodiHelper(object):
             return None
 
     def check_for_prerequisites(self):
-        return self.set_locale(self.get_setting('locale')) and self.check_for_credentials()
+        return self.set_locale(self.get_setting('locale')) and self.set_login_credentials() and self.check_for_credentials()
+
+    def set_login_credentials(self):
+        username = self.get_setting('username')
+        password = self.get_setting('password')
+
+        if not username or not password:
+            self.dialog('ok', self.language(30003), self.language(30004))
+            self.get_addon().openSettings()
+            return False
+        else:
+            return True
 
     def check_for_credentials(self):
         self.d.get_token() # Get new token before checking credentials
         if self.d.get_user_data()['attributes']['anonymous'] == True:
-            self.dialog('ok', self.language(30006), self.language(30015)) # Request to use Firefox to login
-            return None
-        else:
-            return True
+            self.login_process()
+        return True
 
     def set_locale(self, locale=None):
         countries = ['fi_FI', 'sv_SE', 'da_DK', 'nb_NO']
@@ -101,6 +110,15 @@ class KodiHelper(object):
             self.set_setting('locale', countries[selected_locale])
 
         return True
+
+    def login_process(self):
+        username = self.get_setting('username')
+        password = self.get_setting('password')
+        self.d.login(username, password)
+
+    def reset_credentials(self):
+        self.set_setting('username', '')
+        self.set_setting('password', '')
 
     def add_item(self, title, params, items=False, folder=True, playable=False, info=None, art=None, content=False, menu=None, resume=None, total=None, folder_name=None, sort_method=None):
         addon = self.get_addon()

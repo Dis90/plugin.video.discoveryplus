@@ -74,9 +74,13 @@ msgid "Watch"
 msgstr ""
 
 msgctxt "#30015"
-msgid "You have to first login to Dplay using Firefox"
+msgid "Email"
 msgstr ""
 
 msgctxt "#30016"
+msgid "Password"
+msgstr ""
+
+msgctxt "#30017"
 msgid "Favorites"
 msgstr ""

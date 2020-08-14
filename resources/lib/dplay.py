@@ -14,67 +14,28 @@ from datetime import datetime, timedelta
 
 import requests
 import urlparse
-import sqlite3
-import glob
-import sys
+import urllib
+import uuid
 
 class Dplay(object):
     def __init__(self, settings_folder, locale, debug=False):
         self.debug = debug
         self.locale = locale
         self.locale_suffix = self.locale.split('_')[1].lower()
+        self.client_id = str(uuid.uuid1())
+        self.device_id = self.client_id.replace("-", "")
         self.http_session = requests.Session()
         self.settings_folder = settings_folder
         self.tempdir = os.path.join(settings_folder, 'tmp')
         self.unwanted_menu_items = ('Hae mukaan', 'Info', 'Tablå', 'Live TV', 'TV-guide')
         if not os.path.exists(self.tempdir):
             os.makedirs(self.tempdir)
-
-        cj = cookielib.CookieJar()
-
-        self.get_firefox_cookies(cj, self.find_cookie_files()[0], 'dplay')
-        self.http_session.cookies = cj
-
-    def find_cookie_files(self):
-        if sys.platform == 'darwin':
-            cookie_files = glob.glob(
-                os.path.expanduser('~/Library/Application Support/Firefox/Profiles/*default*/cookies.sqlite'))
-        elif sys.platform.startswith('linux'):
-            cookie_files = glob.glob(os.path.expanduser('~/.mozilla/firefox/*default*/cookies.sqlite'))
-        elif sys.platform == 'win32':
-            cookie_files = glob.glob(os.path.join(os.environ.get('APPDATA', ''),
-                                                    'Mozilla/Firefox/Profiles/*default*/cookies.sqlite'))
-        else:
-            self.log('Unsupported operating system: ' + sys.platform)
-
-        if cookie_files:
-            return cookie_files
-        else:
-            raise self.log('Failed to find Firefox cookies')
-
-    # From https://stackoverflow.com/questions/49502254/how-to-import-firefox-cookies-to-python-requests
-    def get_firefox_cookies(self, cj, ff_cookies_file, domain_name):
-        # Create local copy of cookies sqlite database. This is necessary in case this database is still being written
-        # to while the user browses to avoid sqlite locking errors.
-        tmp_cookies_file = os.path.join(self.tempdir, 'ff_cookies.sqlite')
-        open(tmp_cookies_file, 'wb').write(open(ff_cookies_file, 'rb').read())
-
-        con = sqlite3.connect(tmp_cookies_file)
-        cur = con.cursor()
-
-        cur.execute('select host, path, isSecure, expiry, name, value from moz_cookies '
-                    'where host like "%{}%"'.format(domain_name))
-
-        for item in cur.fetchall():
-            c = cookielib.Cookie(0, item[4], item[5],
-                                 None, False,
-                                 item[0], item[0].startswith('.'), item[0].startswith('.'),
-                                 item[1], False,
-                                 item[2],
-                                 item[3], item[3] == "",
-                                 None, None, {})
-            cj.set_cookie(c)
-        con.close()
+        self.cookie_jar = cookielib.LWPCookieJar(os.path.join(self.settings_folder, 'cookie_file'))
+        try:
+            self.cookie_jar.load(ignore_discard=True, ignore_expires=True)
+        except IOError:
+            pass
+        self.http_session.cookies = self.cookie_jar
 
     class DplayError(Exception):
         def __init__(self, value):
@@ -113,6 +74,7 @@ class Dplay(object):
                 req = self.http_session.post(url, params=params, data=payload, headers=headers)
             self.log('Response code: %s' % req.status_code)
             self.log('Response: %s' % req.content)
+            self.cookie_jar.save(ignore_discard=True, ignore_expires=True)
             self.raise_dplay_error(req.content)
             if text:
                 return req.text
@@ -132,7 +94,10 @@ class Dplay(object):
             if 'errors' in response:
                 for error in response['errors']:
                     if 'code' in error.keys():
-                        raise self.DplayError(error['detail'])
+                        if error['code'] == 'unauthorized': # Login error, wrong email or password
+                            raise self.DplayError(error['code']) # Detail is empty in login error
+                        else:
+                            raise self.DplayError(error['detail'])
 
         except KeyError:
             pass
@@ -146,10 +111,187 @@ class Dplay(object):
         realm = 'dplay' + self.locale_suffix
 
         params = {
-            'realm': realm
+            'realm': realm,
+            'deviceId': self.device_id,
+            'shortlived': 'true'
         }
 
         return self.make_request(url, 'get', params=params)
+
+    def url_encode(self, url):
+        """Converts an URL in url encode characters
+        :param str url: The data to URL encode.
+        :return: Encoded URL like this. Example: '/~connolly/' yields '/%7econnolly/'.
+        :rtype: str
+        """
+
+        # noinspection PyUnresolvedReferences
+        if isinstance(url, unicode):
+            # noinspection PyUnresolvedReferences
+            return urllib.quote(url.encode())
+        else:
+            # this is the main time waster
+            # noinspection PyUnresolvedReferences
+            return urllib.quote(url)
+
+    def login(self, username=None, password=None):
+        # Modified from:
+        # https://github.com/retrospect-addon/plugin.video.retrospect/blob/master/channels/channel.se/sbs/chn_sbs.py
+
+        # Local import to not slow down any other stuff
+        import binascii
+        try:
+            # If running on Leia
+            import pyaes
+        except:
+            # If running on Pre-Leia
+            from resources.lib import pyaes
+        import random
+
+        now = int(time.time())
+        b64_now = binascii.b2a_base64(str(now).encode()).decode().strip()
+
+        user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " \
+                     "(KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36"
+        window_id = "{}|{}".format(
+            binascii.hexlify(os.urandom(16)).decode(), binascii.hexlify(os.urandom(16)).decode())
+
+        fe = ["DNT:1", "L:en-NL", "D:24", "PR:1", "S:1920,1080", "AS:1920,1040", "TO:-120",
+              "SS:true", "LS:true", "IDB:true", "B:false", "ODB:true", "CPUC:unknown",
+              "PK:Win32", "CFP:-1524337346", "FR:false", "FOS:false", "FB:false", "JSF:", "P:",
+              "T:1,false,false", "H:12", "SWF:false"]
+        fs_murmur_hash = "d6530c9b538110be929394f85bfad515"
+
+        data = [
+            {"key": "api_type", "value": "js"},
+            {"key": "p", "value": 1},                       # constant
+            {"key": "f", "value": self.device_id},               # browser instance ID
+            {"key": "n", "value": b64_now},                 # base64 encoding of time.now()
+            {"key": "wh", "value": window_id},              # WindowHandle ID
+            {"key": "fe", "value": fe},                     # browser properties
+            {"key": "ife_hash", "value": fs_murmur_hash},   # hash of browser properties
+            {"key": "cs", "value": 1},                      # canvas supported 0/1
+            {"key": "jsbd", "value": "{\"HL\":41,\"NCE\":true,\"DMTO\":1,\"DOTO\":1}"}
+        ]
+        data_value = json.dumps(data)
+
+        stamp = now - (now % (60 * 60 * 6))
+        key_password = "{}{}".format(user_agent, stamp)
+
+        salt_bytes = os.urandom(8)
+        key_iv = self.__evp_kdf(key_password.encode(), salt_bytes, key_size=8, iv_size=4,
+                                iterations=1, hash_algorithm="md5")
+        key = key_iv["key"]
+        iv = key_iv["iv"]
+
+        encrypter = pyaes.Encrypter(pyaes.AESModeOfOperationCBC(key, iv))
+        encrypted = encrypter.feed(data_value)
+        # Again, make a final call to flush any remaining bytes and strip padding
+        encrypted += encrypter.feed()
+
+        salt_hex = binascii.hexlify(salt_bytes)
+        iv_hex = binascii.hexlify(iv)
+        encrypted_b64 = binascii.b2a_base64(encrypted)
+        bda = {
+            "ct": encrypted_b64.decode(),
+            "iv": iv_hex.decode(),
+            "s": salt_hex.decode()
+        }
+        bda_str = json.dumps(bda)
+        bda_base64 = binascii.b2a_base64(bda_str.encode())
+
+        req_dict = {
+            "bda": bda_base64.decode(),
+            "public_key": "FE296399-FDEA-2EA2-8CD5-50F6E3157ECA",
+            "site": "https://client-api.arkoselabs.com",
+            "userbrowser": user_agent,
+            "simulate_rate_limit": "0",
+            "simulated": "0",
+            "rnd": "{}".format(random.random())
+        }
+
+        req_data = ""
+        for k, v in req_dict.items():
+            req_data = "{}{}={}&".format(req_data, k, self.url_encode(v))
+        req_data = req_data.rstrip("&")
+
+        arkose_headers = {"user-agent": user_agent}
+
+        arkose_data = self.make_request('https://client-api.arkoselabs.com/fc/gt2/public_key/FE296399-FDEA-2EA2-8CD5-50F6E3157ECA', 'get', params=req_data, headers=arkose_headers)
+        arkose_json = json.loads(arkose_data)
+        arkose_token = arkose_json.get("token")
+
+        if "rid=" not in arkose_token:
+            self.log("Error logging in. Invalid Arkose token.")
+            return False
+
+        self.log("Succesfully required a login token from Arkose.")
+
+        # Get new token
+        self.get_token()
+
+        dplay_username = username
+        dplay_password = password
+        creds = {"credentials": {"username": dplay_username, "password": dplay_password}}
+        headers = {
+                "x-disco-arkose-token": arkose_token,
+                "x-disco-arkose-sitekey": "FE296399-FDEA-2EA2-8CD5-50F6E3157ECA",
+                "Origin": "https://www.dplay.{locale_suffix}".format(locale_suffix=self.locale_suffix),
+                "x-disco-client": "WEB:10.16.0:AUTH_DPLAY_V1:4.0.1-rc2-gi1",
+                # is not specified a captcha is required
+                # "Sec-Fetch-Site": "same-site",
+                # "Sec-Fetch-Mode": "cors",
+                # "Sec-Fetch-Dest": "empty",
+                "Referer": "https://www.dplay.{locale_suffix}/mydplay/login".format(locale_suffix=self.locale_suffix),
+                "User-Agent": user_agent
+            }
+
+        login_url = 'https://disco-api.dplay.{locale_suffix}/login'.format(locale_suffix=self.locale_suffix)
+        return self.make_request(login_url, 'post', payload=json.dumps(creds), headers=headers)
+
+    def __evp_kdf(self, passwd, salt, key_size=8, iv_size=4, iterations=1, hash_algorithm="md5"):
+        """
+        https://gist.github.com/adrianlzt/d5c9657e205b57f687f528a5ac59fe0e
+        :param byte passwd:
+        :param byte salt:
+        :param int key_size:
+        :param int iv_size:
+        :param int iterations:
+        :param str hash_algorithm:
+        :return:
+        """
+
+        import hashlib
+
+        target_key_size = key_size + iv_size
+        derived_bytes = b""
+        number_of_derived_words = 0
+        block = None
+        hasher = hashlib.new(hash_algorithm)
+
+        while number_of_derived_words < target_key_size:
+            if block is not None:
+                hasher.update(block)
+
+            hasher.update(passwd)
+            hasher.update(salt)
+            block = hasher.digest()
+
+            hasher = hashlib.new(hash_algorithm)
+
+            for _ in range(1, iterations):
+                hasher.update(block)
+                block = hasher.digest()
+                hasher = hashlib.new(hash_algorithm)
+
+            derived_bytes += block[0: min(len(block), (target_key_size - number_of_derived_words) * 4)]
+
+            number_of_derived_words += len(block)/4
+
+        return {
+            "key": derived_bytes[0: key_size * 4],
+            "iv": derived_bytes[key_size * 4:]
+        }
 
     def get_user_data(self):
         url = 'https://disco-api.dplay.{locale_suffix}/users/me'.format(locale_suffix=self.locale_suffix)

@@ -74,9 +74,13 @@ msgid "Watch"
 msgstr "Katso"
 
 msgctxt "#30015"
-msgid "You have to first login to Dplay using Firefox"
-msgstr "Kirjaudu ensin sisään Dplayhin käyttäen Firefoxia"
+msgid "Email"
+msgstr "Sähköpostiosoite"
 
 msgctxt "#30016"
+msgid "Password"
+msgstr "Salasana"
+
+msgctxt "#30017"
 msgid "Favorites"
 msgstr "Suosikit"
