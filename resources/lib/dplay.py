@@ -4,22 +4,35 @@ A Kodi-agnostic library for Dplay
 """
 import os
 from io import open, StringIO
+import xbmc
 import re
 import json
 import codecs
-import cookielib
 import time
 import calendar
 from datetime import datetime, timedelta
-
 import requests
-import urlparse
-import urllib
 import uuid
 
+try: # Python 3
+    import http.cookiejar as cookielib
+except ImportError: # Python 2
+    import cookielib
+
+try: # Python 3
+    from urllib.parse import urlparse, urljoin, quote
+except ImportError: # Python 2
+    from urlparse import urlparse, urljoin
+    from urllib import quote
+
+try:  # Python 2
+    unicode
+except NameError:  # Python 3
+    unicode = str  # pylint: disable=redefined-builtin,invalid-name
+
 class Dplay(object):
-    def __init__(self, settings_folder, locale, debug=False):
-        self.debug = debug
+    def __init__(self, settings_folder, locale, logging_prefix):
+        self.logging_prefix = logging_prefix
         self.locale = locale
         self.locale_suffix = self.locale.split('_')[1].lower()
         self.client_id = str(uuid.uuid1())
@@ -45,16 +58,8 @@ class Dplay(object):
             return repr(self.value)
 
     def log(self, string):
-        if self.debug:
-            try:
-                print '[Dplay]: %s' % string
-            except UnicodeEncodeError:
-                # we can't anticipate everything in unicode they might throw at
-                # us, but we can handle a simple BOM
-                bom = unicode(codecs.BOM_UTF8, 'utf8')
-                print '[Dplay]: %s' % string.replace(bom, '')
-            except:
-                pass
+        msg = '%s: %s' % (self.logging_prefix, string)
+        xbmc.log(msg=msg, level=xbmc.LOGDEBUG)
 
     def make_request(self, url, method, params=None, payload=None, headers=None, text=False):
         """Make an HTTP request. Return the response."""
@@ -128,11 +133,11 @@ class Dplay(object):
         # noinspection PyUnresolvedReferences
         if isinstance(url, unicode):
             # noinspection PyUnresolvedReferences
-            return urllib.quote(url.encode())
+            return quote(url.encode())
         else:
             # this is the main time waster
             # noinspection PyUnresolvedReferences
-            return urllib.quote(url)
+            return quote(url)
 
     def login(self, username=None, password=None):
         # Modified from:
@@ -223,6 +228,7 @@ class Dplay(object):
 
         if "rid=" not in arkose_token:
             self.log("Error logging in. Invalid Arkose token.")
+            self.log(arkose_token)
             return False
 
         self.log("Succesfully required a login token from Arkose.")
@@ -604,7 +610,7 @@ class Dplay(object):
         playlist = self.make_request(video_url, 'get', headers=None, text=True)
         self.log('Video playlist url: ' + video_url)
 
-        line1 = urlparse.urljoin(video_url, urlparse.urlparse(video_url).path)
+        line1 = urljoin(video_url, urlparse(video_url).path)
         url = line1.replace("playlist.m3u8", "")
 
         paths = []

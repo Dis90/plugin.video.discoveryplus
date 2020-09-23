@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import sys
-from urlparse import parse_qsl
 import json
+
+try: # Python 3
+    from urllib.parse import parse_qsl
+except ImportError: # Python 2
+    from urlparse import parse_qsl
 
 from resources.lib.kodihelper import KodiHelper
 
@@ -1009,7 +1013,7 @@ def list_favorites():
                         show_data['relationships']['images']['data']) == 2 else None
 
                 helper.add_item(title, params, info=info, art=show_art, content='tvshows', menu=menu,
-                                folder_name=helper.language(30016), sort_method='unsorted')
+                                folder_name=helper.language(30017), sort_method='unsorted')
 
     helper.eod()
 

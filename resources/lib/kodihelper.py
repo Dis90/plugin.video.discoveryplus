@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import os
-import urllib
 import re
 import sys
 import json
 
-from dplay import Dplay
+from .dplay import Dplay
 
 import xbmc
 import xbmcvfs
@@ -15,6 +14,11 @@ import xbmcplugin
 from xbmcaddon import Addon
 import inputstreamhelper
 from base64 import b64encode
+
+try: # Python 3
+    from urllib.parse import urlencode
+except ImportError: # Python 2
+    from urllib import urlencode
 
 class KodiHelper(object):
     def __init__(self, base_url=None, handle=None):
@@ -29,7 +33,7 @@ class KodiHelper(object):
         self.logging_prefix = '[%s-%s]' % (self.addon_name, self.addon_version)
         if not xbmcvfs.exists(self.addon_profile):
             xbmcvfs.mkdir(self.addon_profile)
-        self.d = Dplay(self.addon_profile, self.get_setting('locale'), True)
+        self.d = Dplay(self.addon_profile, self.get_setting('locale'), self.logging_prefix)
 
     def get_addon(self):
         """Returns a fresh addon instance."""
@@ -44,6 +48,10 @@ class KodiHelper(object):
             return False
         else:
             return setting
+
+    def get_kodi_version(self):
+        version = xbmc.getInfoLabel('System.BuildVersion')
+        return version.split('.')[0]
 
     def set_setting(self, key, value):
         return self.get_addon().setSetting(key, value)
@@ -156,7 +164,7 @@ class KodiHelper(object):
                 xbmcplugin.addSortMethod(self.handle, xbmcplugin.SORT_METHOD_EPISODE)
                 xbmcplugin.addSortMethod(self.handle, xbmcplugin.SORT_METHOD_VIDEO_TITLE)
 
-        recursive_url = self.base_url + '?' + urllib.urlencode(params)
+        recursive_url = self.base_url + '?' + urlencode(params)
 
         if items is False:
             xbmcplugin.addDirectoryItem(self.handle, recursive_url, listitem, folder)
@@ -236,7 +244,14 @@ class KodiHelper(object):
                                              stream['license_url'] + '|' + header + '|R{SSM}|')
             else:
                 playitem = xbmcgui.ListItem(path=stream['hls_url'])
-                playitem.setProperty('inputstreamaddon', 'inputstream.adaptive')
+
+                # Kodi 19 Matrix or higher
+                if self.get_kodi_version() >= '19':
+                    playitem.setProperty('inputstream', 'inputstream.adaptive')
+                # Kodi 18 Leia
+                else:
+                    playitem.setProperty('inputstreamaddon', 'inputstream.adaptive')
+
                 # Have to use hls for shows because mpd encryption type 'clearkey' is not supported by inputstream.adaptive
                 playitem.setProperty('inputstream.adaptive.manifest_type', 'hls')
                 playitem.setSubtitles(self.d.get_subtitles(stream['hls_url'], video_id))
@@ -291,7 +306,8 @@ class KodiHelper(object):
                 player.current_episode_info = info
                 player.current_episode_art = art
 
-                while not xbmc.abortRequested and player.running:
+                monitor = xbmc.Monitor()
+                while not monitor.abortRequested() and player.running:
                     if player.isPlayingVideo():
                         player.video_totaltime = player.getTotalTime()
                         player.video_lastpos = player.getTime()
