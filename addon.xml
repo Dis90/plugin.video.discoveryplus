@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="plugin.video.dplaynordic" version="1.2.1" name="Dplay" provider-name="Dis90">
+<addon id="plugin.video.dplaynordic" version="1.2.2" name="Dplay" provider-name="Dis90">
 <requires>
   <import addon="xbmc.python" version="2.24.0"/>
   <import addon="script.module.requests" version="2.9.1"/>
