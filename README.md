@@ -10,6 +10,13 @@ This addon is unofficial and it is not supported by Discovery Networks, so it ca
 - Windows (not tested)
 - Android (not tested)
 
+# Supported countries
+- Finland
+- Sweden
+- Denmark
+- Norway
+- Netherlands
+
 # Features
 - Supports <a href="https://forum.kodi.tv/showthread.php?tid=336747">Up Next</a>
 - Playback progress is same in Dplay site and on Kodi addon (you can start video on site and continue it on Kodi or other way round)
