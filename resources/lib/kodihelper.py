@@ -108,9 +108,9 @@ class KodiHelper(object):
         return True
 
     def set_locale(self, locale=None):
-        countries = ['fi_FI', 'sv_SE', 'da_DK', 'nb_NO']
+        countries = ['fi_FI', 'sv_SE', 'da_DK', 'nb_NO', 'nl_NL']
         if not locale:
-            options = ['dplay.fi', 'dplay.se', 'dplay.dk', 'dplay.no']
+            options = ['dplay.fi', 'dplay.se', 'dplay.dk', 'dplay.no', 'dplay.nl']
             selected_locale = self.dialog('select', self.language(30013), options=options)
             if selected_locale is None:
                 selected_locale = 0  # default to .fi
