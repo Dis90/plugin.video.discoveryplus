@@ -236,7 +236,14 @@ class KodiHelper(object):
                 is_helper = inputstreamhelper.Helper('mpd', drm='com.widevine.alpha')
                 if is_helper.check_inputstream():
                     playitem = xbmcgui.ListItem(path=stream['mpd_url'])
-                    playitem.setProperty('inputstreamaddon', 'inputstream.adaptive')
+
+                    # Kodi 19 Matrix or higher
+                    if self.get_kodi_version() >= '19':
+                        playitem.setProperty('inputstream', 'inputstream.adaptive')
+                    # Kodi 18 Leia
+                    else:
+                        playitem.setProperty('inputstreamaddon', 'inputstream.adaptive')
+                        
                     playitem.setProperty('inputstream.adaptive.manifest_type', 'mpd')
                     playitem.setProperty('inputstream.adaptive.license_type', 'com.widevine.alpha')
                     header = 'PreAuthorization=' + stream['drm_token']
