@@ -20,13 +20,13 @@ def list_pages():
     helper.add_item(helper.language(30007), params={'action': 'search'})
 
     # List menu items (Shows, Categories)
-    page_data = helper.d.parse_page('menu')
+    page_data = helper.d.get_menu()
 
-    collections = page_data['collections']
-    collectionItems = page_data['collectionItems']
-    images = page_data['images']
-    links = page_data['links']
-    routes = page_data['routes']
+    collections = list(filter(lambda x: x['type'] == 'collection', page_data['included']))
+    collectionItems = list(filter(lambda x: x['type'] == 'collectionItem', page_data['included']))
+    images = list(filter(lambda x: x['type'] == 'image', page_data['included']))
+    links = list(filter(lambda x: x['type'] == 'link', page_data['included']))
+    routes = list(filter(lambda x: x['type'] == 'route', page_data['included']))
 
     for data_collection in page_data['data']['relationships']['items']['data']:
         for collectionItem in collectionItems:
@@ -79,19 +79,19 @@ def list_pages():
     helper.eod()
 
 def list_page(page_path=None):
-    page_data = helper.d.parse_page(page_path)
+    page_data = helper.d.get_page(page_path)
 
     user_favorites = ",".join([str(x['id']) for x in helper.d.get_favorites()['data']['relationships']['favorites']['data']])
 
-    pages = page_data['pages']
-    pageItems = page_data['pageItems']
-    collections = page_data['collections']
-    collectionItems = page_data['collectionItems']
-    images = page_data['images']
-    shows = page_data['shows']
-    channels = page_data['channels']
-    genres = page_data['genres']
-    routes = page_data['routes']
+    pages = list(filter(lambda x: x['type'] == 'page', page_data['included']))
+    pageItems = list(filter(lambda x: x['type'] == 'pageItem', page_data['included']))
+    collections = list(filter(lambda x: x['type'] == 'collection', page_data['included']))
+    collectionItems = list(filter(lambda x: x['type'] == 'collectionItem', page_data['included']))
+    images = list(filter(lambda x: x['type'] == 'image', page_data['included']))
+    shows = list(filter(lambda x: x['type'] == 'show', page_data['included']))
+    channels = list(filter(lambda x: x['type'] == 'channel', page_data['included']))
+    genres = list(filter(lambda x: x['type'] == 'genre', page_data['included']))
+    routes = list(filter(lambda x: x['type'] == 'route', page_data['included']))
 
     if page_data['data']['type'] == 'route':
         for page in pages:
@@ -551,20 +551,20 @@ def list_page(page_path=None):
     helper.eod()
 
 def list_collection_items(page_path, collection_id):
-    page_data = helper.d.parse_page(page_path)
+    page_data = helper.d.get_page(page_path)
 
     user_favorites = ",".join([str(x['id']) for x in helper.d.get_favorites()['data']['relationships']['favorites']['data']])
     user_packages = ",".join([str(x) for x in helper.d.get_user_data()['attributes']['packages']])
 
-    collections = page_data['collections']
-    collectionItems = page_data['collectionItems']
-    images = page_data['images']
-    shows = page_data['shows']
-    videos = page_data['videos']
-    channels = page_data['channels']
-    genres = page_data['genres']
-    links = page_data['links']
-    routes = page_data['routes']
+    collections = list(filter(lambda x: x['type'] == 'collection', page_data['included']))
+    collectionItems = list(filter(lambda x: x['type'] == 'collectionItem', page_data['included']))
+    images = list(filter(lambda x: x['type'] == 'image', page_data['included']))
+    shows = list(filter(lambda x: x['type'] == 'show', page_data['included']))
+    videos = list(filter(lambda x: x['type'] == 'video', page_data['included']))
+    channels = list(filter(lambda x: x['type'] == 'channel', page_data['included']))
+    genres = list(filter(lambda x: x['type'] == 'genre', page_data['included']))
+    links = list(filter(lambda x: x['type'] == 'link', page_data['included']))
+    routes = list(filter(lambda x: x['type'] == 'route', page_data['included']))
 
     for collection in collections:
         if collection['id'] == collection_id:
@@ -862,13 +862,13 @@ def list_collection_items(page_path, collection_id):
     helper.eod()
 
 def list_search_shows(search_query):
-    page_data = helper.d.parse_page(page_path='search', search_query=search_query)
+    page_data = helper.d.get_search_shows(search_query=search_query)
 
     user_favorites = ",".join([str(x['id']) for x in helper.d.get_favorites()['data']['relationships']['favorites']['data']])
 
-    images = page_data['images']
-    genres = page_data['genres']
-    routes = page_data['routes']
+    images = list(filter(lambda x: x['type'] == 'image', page_data['included']))
+    genres = list(filter(lambda x: x['type'] == 'genre', page_data['included']))
+    routes = list(filter(lambda x: x['type'] == 'route', page_data['included']))
 
     for show in page_data['data']:
         title = show['attributes']['name'].encode('utf-8')
@@ -939,13 +939,13 @@ def list_search_shows(search_query):
     helper.eod()
 
 def list_favorites():
-    page_data = helper.d.parse_page('favorites')
+    page_data = helper.d.get_favorites()
 
-    images = page_data['images']
-    shows = page_data['shows']
-    channels = page_data['channels']
-    genres = page_data['genres']
-    routes = page_data['routes']
+    images = list(filter(lambda x: x['type'] == 'image', page_data['included']))
+    shows = list(filter(lambda x: x['type'] == 'show', page_data['included']))
+    channels = list(filter(lambda x: x['type'] == 'channel', page_data['included']))
+    genres = list(filter(lambda x: x['type'] == 'genre', page_data['included']))
+    routes = list(filter(lambda x: x['type'] == 'route', page_data['included']))
 
     for favorite in page_data['data']['relationships']['favorites']['data']:
         for show_data in shows:
@@ -1018,21 +1018,16 @@ def list_favorites():
     helper.eod()
 
 def list_videos(collection_id, mandatoryParams=None, parameter=None):
-    if mandatoryParams and parameter:
-        page_data = helper.d.parse_page(collection_id=collection_id, mandatoryParams=mandatoryParams, parameter=parameter)
-    elif mandatoryParams is None and parameter:
-        page_data = helper.d.parse_page(collection_id=collection_id, parameter=parameter)
-    else:
-        page_data = helper.d.parse_page(collection_id=collection_id, mandatoryParams=mandatoryParams)
+    page_data = helper.d.get_collections(collection_id=collection_id, mandatoryParams=mandatoryParams, parameter=parameter)
 
     user_packages = ",".join([str(x) for x in helper.d.get_user_data()['attributes']['packages']])
 
-    collectionItems = page_data['collectionItems']
-    images = page_data['images']
-    shows = page_data['shows']
-    videos = page_data['videos']
-    channels = page_data['channels']
-    genres = page_data['genres']
+    collectionItems = list(filter(lambda x: x['type'] == 'collectionItem', page_data['included']))
+    images = list(filter(lambda x: x['type'] == 'image', page_data['included']))
+    shows = list(filter(lambda x: x['type'] == 'show', page_data['included']))
+    videos = list(filter(lambda x: x['type'] == 'video', page_data['included']))
+    channels = list(filter(lambda x: x['type'] == 'channel', page_data['included']))
+    genres = list(filter(lambda x: x['type'] == 'genre', page_data['included']))
 
     # Don't try to list empty season
     if page_data['data'].get('relationships'):
@@ -1193,12 +1188,7 @@ def router(paramstring):
         elif params['action'] == 'list_collection_items':
             list_collection_items(page_path=params['page_path'], collection_id=params['collection_id'])
         elif params['action'] == 'list_videos':
-            if params.get('mandatoryParams') and params.get('parameter'):
-                list_videos(collection_id=params['collection_id'], mandatoryParams=params['mandatoryParams'], parameter=params['parameter'])
-            elif params.get('mandatoryParams') is None and params.get('parameter'):
-                list_videos(collection_id=params['collection_id'], parameter=params['parameter'])
-            else:
-                list_videos(collection_id=params['collection_id'], mandatoryParams=params['mandatoryParams'])
+            list_videos(collection_id=params['collection_id'], mandatoryParams=params['mandatoryParams'], parameter=params['parameter'])
         elif params['action'] == 'play':
             # Play a video from a provided URL.
             helper.play_item(params['video_id'], params['video_type'])

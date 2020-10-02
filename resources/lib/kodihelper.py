@@ -218,7 +218,7 @@ class KodiHelper(object):
 
     def play_upnext(self, next_video_id):
         self.log('Start playing from Up Next')
-        self.log('Next video id: ' + str(next_video_id))
+        self.log('Next video id: %s' % str(next_video_id))
 
         # Stop playback before playing next episode otherwise episode is not marked as watched
         xbmc.executebuiltin('PlayerControl(Stop)')
@@ -263,16 +263,13 @@ class KodiHelper(object):
                 playitem.setProperty('inputstream.adaptive.manifest_type', 'hls')
                 playitem.setSubtitles(self.d.get_subtitles(stream['hls_url'], video_id))
 
-            player = DplayPlayer()
-            player.resolve(playitem)
-
             # Get metadata to use for Up next only in episodes (can also be aired sport events)
             if video_type == 'EPISODE':
                 # Get current episode info
-                current_episode = self.d.parse_page(video_id=video_id)
+                current_episode = self.d.get_current_episode_info(video_id=video_id)
 
-                images = current_episode['images']
-                shows = current_episode['shows']
+                images = list(filter(lambda x: x['type'] == 'image', current_episode['included']))
+                shows = list(filter(lambda x: x['type'] == 'show', current_episode['included']))
 
                 for s in shows:
                     if s['id'] == current_episode['data']['relationships']['show']['data']['id']:
@@ -284,7 +281,6 @@ class KodiHelper(object):
                             fanart_image = i['attributes']['src']
                 else:
                     fanart_image = None
-
 
                 duration = current_episode['data']['attributes']['videoDuration'] / 1000.0 if current_episode['data'][
                     'attributes'].get('videoDuration') else None
@@ -308,6 +304,9 @@ class KodiHelper(object):
                 }
 
                 playitem.setArt(art)
+
+                player = DplayPlayer()
+                player.resolve(playitem)
 
                 player.video_id = video_id
                 player.current_episode_info = info
@@ -342,14 +341,14 @@ class DplayPlayer(xbmc.Player):
 
     def onPlayBackStarted(self):
         self.helper.log('Getting next episode info')
-        next_episode = self.helper.d.parse_page(current_video_id=self.video_id)
+        next_episode = self.helper.d.get_next_episode_info(current_video_id=self.video_id)
 
         if next_episode.get('data'):
-            self.helper.log('Current episode name: ' + self.current_episode_info['title'].encode('utf-8'))
-            self.helper.log('Next episode name: ' + next_episode['data'][0]['attributes'].get('name').encode('utf-8').lstrip())
+            self.helper.log('Current episode name: %s' % self.current_episode_info['title'].encode('utf-8'))
+            self.helper.log('Next episode name: %s' % next_episode['data'][0]['attributes'].get('name').encode('utf-8').lstrip())
 
-            images = next_episode['images']
-            shows = next_episode['shows']
+            images = list(filter(lambda x: x['type'] == 'image', next_episode['included']))
+            shows = list(filter(lambda x: x['type'] == 'show', next_episode['included']))
 
             for s in shows:
                 if s['id'] == next_episode['data'][0]['relationships']['show']['data']['id']:
@@ -450,8 +449,8 @@ class DplayPlayer(xbmc.Player):
             video_lastpos_msec = int(video_lastpos) * 1000
             video_totaltime_msec = int(video_totaltime) * 1000
 
-            self.helper.log('Video totaltime msec: ' + str(video_totaltime_msec))
-            self.helper.log('Video lastpos msec: ' + str(video_lastpos_msec))
+            self.helper.log('Video totaltime msec: %s' % str(video_totaltime_msec))
+            self.helper.log('Video lastpos msec: %s' % str(video_lastpos_msec))
 
             # Get new token before updating playback progress
             self.helper.d.get_token()
