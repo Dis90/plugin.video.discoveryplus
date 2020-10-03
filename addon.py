@@ -491,7 +491,9 @@ def list_page(page_path=None):
                                                                                     folder_name=page['attributes'].get(
                                                                                         'pageMetadataTitle'))
 
-                                                        # Channels page generic-hero
+                                                        # Channels page generic-hero.
+                                                        # Also used channel page promotions when there's no livestream.
+                                                        # Example Discovery in Finland.
                                                         if collectionItem['relationships'].get('channel'):
                                                             # Get all channels in page data
                                                             for channel in channels:
@@ -506,10 +508,29 @@ def list_page(page_path=None):
                                                                                     0]['id']:
                                                                             next_page_path = route['attributes']['url']
 
-                                                                    params = {
-                                                                        'action': 'list_page',
-                                                                        'page_path': next_page_path
-                                                                    }
+                                                                    # If more than 1 channel in page_data = all channels page
+                                                                    if len(channels) > 1:
+                                                                        params = {
+                                                                            'action': 'list_page',
+                                                                            'page_path': next_page_path
+                                                                        }
+                                                                    # Get link to display channel promotion shows
+                                                                    else:
+                                                                        for collectionItem2 in collectionItems:
+                                                                            # 1 = Channel category items
+                                                                            if \
+                                                                                    collection['relationships'][
+                                                                                        'items']['data'][1][
+                                                                                        'id'] == collectionItem2['id']:
+                                                                                collection_id = \
+                                                                                    collectionItem2['relationships'][
+                                                                                        'collection']['data']['id']
+
+                                                                        params = {
+                                                                            'action': 'list_collection_items',
+                                                                            'page_path': page_path,
+                                                                            'collection_id': collection_id
+                                                                        }
 
                                                                     channel_info = {
                                                                         'title': channel['attributes'].get('name'),
