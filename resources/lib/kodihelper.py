@@ -195,7 +195,7 @@ class KodiHelper(object):
             data=data,
         ))
         if result.get('result') != 'OK':
-            self.log('Failed to send notification: ' + result.get('error').get('message'))
+            self.log('Failed to send notification: %s' % result.get('error').get('message'))
             return False
         self.log('Succesfully sent notification')
         return True

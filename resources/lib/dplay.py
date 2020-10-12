@@ -473,7 +473,7 @@ class Dplay(object):
     # Delete this when Kodi starts to support webvtt subtitles over .m3u8 hls stream
     def get_subtitles(self, video_url, video_id):
         playlist = self.make_request(video_url, 'get', headers=None, text=True)
-        self.log('Video playlist url: ' + video_url)
+        self.log('Video playlist url: %s' % video_url)
 
         line1 = urljoin(video_url, urlparse(video_url).path)
         url = line1.replace("playlist.m3u8", "")
@@ -490,7 +490,7 @@ class Dplay(object):
                 line4 = line3.replace("prog_index.m3u8", "0.vtt") # Change prog_index.m3u8 -> 0.vtt to get subtitle file url
                 # Output: exp=1537779948~acl=%2f*~data=hdntl~hmac=f62bc6753397ac3837b7e173b688e7bd45b2d79c12c40d2adeab3b67bc74f839/1155354603-0.vtt?version_hash=299f6771
                 subtitle_url = url + line4 # Subtitle file full address
-                self.log('Full subtitle url: ' + subtitle_url)
+                self.log('Full subtitle url: %s' % subtitle_url)
 
                 lang_code = line.split(',')[3].split('"')[1] # Subtitle language, returns fi, sv, da or no
 
