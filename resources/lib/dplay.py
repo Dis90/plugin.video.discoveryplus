@@ -470,7 +470,7 @@ class Dplay(object):
         srt = self.decode_html_entities(srt)
         return srt
 
-    # Delete this when Kodi starts to support webvtt subtitles over .m3u8 hls stream
+    # This is used for Inputstream Adaptive versions below 2.4.6 (Kodi 18) and versions below 2.6.1 (Kodi 19)
     def get_subtitles(self, video_url, video_id):
         playlist = self.make_request(video_url, 'get', headers=None, text=True)
         self.log('Video playlist url: %s' % video_url)

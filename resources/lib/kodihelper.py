@@ -53,6 +53,10 @@ class KodiHelper(object):
         version = xbmc.getInfoLabel('System.BuildVersion')
         return version.split('.')[0]
 
+    def get_ia_version(self):
+        version = xbmc.getInfoLabel('System.AddonVersion(inputstream.adaptive)')
+        return version.replace('.','')
+
     def set_setting(self, key, value):
         return self.get_addon().setSetting(key, value)
 
@@ -255,13 +259,20 @@ class KodiHelper(object):
                 # Kodi 19 Matrix or higher
                 if self.get_kodi_version() >= '19':
                     playitem.setProperty('inputstream', 'inputstream.adaptive')
+                    # Inputstream Adaptive 2.6.1 added support for WEBVTT subtitles over HLS (Kodi 19)
+                    # Use addons WEBVTT to SRT converter for older IA versions
+                    if self.get_ia_version() < '261':
+                        playitem.setSubtitles(self.d.get_subtitles(stream['hls_url'], video_id))
                 # Kodi 18 Leia
                 else:
                     playitem.setProperty('inputstreamaddon', 'inputstream.adaptive')
+                    # Inputstream Adaptive 2.4.6 added support for WEBVTT subtitles over HLS (Kodi 18)
+                    # Use addons WEBVTT to SRT converter for older IA versions
+                    if self.get_ia_version() < '246':
+                        playitem.setSubtitles(self.d.get_subtitles(stream['hls_url'], video_id))
 
                 # Have to use hls for shows because mpd encryption type 'clearkey' is not supported by inputstream.adaptive
                 playitem.setProperty('inputstream.adaptive.manifest_type', 'hls')
-                playitem.setSubtitles(self.d.get_subtitles(stream['hls_url'], video_id))
 
             # Get metadata to use for Up next only in episodes (can also be aired sport events)
             if video_type == 'EPISODE':
