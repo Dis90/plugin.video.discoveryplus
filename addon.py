@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import json
 
 try: # Python 3
     from urllib.parse import parse_qsl
@@ -101,7 +100,7 @@ def list_page(page_path=None):
                     # Some collections doesn't have component
                     if collection['attributes'].get('component'):
 
-                        # List genre categories (Popular, All) and page content from Programs, Eurosport channels, Categories etc)
+                        # List genre categories (Popular, All) and page content from Programs, Channels, Categories etc)
                         if collection['attributes']['component']['id'] == 'content-grid':
                             if collection['attributes'].get('title'):
 
@@ -494,6 +493,7 @@ def list_page(page_path=None):
                                                         # Channels page generic-hero.
                                                         # Also used channel page promotions when there's no livestream.
                                                         # Example Discovery in Finland.
+                                                        # Probably not in use any more. Content-grid -> list_collection_items
                                                         if collectionItem['relationships'].get('channel'):
                                                             # Get all channels in page data
                                                             for channel in channels:
@@ -577,6 +577,7 @@ def list_collection_items(page_path, collection_id):
     user_favorites = ",".join([str(x['id']) for x in helper.d.get_favorites()['data']['relationships']['favorites']['data']])
     user_packages = ",".join([str(x) for x in helper.d.get_user_data()['attributes']['packages']])
 
+    pages = list(filter(lambda x: x['type'] == 'page', page_data['included']))
     collections = list(filter(lambda x: x['type'] == 'collection', page_data['included']))
     collectionItems = list(filter(lambda x: x['type'] == 'collectionItem', page_data['included']))
     images = list(filter(lambda x: x['type'] == 'image', page_data['included']))
@@ -793,11 +794,59 @@ def list_collection_items(page_path, collection_id):
 
                         # List channels
                         # Used when coming from collection (example Eurosport -> Channels)
+                        # Also used now on (5.1.2021) listing all channels at least in finnish discovery+
                         if collectionItem['relationships'].get('channel'):
                             for channel in channels:
                                 if collectionItem['relationships']['channel']['data']['id'] == channel['id']:
+                                    # List channel pages
+                                    if channel['relationships'].get('routes'):
+                                        # Find page path from routes
+                                        for route in routes:
+                                            if route['id'] == channel['relationships']['routes']['data'][0]['id']:
+                                                next_page_path = route['attributes']['url']
 
-                                    if channel['attributes'].get('hasLiveStream'):
+                                        params = {
+                                            'action': 'list_page',
+                                            'page_path': next_page_path
+                                        }
+
+                                        channel_info = {
+                                            'title': channel['attributes'].get('name'),
+                                            'plot': channel['attributes'].get('description')
+                                        }
+
+                                        if channel['relationships'].get('images'):
+                                            for image in images:
+                                                if image['id'] == \
+                                                        channel['relationships']['images'][
+                                                            'data'][0]['id']:
+                                                    fanart_image = image['attributes'][
+                                                        'src']
+                                                if image['id'] == \
+                                                        channel['relationships']['images'][
+                                                            'data'][-1]['id']:
+                                                    thumb_image = image['attributes']['src']
+                                        else:
+                                            fanart_image = None
+                                            thumb_image = None
+
+                                        channel_art = {
+                                            'fanart': fanart_image,
+                                            'thumb': thumb_image
+                                        }
+
+                                        if channel['relationships'].get('images'):
+                                            channel_art['clearlogo'] = thumb_image if len(
+                                                channel['relationships']['images'][
+                                                    'data']) >= 2 else None
+
+                                        helper.add_item(channel['attributes'].get('name'), params, info=channel_info,
+                                                        content='videos', art=channel_art,
+                                                        folder_name=pages[0]['attributes'].get('pageMetadataTitle'),
+                                                        sort_method='unsorted')
+
+                                    # List channel livestreams only if there's no route to channel page
+                                    elif channel['attributes'].get('hasLiveStream'):
                                         params = {
                                             'action': 'play',
                                             'video_id': channel['id'],
