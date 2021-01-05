@@ -113,8 +113,12 @@ class Dplay(object):
     def get_token(self):
         url = 'https://disco-api.{site_url}/token'.format(site_url=self.site_url)
 
-        #dplayfi dplayse dplayno dplaydk dplaynl dplayes
-        realm = 'dplay' + self.locale_suffix
+        #dplayfi dplayse dplayno dplaydk dplaynl dplayes dplayit questuk
+        # co.uk uses questuk, others dplay+locale
+        if self.locale_suffix == 'gb':
+            realm = 'questuk'
+        else:
+            realm = 'dplay' + self.locale_suffix
 
         params = {
             'realm': realm,

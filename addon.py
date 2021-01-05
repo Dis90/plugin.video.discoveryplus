@@ -102,7 +102,15 @@ def list_page(page_path=None):
 
                         # List genre categories (Popular, All) and page content from Programs, Channels, Categories etc)
                         if collection['attributes']['component']['id'] == 'content-grid':
-                            if collection['attributes'].get('title'):
+                            if collection['attributes'].get('title') or collection['attributes'].get('name'):
+
+                                # content-grid name can be title or name
+                                if collection['attributes'].get('title'):
+                                    title = collection['attributes']['title']
+                                elif collection['attributes'].get('name'):
+                                    title = collection['attributes']['name']
+                                else:
+                                    title = ''
 
                                 params = {
                                     'action': 'list_collection_items',
@@ -110,7 +118,7 @@ def list_page(page_path=None):
                                     'collection_id': collection['id']
                                 }
 
-                                helper.add_item(collection['attributes']['title'], params,
+                                helper.add_item(title, params,
                                                 content='videos',
                                                 folder_name=page['attributes'].get('pageMetadataTitle'))
 

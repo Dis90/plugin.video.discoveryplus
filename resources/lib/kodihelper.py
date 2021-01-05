@@ -112,9 +112,9 @@ class KodiHelper(object):
         return True
 
     def set_locale(self, locale=None):
-        countries = ['fi_FI', 'sv_SE', 'da_DK', 'nb_NO', 'nl_NL', 'es_ES']
+        countries = ['fi_FI', 'sv_SE', 'da_DK', 'nb_NO', 'nl_NL', 'es_ES', 'it_IT', 'en_GB']
         if not locale:
-            options = ['discoveryplus.fi', 'discoveryplus.se', 'discoveryplus.dk', 'discoveryplus.no', 'discoveryplus.nl', 'discoveryplus.es']
+            options = ['discoveryplus.fi', 'discoveryplus.se', 'discoveryplus.dk', 'discoveryplus.no', 'discoveryplus.nl', 'discoveryplus.es', 'discoveryplus.it', 'discoveryplus.co.uk']
             selected_site = self.dialog('select', self.language(30013), options=options)
             if selected_site is None:
                 selected_site = 0  # default to .fi

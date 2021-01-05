@@ -17,6 +17,8 @@ This addon is unofficial and it is not supported by Discovery Networks, so it ca
 - Norway
 - Netherlands
 - Spain
+- Italy
+- United Kingdom
 
 # Features
 - Supports <a href="https://forum.kodi.tv/showthread.php?tid=336747">Up Next</a>
