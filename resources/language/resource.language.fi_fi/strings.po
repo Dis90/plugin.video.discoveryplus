@@ -1,7 +1,7 @@
-# Dplay language file
+# discovery+ language file
 msgid ""
 msgstr ""
-"Project-Id-Version: plugin.video.dplaynordic\n"
+"Project-Id-Version: plugin.video.discoveryplus\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2018-09-25 23:00+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
@@ -50,12 +50,12 @@ msgid "No results found for"
 msgstr "Ei tuloksia haulle"
 
 msgctxt "#30009"
-msgid "Add to favorites (Dplay)"
-msgstr "Lisää suosikkeihin (Dplay)"
+msgid "Add to favorites (discovery+)"
+msgstr "Lisää suosikkeihin (discovery+)"
 
 msgctxt "#30010"
-msgid "Delete from favorites (Dplay)"
-msgstr "Poista suosikeista (Dplay)"
+msgid "Delete from favorites (discovery+)"
+msgstr "Poista suosikeista (discovery+)"
 
 msgctxt "#30011"
 msgid "Season"

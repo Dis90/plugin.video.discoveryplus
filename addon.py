@@ -732,8 +732,8 @@ def list_collection_items(page_path, collection_id):
                                     else:
                                         plot = video['attributes'].get('description')
 
-                                    # Dplay+ content check
-                                    # Check for Dplay+ content only if user doesn't have subscription
+                                    # discovery+ subscription content check
+                                    # Check for discovery+ subscription content only if user doesn't have subscription
                                     if 'Premium' not in user_packages:
                                         if len(video['attributes']['packages']) > 1:
                                             # Get all available packages in availabilityWindows
@@ -748,9 +748,9 @@ def list_collection_items(page_path, collection_id):
                                                             plot = plot
 
                                                         else:  # Video is not anymore available for free
-                                                            plot = '[Dplay+] ' + plot
+                                                            plot = '[discovery+] ' + plot
                                         else:  # Only one package in packages = Premium
-                                            plot = '[Dplay+] ' + plot
+                                            plot = '[discovery+] ' + plot
 
                                     episode_info = {
                                         'mediatype': 'episode',
@@ -765,7 +765,7 @@ def list_collection_items(page_path, collection_id):
                                         'aired': video['attributes'].get('airDate')
                                     }
 
-                                    # Watched status from Dplay
+                                    # Watched status from Discovery+
                                     if video['attributes']['viewingHistory']['viewed']:
                                         if video['attributes']['viewingHistory'].get('completed'):  # Watched video
                                             episode_info['playcount'] = '1'
@@ -1110,8 +1110,8 @@ def list_videos(collection_id, mandatoryParams=None, parameter=None):
                             else:
                                 plot = video['attributes'].get('description')
 
-                            # Dplay+ content check
-                            # Check for Dplay+ content only if user doesn't have subscription
+                            # discovery+ subscription content check
+                            # Check for discovery+ subscription content only if user doesn't have subscription
                             if 'Premium' not in user_packages:
                                 if len(video['attributes']['packages']) > 1:
                                     # Get all available packages in availabilityWindows
@@ -1126,9 +1126,9 @@ def list_videos(collection_id, mandatoryParams=None, parameter=None):
                                                     plot = plot
 
                                                 else:  # Video is not anymore available for free
-                                                    plot = '[Dplay+] ' + plot
+                                                    plot = '[discovery+] ' + plot
                                 else: # Only one package in packages = Premium
-                                    plot = '[Dplay+] ' + plot
+                                    plot = '[discovery+] ' + plot
 
                             episode_info = {
                                 'mediatype': 'episode',
@@ -1143,7 +1143,7 @@ def list_videos(collection_id, mandatoryParams=None, parameter=None):
                                 'aired': video['attributes'].get('airDate')
                             }
 
-                            # Watched status from Dplay
+                            # Watched status from discovery+
                             if video['attributes']['viewingHistory']['viewed']:
                                 if video['attributes']['viewingHistory']['completed']:  # Watched video
                                     episode_info['playcount'] = '1'

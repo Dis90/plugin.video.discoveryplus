@@ -1,5 +1,5 @@
-# plugin.video.dplaynordic
-Dplay addon for Kodi
+# plugin.video.discoveryplus
+discovery+ addon for Kodi
 
 # Disclaimer
 This addon is unofficial and it is not supported by Discovery Networks, so it can break at anytime.

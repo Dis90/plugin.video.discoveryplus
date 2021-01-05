@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="plugin.video.dplaynordic" version="1.2.9" name="Dplay" provider-name="Dis90">
+<addon id="plugin.video.discoveryplus" version="1.2.9" name="discovery+" provider-name="Dis90">
 <requires>
   <import addon="xbmc.python" version="2.24.0"/>
   <import addon="script.module.requests" version="2.9.1"/>
@@ -10,11 +10,11 @@
   <provides>video</provides>
 </extension>
 <extension point="xbmc.addon.metadata">
-  <summary lang="en">Dplay</summary>
+  <summary lang="en">discovery+</summary>
   <description lang="en"></description>
   <disclaimer lang="en"></disclaimer>
   <assets>
-    <icon>resources/icon.jpg</icon> 
+    <icon>resources/icon.png</icon> 
     <fanart>resources/fanart.png</fanart>
   </assets>
   <news></news>

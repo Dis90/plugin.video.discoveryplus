@@ -1,9 +1,9 @@
 <settings>
   <category label="30000">
-    <setting id="locale_title" type="action" option="close" action="RunPlugin(plugin://plugin.video.dplaynordic/?setting=set_locale)" label="30013" default="dplay.fi" />
+    <setting id="site" type="action" option="close" action="RunPlugin(plugin://plugin.video.discoveryplus/?setting=set_locale)" label="30013" default="discoveryplus.fi" />
     <setting id="locale" type="text" visible="false" default="fi_FI" />
     <setting id="username" type="text" label="30015" default=""/>
     <setting id="password" type="text" label="30016" option="hidden" default=""/>
-    <setting id="reset_credentials" type="action" label="30005" action="RunPlugin(plugin://plugin.video.dplaynordic/?setting=reset_credentials)"/>
+    <setting id="reset_credentials" type="action" label="30005" action="RunPlugin(plugin://plugin.video.discoveryplus/?setting=reset_credentials)"/>
   </category>
 </settings>

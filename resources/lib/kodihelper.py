@@ -33,7 +33,7 @@ class KodiHelper(object):
         self.logging_prefix = '[%s-%s]' % (self.addon_name, self.addon_version)
         if not xbmcvfs.exists(self.addon_profile):
             xbmcvfs.mkdir(self.addon_profile)
-        self.d = Dplay(self.addon_profile, self.get_setting('locale'), self.logging_prefix)
+        self.d = Dplay(self.addon_profile, self.get_setting('site'), self.get_setting('locale'), self.logging_prefix)
 
     def get_addon(self):
         """Returns a fresh addon instance."""
@@ -114,12 +114,12 @@ class KodiHelper(object):
     def set_locale(self, locale=None):
         countries = ['fi_FI', 'sv_SE', 'da_DK', 'nb_NO', 'nl_NL', 'es_ES']
         if not locale:
-            options = ['dplay.fi', 'dplay.se', 'dplay.dk', 'dplay.no', 'dplay.nl', 'dplay.es']
-            selected_locale = self.dialog('select', self.language(30013), options=options)
-            if selected_locale is None:
-                selected_locale = 0  # default to .fi
-            self.set_setting('locale_title', options[selected_locale])
-            self.set_setting('locale', countries[selected_locale])
+            options = ['discoveryplus.fi', 'discoveryplus.se', 'discoveryplus.dk', 'discoveryplus.no', 'discoveryplus.nl', 'discoveryplus.es']
+            selected_site = self.dialog('select', self.language(30013), options=options)
+            if selected_site is None:
+                selected_site = 0  # default to .fi
+            self.set_setting('site', options[selected_site])
+            self.set_setting('locale', countries[selected_site])
 
         return True
 

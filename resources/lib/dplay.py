@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-A Kodi-agnostic library for Dplay
+A Kodi-agnostic library for Discovery+
 """
 import os
 from io import open, StringIO
@@ -31,8 +31,9 @@ except NameError:  # Python 3
     unicode = str  # pylint: disable=redefined-builtin,invalid-name
 
 class Dplay(object):
-    def __init__(self, settings_folder, locale, logging_prefix):
+    def __init__(self, settings_folder, site, locale, logging_prefix):
         self.logging_prefix = logging_prefix
+        self.site_url = site
         self.locale = locale
         self.locale_suffix = self.locale.split('_')[1].lower()
         self.client_id = str(uuid.uuid1())
@@ -110,7 +111,7 @@ class Dplay(object):
             pass
 
     def get_token(self):
-        url = 'https://disco-api.dplay.{locale_suffix}/token'.format(locale_suffix=self.locale_suffix)
+        url = 'https://disco-api.{site_url}/token'.format(site_url=self.site_url)
 
         #dplayfi dplayse dplayno dplaydk dplaynl dplayes
         realm = 'dplay' + self.locale_suffix
@@ -236,23 +237,23 @@ class Dplay(object):
         # Get new token
         self.get_token()
 
-        dplay_username = username
-        dplay_password = password
-        creds = {"credentials": {"username": dplay_username, "password": dplay_password}}
+        discoveryplus_username = username
+        discoveryplus_password = password
+        creds = {"credentials": {"username": discoveryplus_username, "password": discoveryplus_password}}
         headers = {
                 "x-disco-arkose-token": arkose_token,
                 "x-disco-arkose-sitekey": "FE296399-FDEA-2EA2-8CD5-50F6E3157ECA",
-                "Origin": "https://www.dplay.{locale_suffix}".format(locale_suffix=self.locale_suffix),
+                "Origin": "https://www.{site_url}".format(site_url=self.site_url),
                 "x-disco-client": "WEB:10.16.0:AUTH_DPLAY_V1:4.0.1-rc2-gi1",
                 # is not specified a captcha is required
                 # "Sec-Fetch-Site": "same-site",
                 # "Sec-Fetch-Mode": "cors",
                 # "Sec-Fetch-Dest": "empty",
-                "Referer": "https://www.dplay.{locale_suffix}/mydplay/login".format(locale_suffix=self.locale_suffix),
+                "Referer": "https://www.{site_url}/myaccount/login".format(site_url=self.site_url),
                 "User-Agent": user_agent
             }
 
-        login_url = 'https://disco-api.dplay.{locale_suffix}/login'.format(locale_suffix=self.locale_suffix)
+        login_url = 'https://disco-api.{site_url}/login'.format(site_url=self.site_url)
         return self.make_request(login_url, 'post', payload=json.dumps(creds), headers=headers)
 
     def __evp_kdf(self, passwd, salt, key_size=8, iv_size=4, iterations=1, hash_algorithm="md5"):
@@ -300,13 +301,13 @@ class Dplay(object):
         }
 
     def get_user_data(self):
-        url = 'https://disco-api.dplay.{locale_suffix}/users/me'.format(locale_suffix=self.locale_suffix)
+        url = 'https://disco-api.{site_url}/users/me'.format(site_url=self.site_url)
 
         data = self.make_request(url, 'get')
         return json.loads(data)['data']
 
     def get_menu(self):
-        url = 'https://disco-api.dplay.{locale_suffix}/cms/collections/web-menubar'.format(locale_suffix=self.locale_suffix)
+        url = 'https://disco-api.{site_url}/cms/collections/web-menubar'.format(site_url=self.site_url)
 
         params = {
             'include': 'default'
@@ -316,7 +317,7 @@ class Dplay(object):
         return data
 
     def get_page(self, path):
-        url = 'https://disco-api.dplay.{locale_suffix}/cms/routes{path}'.format(locale_suffix=self.locale_suffix, path=path)
+        url = 'https://disco-api.{site_url}/cms/routes{path}'.format(site_url=self.site_url, path=path)
 
         params = {
             'decorators': 'viewingHistory',
@@ -328,11 +329,11 @@ class Dplay(object):
 
     def get_collections(self, collection_id, mandatoryParams=None, parameter=None):
         if mandatoryParams and parameter:
-            url = 'https://disco-api.dplay.{locale_suffix}/cms/collections/{collection_id}?{mandatoryParams}&{parameter}'.format(locale_suffix=self.locale_suffix, collection_id=collection_id, mandatoryParams=mandatoryParams, parameter=parameter)
+            url = 'https://disco-api.{site_url}/cms/collections/{collection_id}?{mandatoryParams}&{parameter}'.format(site_url=self.site_url, collection_id=collection_id, mandatoryParams=mandatoryParams, parameter=parameter)
         elif mandatoryParams is None and parameter:
-            url = 'https://disco-api.dplay.{locale_suffix}/cms/collections/{collection_id}?{parameter}'.format(locale_suffix=self.locale_suffix, collection_id=collection_id, parameter=parameter)
+            url = 'https://disco-api.{site_url}/cms/collections/{collection_id}?{parameter}'.format(site_url=self.site_url, collection_id=collection_id, parameter=parameter)
         else:
-            url = 'https://disco-api.dplay.{locale_suffix}/cms/collections/{collection_id}?{mandatoryParams}'.format(locale_suffix=self.locale_suffix, collection_id=collection_id, mandatoryParams=mandatoryParams)
+            url = 'https://disco-api.{site_url}/cms/collections/{collection_id}?{mandatoryParams}'.format(site_url=self.site_url, collection_id=collection_id, mandatoryParams=mandatoryParams)
 
         params = {
             'decorators': 'viewingHistory',
@@ -345,7 +346,7 @@ class Dplay(object):
         return data
 
     def get_search_shows(self, search_query):
-        url = 'https://disco-api.dplay.{locale_suffix}/content/shows'.format(locale_suffix=self.locale_suffix)
+        url = 'https://disco-api.{site_url}/content/shows'.format(site_url=self.site_url)
 
         params = {
             'include': 'genres,images,primaryChannel.images,contentPackages',
@@ -357,7 +358,7 @@ class Dplay(object):
         return data
 
     def get_favorites(self):
-        url = 'https://disco-api.dplay.{locale_suffix}/users/me/favorites'.format(locale_suffix=self.locale_suffix)
+        url = 'https://disco-api.{site_url}/users/me/favorites'.format(site_url=self.site_url)
         params = {
             'include': 'default'
         }
@@ -366,7 +367,7 @@ class Dplay(object):
         return data
 
     def update_playback_progress(self, method, video_id, position):
-        url = 'https://disco-api.dplay.{locale_suffix}/playback/v2/report/video/{video_id}'.format(locale_suffix=self.locale_suffix, video_id=video_id)
+        url = 'https://disco-api.{site_url}/playback/v2/report/video/{video_id}'.format(site_url=self.site_url, video_id=video_id)
 
         params = {
             'position': position
@@ -375,7 +376,7 @@ class Dplay(object):
         return self.make_request(url, method, params=params)
 
     def get_current_episode_info(self, video_id):
-        url = 'https://disco-api.dplay.{locale_suffix}/content/videos/{video_id}'.format(locale_suffix=self.locale_suffix, video_id=video_id)
+        url = 'https://disco-api.{site_url}/content/videos/{video_id}'.format(site_url=self.site_url, video_id=video_id)
 
         params = {
             'decorators': 'viewingHistory',
@@ -386,7 +387,7 @@ class Dplay(object):
         return data
 
     def get_next_episode_info(self, current_video_id):
-        url = 'https://disco-api.dplay.{locale_suffix}/content/videos/{video_id}/next'.format(locale_suffix=self.locale_suffix, video_id=current_video_id)
+        url = 'https://disco-api.{site_url}/content/videos/{video_id}/next'.format(site_url=self.site_url, video_id=current_video_id)
 
         params = {
             'algorithm': 'naturalOrder',
@@ -398,7 +399,7 @@ class Dplay(object):
 
     def add_or_delete_favorite(self, method, show_id):
         # POST for adding and DELETE for delete
-        url = 'https://disco-api.dplay.{locale_suffix}/users/me/favorites/shows/{show_id}'.format(locale_suffix=self.locale_suffix, show_id=show_id)
+        url = 'https://disco-api.{site_url}/users/me/favorites/shows/{show_id}'.format(site_url=self.site_url, show_id=show_id)
 
         return self.make_request(url, method)
 
@@ -517,9 +518,9 @@ class Dplay(object):
         params = {'usePreAuth': 'true'}
 
         if video_type == 'channel':
-            url = 'https://disco-api.dplay.{locale_suffix}/playback/v2/channelPlaybackInfo/{video_id}'.format(locale_suffix=self.locale_suffix, video_id=video_id)
+            url = 'https://disco-api.{site_url}/playback/v2/channelPlaybackInfo/{video_id}'.format(site_url=self.site_url, video_id=video_id)
         else:
-            url = 'https://disco-api.dplay.{locale_suffix}/playback/v2/videoPlaybackInfo/{video_id}'.format(locale_suffix=self.locale_suffix, video_id=video_id)
+            url = 'https://disco-api.{site_url}/playback/v2/videoPlaybackInfo/{video_id}'.format(site_url=self.site_url, video_id=video_id)
 
         data_dict = json.loads(self.make_request(url, 'get', params=params, headers=None))['data']
 
