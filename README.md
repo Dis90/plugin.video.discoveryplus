@@ -20,6 +20,6 @@ This addon is unofficial and it is not supported by Discovery Networks, so it ca
 
 # Features
 - Supports <a href="https://forum.kodi.tv/showthread.php?tid=336747">Up Next</a>
-- Playback progress is same in Dplay site and on Kodi addon (you can start video on site and continue it on Kodi or other way round)
+- Playback progress is same in discovery+ site and on Kodi addon (you can start video on site and continue it on Kodi or other way round)
 - Live TV channels
 - Videos
