@@ -38,10 +38,7 @@ class Dplay(object):
         self.locale_suffix = self.locale.split('_')[1].lower()
         self.client_id = str(uuid.uuid1())
         self.device_id = self.client_id.replace("-", "")
-        if self.locale_suffix == 'us':
-            self.api_url = 'https://us1-prod-direct.' + self.site_url
-        else:
-            self.api_url = 'https://disco-api.' + self.site_url
+        self.api_url = 'https://disco-api.' + self.site_url
         self.http_session = requests.Session()
         self.settings_folder = settings_folder
         self.tempdir = os.path.join(settings_folder, 'tmp')
@@ -121,8 +118,6 @@ class Dplay(object):
         # .com uses go, co.uk uses questuk and others dplay+locale
         if self.locale_suffix == 'gb':
             realm = 'questuk'
-        elif self.locale_suffix == 'us':
-            realm = 'go'
         else:
             realm = 'dplay' + self.locale_suffix
 
