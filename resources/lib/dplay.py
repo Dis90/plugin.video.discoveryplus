@@ -541,26 +541,26 @@ class Dplay(object):
         params = {'usePreAuth': 'true'}
 
         # discoveryplus.com (US)
-        #if self.locale_suffix == 'us':
-        #    url = '{api_url}/playback/v3/videoPlaybackInfo/{video_id}'.format(api_url=self.api_url, video_id=video_id)
-        #else:
-        if video_type == 'channel':
-            url = '{api_url}/playback/v2/channelPlaybackInfo/{video_id}'.format(api_url=self.api_url, video_id=video_id)
+        if self.locale_suffix == 'us':
+            url = '{api_url}/playback/v3/videoPlaybackInfo/{video_id}'.format(api_url=self.api_url, video_id=video_id)
         else:
-            url = '{api_url}/playback/v2/videoPlaybackInfo/{video_id}'.format(api_url=self.api_url, video_id=video_id)
+            if video_type == 'channel':
+                url = '{api_url}/playback/v2/channelPlaybackInfo/{video_id}'.format(api_url=self.api_url, video_id=video_id)
+            else:
+                url = '{api_url}/playback/v2/videoPlaybackInfo/{video_id}'.format(api_url=self.api_url, video_id=video_id)
 
         data_dict = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))['data']
 
         # discoveryplus.com (US)
-        #if self.locale_suffix == 'us':
-        #    stream['hls_url'] = data_dict['attributes']['streaming']['url']
-        #    stream['drm_enabled'] = data_dict['attributes']['streaming']['protection']['drmEnabled']
-        #else:
-        stream['hls_url'] = data_dict['attributes']['streaming']['hls']['url']
-        stream['mpd_url'] = data_dict['attributes']['streaming']['dash']['url']
-        stream['license_url'] = data_dict['attributes']['protection']['key_servers']['widevine']
-        stream['drm_token'] = data_dict['attributes']['protection']['drm_token']
-        stream['drm_enabled'] = data_dict['attributes']['protection']['drm_enabled']
+        if self.locale_suffix == 'us':
+            stream['hls_url'] = data_dict['attributes']['streaming']['url']
+            stream['drm_enabled'] = data_dict['attributes']['streaming']['protection']['drmEnabled']
+        else:
+            stream['hls_url'] = data_dict['attributes']['streaming']['hls']['url']
+            stream['mpd_url'] = data_dict['attributes']['streaming']['dash']['url']
+            stream['license_url'] = data_dict['attributes']['protection']['key_servers']['widevine']
+            stream['drm_token'] = data_dict['attributes']['protection']['drm_token']
+            stream['drm_enabled'] = data_dict['attributes']['protection']['drm_enabled']
 
         return stream
 
