@@ -235,7 +235,7 @@ class Dplay(object):
         if "rid=" not in arkose_token:
             self.log("Error logging in. Invalid Arkose token.")
             self.log(arkose_token)
-            return False
+            raise self.DplayError('Error logging in. Invalid Arkose token.')
 
         self.log("Succesfully required a login token from Arkose.")
 
