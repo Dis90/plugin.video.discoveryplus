@@ -544,7 +544,7 @@ class Dplay(object):
 
         # discoveryplus.com (US)
         if self.locale_suffix == 'us':
-            url = '{api_url}/playback/v3/videoPlaybackInfo'.format(api_url=self.api_url, video_id=video_id)
+            url = '{api_url}/playback/v3/videoPlaybackInfo'.format(api_url=self.api_url)
         else:
             if video_type == 'channel':
                 url = '{api_url}/playback/v2/channelPlaybackInfo/{video_id}'.format(api_url=self.api_url, video_id=video_id)
