@@ -411,7 +411,7 @@ class Dplay(object):
         return data
 
     def get_next_episode_info(self, current_video_id):
-        url = '{api_url}/cms/recommendations/nextVideos'.format(api_url=self.api_url)
+        url = '{api_url}/content/videos/{video_id}/next'.format(api_url=self.api_url, video_id=video_is)
 
         params = {
             'algorithm': 'naturalOrder',
@@ -419,7 +419,7 @@ class Dplay(object):
             'videoId': current_video_id
         }
 
-        data = json.loads(self.make_request(url, 'get', params=params))
+        data = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))
         return data
 
     def add_or_delete_favorite(self, method, show_id):
