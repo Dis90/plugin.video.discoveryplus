@@ -76,14 +76,13 @@ class Dplay(object):
         msg = '%s: %s' % (self.logging_prefix, string)
         xbmc.log(msg=msg, level=xbmc.LOGDEBUG)
 
-    def make_request(self, url, method, params=None, payload=None, headers=None, text=False, jsonPayload=None):
+    def make_request(self, url, method, params=None, payload=None, headers=None, text=False):
         """Make an HTTP request. Return the response."""
         self.log('Request URL: %s' % url)
         self.log('Method: %s' % method)
         self.log('Params: %s' % params)
         self.log('Payload: %s' % payload)
         self.log('Headers: %s' % headers)
-        self.log('JSON Payload: %s' % jsonPayload)
         try:
             if method == 'get':
                 req = self.http_session.get(url, params=params, headers=headers)
@@ -92,7 +91,7 @@ class Dplay(object):
             elif method == 'delete':
                 req = self.http_session.delete(url, params=params, data=payload, headers=headers)
             else:  # post
-                req = self.http_session.post(url, params=params, data=payload, headers=headers, json=jsonPayload)
+                req = self.http_session.post(url, params=params, data=payload, headers=headers)
             self.log('Response code: %s' % req.status_code)
             self.log('Response: %s' % req.content)
             self.cookie_jar.save(ignore_discard=True, ignore_expires=True)
@@ -415,7 +414,7 @@ class Dplay(object):
 
         params = {
             'algorithm': 'naturalOrder',
-            'include': 'genres,images,primaryChannel,show,show.images,contentPackages',
+            'include': 'genres,images,primaryChannel,show,show.images,contentPackages'
         }
 
         data = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))
@@ -552,7 +551,7 @@ class Dplay(object):
             else:
                 url = '{api_url}/playback/v2/videoPlaybackInfo/{video_id}'.format(api_url=self.api_url, video_id=video_id)
 
-        data_dict = json.loads(self.make_request(url, 'post', params=params, headers=self.site_headers, jsonPayload=jsonPayload))['data']
+        data_dict = json.loads(self.make_request(url, 'post', params=params, headers=self.site_headers, payload=json.dumps(jsonPayload)))['data']
 
         # discoveryplus.com (US)
         if self.locale_suffix == 'us':
