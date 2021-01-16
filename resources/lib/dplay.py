@@ -76,13 +76,14 @@ class Dplay(object):
         msg = '%s: %s' % (self.logging_prefix, string)
         xbmc.log(msg=msg, level=xbmc.LOGDEBUG)
 
-    def make_request(self, url, method, params=None, payload=None, headers=None, text=False):
+    def make_request(self, url, method, params=None, payload=None, headers=None, text=False, jsonPayload=None):
         """Make an HTTP request. Return the response."""
         self.log('Request URL: %s' % url)
         self.log('Method: %s' % method)
         self.log('Params: %s' % params)
         self.log('Payload: %s' % payload)
         self.log('Headers: %s' % headers)
+        self.log('JSON Payload: %s' % jsonPayload)
         try:
             if method == 'get':
                 req = self.http_session.get(url, params=params, headers=headers)
@@ -91,7 +92,7 @@ class Dplay(object):
             elif method == 'delete':
                 req = self.http_session.delete(url, params=params, data=payload, headers=headers)
             else:  # post
-                req = self.http_session.post(url, params=params, data=payload, headers=headers)
+                req = self.http_session.post(url, params=params, data=payload, headers=headers, json=jsonPayload)
             self.log('Response code: %s' % req.status_code)
             self.log('Response: %s' % req.content)
             self.cookie_jar.save(ignore_discard=True, ignore_expires=True)
@@ -406,15 +407,16 @@ class Dplay(object):
             'include': 'genres,images,primaryChannel,show,show.images'
         }
 
-        data = json.loads(self.make_request(url, 'get', params=params))
+        data = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))
         return data
 
     def get_next_episode_info(self, current_video_id):
-        url = '{api_url}/content/videos/{video_id}/next'.format(api_url=self.api_url, video_id=current_video_id)
+        url = '{api_url}/cms/recommendations/nextVideos'.format(api_url=self.api_url)
 
         params = {
             'algorithm': 'naturalOrder',
-            'include': 'genres,images,primaryChannel,show,show.images,contentPackages'
+            'include': 'genres,images,primaryChannel,show,show.images,contentPackages',
+            'videoId': current_video_id
         }
 
         data = json.loads(self.make_request(url, 'get', params=params))
@@ -540,21 +542,23 @@ class Dplay(object):
 
         params = {'usePreAuth': 'true'}
 
+        jsonPayload = {'deviceInfo': {'adBlocker': 'true'}, 'videoId': video_id, 'wisteriaProperties':{'product':'dplus_us'}}
+
         # discoveryplus.com (US)
         if self.locale_suffix == 'us':
-            url = '{api_url}/playback/v3/videoPlaybackInfo/{video_id}'.format(api_url=self.api_url, video_id=video_id)
+            url = '{api_url}/playback/v3/videoPlaybackInfo'.format(api_url=self.api_url, video_id=video_id)
         else:
             if video_type == 'channel':
                 url = '{api_url}/playback/v2/channelPlaybackInfo/{video_id}'.format(api_url=self.api_url, video_id=video_id)
             else:
                 url = '{api_url}/playback/v2/videoPlaybackInfo/{video_id}'.format(api_url=self.api_url, video_id=video_id)
 
-        data_dict = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))['data']
+        data_dict = json.loads(self.make_request(url, 'post', params=params, headers=self.site_headers, jsonPayload=jsonPayload))['data']
 
         # discoveryplus.com (US)
         if self.locale_suffix == 'us':
-            stream['hls_url'] = data_dict['attributes']['streaming']['url']
-            stream['drm_enabled'] = data_dict['attributes']['streaming']['protection']['drmEnabled']
+            stream['hls_url'] = data_dict['attributes']['streaming'][0]['url']
+            stream['drm_enabled'] = data_dict['attributes']['streaming'][0]['protection']['drmEnabled']
         else:
             stream['hls_url'] = data_dict['attributes']['streaming']['hls']['url']
             stream['mpd_url'] = data_dict['attributes']['streaming']['dash']['url']
