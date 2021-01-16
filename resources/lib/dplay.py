@@ -328,22 +328,21 @@ class Dplay(object):
         return data
 
     def get_page(self, path, search_query=None):
+        url = '{api_url}/cms/routes{path}'.format(api_url=self.api_url, path=path)
+
+        params = {
+            'include': 'default'
+        }
+
+        # discoveryplus.com (US)
+        if self.locale_suffix == 'us':
+            params['decorators'] = 'viewingHistory,isFavorite'
+        else:
+            params['decorators'] = 'viewingHistory'
+
         # discoveryplus.com (US)
         if search_query:
-            url = '{api_url}/cms/routes{path}'.format(api_url=self.api_url, path=path)
-
-            params = {
-                'decorators': 'viewingHistory, isFavorite',
-                'include': 'default',
-                'contentFilter[query]': search_query
-            }
-        else:
-            url = '{api_url}/cms/routes{path}'.format(api_url=self.api_url, path=path)
-
-            params = {
-                'decorators': 'viewingHistory',
-                'include': 'default'
-            }
+            params['contentFilter[query]'] = search_query
 
         data = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))
         return data
@@ -357,13 +356,16 @@ class Dplay(object):
             url = '{api_url}/cms/collections/{collection_id}?{mandatoryParams}'.format(api_url=self.api_url, collection_id=collection_id, mandatoryParams=mandatoryParams)
 
         params = {
-            'decorators': 'viewingHistory',
             'include': 'default',
             'page[items.number]': 1,
             'page[items.size]': 100
         }
 
-        # decorators US: viewingHistory,isFavorite
+        if self.locale_suffix == 'us':
+            params['decorators'] = 'viewingHistory,isFavorite'
+        else:
+            params['decorators'] = 'viewingHistory'
+
 
         data = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))
         return data
