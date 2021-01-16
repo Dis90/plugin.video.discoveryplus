@@ -822,7 +822,7 @@ def list_page(page_path, search_query=None):
 
 # Browse -> Channel or genre -> Category listing (A-Z, Trending...)
 def list_collections(collection_id):
-    page_data = helper.d.get_collections(collection_id=collection_id, parameter='')
+    page_data = helper.d.get_collections(collection_id=collection_id)
 
     collections = list(filter(lambda x: x['type'] == 'collection', page_data['included']))
     collectionItems = list(filter(lambda x: x['type'] == 'collectionItem', page_data['included']))
@@ -857,7 +857,7 @@ def list_collections(collection_id):
 
 def list_collection_items(collection_id, page_path=None, collection_id_main=None, search_query=None):
     if collection_id_main:
-        page_data = helper.d.get_collections(collection_id=collection_id_main, parameter='')
+        page_data = helper.d.get_collections(collection_id=collection_id_main)
     elif search_query:
         page_data = helper.d.get_page(page_path, search_query)
     else:
