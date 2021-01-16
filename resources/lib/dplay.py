@@ -411,12 +411,11 @@ class Dplay(object):
         return data
 
     def get_next_episode_info(self, current_video_id):
-        url = '{api_url}/content/videos/{video_id}/next'.format(api_url=self.api_url, video_id=video_is)
+        url = '{api_url}/content/videos/{video_id}/next'.format(api_url=self.api_url, video_id=current_video_id)
 
         params = {
             'algorithm': 'naturalOrder',
             'include': 'genres,images,primaryChannel,show,show.images,contentPackages',
-            'videoId': current_video_id
         }
 
         data = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))
