@@ -229,14 +229,14 @@ def list_page(page_path, search_query=None):
             # More than one pageItem (homepage, seasons, channels)
             else:
                 for page_relationship in page['relationships']['items']['data']:
-                    # Used in discoveryplus.com Browse
+                    # Used in discoveryplus.com Home and Browse
                     if page['attributes'].get('component') and page['attributes']['component']['id'] == 'tabbed-page':
                         for pageItem in pageItems:
                             if page_relationship['id'] == pageItem['id']:
                                 if pageItem['relationships'].get('link'):
                                     for link in links:
                                         if pageItem['relationships']['link']['data']['id'] == link['id']:
-                                            # All link
+                                            # For You -link
                                             if link['relationships'].get('linkedContentRoutes'):
                                                 # Find page path from routes
                                                 for route in routes:
@@ -252,7 +252,7 @@ def list_page(page_path, search_query=None):
 
                                                 link_art = {}
 
-                                            # Channel pages listing (discovery+ Originals, HGTV...)
+                                            # All, Channel pages listing (discovery+ Originals, HGTV...)
                                             else:
                                                 params = {
                                                     'action': 'list_collections',
@@ -509,7 +509,7 @@ def list_page(page_path, search_query=None):
                                                                 if collectionItem['relationships']['collection']['data']['id'] == c2['id']:
                                                                     # Episodes and Extras
                                                                     if c2['attributes']['component']['id'] == 'tabbed-content':
-                                                                        # Hide empty Episodes Extras folders
+                                                                        # Hide empty Episodes and Extras folders
                                                                         if c2.get('relationships'):
                                                                             # Check if component is season list and check if there's season listing
                                                                             if c2['attributes']['component'].get(
@@ -902,60 +902,68 @@ def list_collection_items(collection_id, page_path=None, collection_id_main=None
                         }
 
                         # Show metadata
-                        for show in shows:
-                            if show['id'] == pages[0]['relationships']['primaryContent']['data']['id']:
+                        # Some show pages doesn't have primaryContent = show id and also doesn't have metadata of show
+                        if pages[0]['relationships'].get('primaryContent'):
+                            for show in shows:
+                                if show['id'] == pages[0]['relationships']['primaryContent']['data']['id']:
 
-                                info['tvshowtitle'] = show['attributes'].get('name')
-                                info['plot'] = show['attributes'].get('description')
-                                info['season'] = len(show['attributes']['seasonNumbers'])
-                                info['episode'] = show['attributes']['episodeCount']
+                                    info['tvshowtitle'] = show['attributes'].get('name')
+                                    info['plot'] = show['attributes'].get('description')
+                                    info['season'] = len(show['attributes']['seasonNumbers'])
+                                    info['episode'] = show['attributes']['episodeCount']
 
-                                g = []
-                                # Show genres in discoveryplus.com (US)
-                                if show['relationships'].get('txGenres'):
-                                    for taxonomyNode in taxonomyNodes:
-                                        for show_genre in show['relationships']['txGenres']['data']:
-                                            if taxonomyNode['id'] == show_genre['id']:
-                                                g.append(taxonomyNode['attributes']['name'])
+                                    g = []
+                                    # Show genres in discoveryplus.com (US)
+                                    if show['relationships'].get('txGenres'):
+                                        for taxonomyNode in taxonomyNodes:
+                                            for show_genre in show['relationships']['txGenres']['data']:
+                                                if taxonomyNode['id'] == show_genre['id']:
+                                                    g.append(taxonomyNode['attributes']['name'])
 
-                                if show['relationships'].get('primaryChannel'):
-                                    for channel in channels:
-                                        if channel['id'] == \
-                                                show['relationships']['primaryChannel']['data'][
-                                                    'id']:
-                                            primaryChannel = channel['attributes']['name']
-                                else:
-                                    primaryChannel = None
+                                    if show['relationships'].get('primaryChannel'):
+                                        for channel in channels:
+                                            if channel['id'] == \
+                                                    show['relationships']['primaryChannel']['data'][
+                                                        'id']:
+                                                primaryChannel = channel['attributes']['name']
+                                    else:
+                                        primaryChannel = None
 
-                                info['genre'] = g
-                                info['studio'] = primaryChannel
+                                    info['genre'] = g
+                                    info['studio'] = primaryChannel
 
-                                if show['relationships'].get('images'):
-                                    for image in images:
-                                        if image['id'] == \
-                                                show['relationships']['images']['data'][0][
-                                                    'id']:
-                                            if image['attributes'].get('src'):
-                                                fanart_image = image['attributes']['src']
-                                            else:
-                                                fanart_image = None
-                                        if image['id'] == \
-                                                show['relationships']['images']['data'][-1][
-                                                    'id']:
-                                            if image['attributes'].get('src'):
-                                                thumb_image = image['attributes']['src']
-                                            else:
-                                                thumb_image = None
-                                else:
-                                    fanart_image = None
-                                    thumb_image = None
+                                    if show['relationships'].get('images'):
+                                        for image in images:
+                                            if image['id'] == \
+                                                    show['relationships']['images']['data'][0][
+                                                        'id']:
+                                                if image['attributes'].get('src'):
+                                                    fanart_image = image['attributes']['src']
+                                                else:
+                                                    fanart_image = None
+                                            if image['id'] == \
+                                                    show['relationships']['images']['data'][-1][
+                                                        'id']:
+                                                if image['attributes'].get('src'):
+                                                    thumb_image = image['attributes']['src']
+                                                else:
+                                                    thumb_image = None
+                                    else:
+                                        fanart_image = None
+                                        thumb_image = None
 
-                                show_art = {
-                                    'fanart': fanart_image,
-                                    'thumb': thumb_image
-                                }
+                                    show_art = {
+                                        'fanart': fanart_image,
+                                        'thumb': thumb_image
+                                    }
 
-                                folder_name = show['attributes'].get('name') + ' / ' + collection['attributes'].get('title')
+                                    folder_name = show['attributes'].get('name') + ' / ' + collection['attributes'].get(
+                                        'title')
+                        else:
+                            info = {}
+                            show_art = {}
+                            folder_name = pages[0]['attributes'].get('title') + ' / ' + collection['attributes'].get('title')
+
 
                         helper.add_item(title, params, info=info, art=show_art,
                                         content='seasons',
