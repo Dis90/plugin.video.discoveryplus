@@ -406,7 +406,7 @@ class Dplay(object):
             'include': 'genres,images,primaryChannel,show,show.images'
         }
 
-        data = json.loads(self.make_request(url, 'get', params=params))
+        data = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))
         return data
 
     def get_next_episode_info(self, current_video_id):
@@ -417,7 +417,7 @@ class Dplay(object):
             'include': 'genres,images,primaryChannel,show,show.images,contentPackages'
         }
 
-        data = json.loads(self.make_request(url, 'get', params=params))
+        data = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))
         return data
 
     def add_or_delete_favorite(self, method, show_id):
@@ -540,21 +540,23 @@ class Dplay(object):
 
         params = {'usePreAuth': 'true'}
 
+        jsonPayload = {'deviceInfo': {'adBlocker': 'true'}, 'videoId': video_id, 'wisteriaProperties':{'product':'dplus_us'}}
+
         # discoveryplus.com (US)
         if self.locale_suffix == 'us':
-            url = '{api_url}/playback/v3/videoPlaybackInfo/{video_id}'.format(api_url=self.api_url, video_id=video_id)
+            url = '{api_url}/playback/v3/videoPlaybackInfo'.format(api_url=self.api_url, video_id=video_id)
         else:
             if video_type == 'channel':
                 url = '{api_url}/playback/v2/channelPlaybackInfo/{video_id}'.format(api_url=self.api_url, video_id=video_id)
             else:
                 url = '{api_url}/playback/v2/videoPlaybackInfo/{video_id}'.format(api_url=self.api_url, video_id=video_id)
 
-        data_dict = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))['data']
+        data_dict = json.loads(self.make_request(url, 'post', params=params, headers=self.site_headers, payload=json.dumps(jsonPayload)))['data']
 
         # discoveryplus.com (US)
         if self.locale_suffix == 'us':
-            stream['hls_url'] = data_dict['attributes']['streaming']['url']
-            stream['drm_enabled'] = data_dict['attributes']['streaming']['protection']['drmEnabled']
+            stream['hls_url'] = data_dict['attributes']['streaming'][0]['url']
+            stream['drm_enabled'] = data_dict['attributes']['streaming'][0]['protection']['drmEnabled']
         else:
             stream['hls_url'] = data_dict['attributes']['streaming']['hls']['url']
             stream['mpd_url'] = data_dict['attributes']['streaming']['dash']['url']
