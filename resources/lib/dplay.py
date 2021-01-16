@@ -424,7 +424,7 @@ class Dplay(object):
         # POST for adding and DELETE for delete
         url = '{api_url}/users/me/favorites/shows/{show_id}'.format(api_url=self.api_url, show_id=show_id)
 
-        return self.make_request(url, method)
+        return self.make_request(url, method, headers=self.site_headers)
 
     def decode_html_entities(self, s):
         s = s.strip()
