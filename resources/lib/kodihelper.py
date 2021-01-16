@@ -142,6 +142,9 @@ class KodiHelper(object):
         if resume:
             listitem.setProperty("ResumeTime", str(resume))
             listitem.setProperty("TotalTime", str(total))
+            rpccmd = json.dumps({"jsonrpc": "2.0", "method": "Files.SetFileDetails", "params": {"file": self.base_url + '?' + urlencode(params), "media": "video", "resume": {"position":resume, "total": total}}, "id": "1"})
+            result = xbmc.executeJSONRPC(rpccmd)
+            self.log('rpc result: %s' % json.loads(result))
         if art:
             listitem.setArt(art)
         else:
