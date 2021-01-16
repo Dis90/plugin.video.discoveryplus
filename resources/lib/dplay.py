@@ -352,8 +352,10 @@ class Dplay(object):
             url = '{api_url}/cms/collections/{collection_id}?{mandatoryParams}&{parameter}'.format(api_url=self.api_url, collection_id=collection_id, mandatoryParams=mandatoryParams, parameter=parameter)
         elif mandatoryParams is None and parameter:
             url = '{api_url}/cms/collections/{collection_id}?{parameter}'.format(api_url=self.api_url, collection_id=collection_id, parameter=parameter)
-        else:
+        elif mandatoryParams and parameter is None:
             url = '{api_url}/cms/collections/{collection_id}?{mandatoryParams}'.format(api_url=self.api_url, collection_id=collection_id, mandatoryParams=mandatoryParams)
+        else:
+            url = '{api_url}/cms/collections/{collection_id}'.format(api_url=self.api_url, collection_id=collection_id)
 
         params = {
             'include': 'default',
