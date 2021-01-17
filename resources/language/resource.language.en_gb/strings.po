@@ -84,3 +84,7 @@ msgstr ""
 msgctxt "#30017"
 msgid "Favorites"
 msgstr ""
+
+msgctxt "#30018"
+msgid "Results per Page"
+msgstr ""
