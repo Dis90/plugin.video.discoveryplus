@@ -656,7 +656,23 @@ def list_page(page_path, search_query=None):
                                                                         if collectionItem['attributes'].get('title'):
                                                                             title = collectionItem['attributes'][
                                                                                 'title']
+
+                                                                            # 1 = Promotion items
+                                                                            if collection['relationships'][
+                                                                                        'items']['data'][1][
+                                                                                        'id'] == collectionItem['id']:
+                                                                                collection_id = \
+                                                                                    collectionItem2['relationships'][
+                                                                                        'collection']['data']['id']
+
+                                                                                params = {
+                                                                                    'action': 'list_collection_items',
+                                                                                    'page_path': page_path,
+                                                                                    'collection_id': collection_id
+                                                                                }
+
                                                                         # No title in collectionItem attributes, use show name
+                                                                        # And go to show page
                                                                         elif collectionItem['relationships'].get(
                                                                                 'show'):
                                                                             for show in shows:
@@ -664,8 +680,24 @@ def list_page(page_path, search_query=None):
                                                                                         collectionItem['relationships'][
                                                                                             'show']['data']['id']:
                                                                                     title = show['attributes']['name']
+
+                                                                                    # Find page path from routes
+                                                                                    for route in routes:
+                                                                                        if route['id'] == \
+                                                                                                show['relationships'][
+                                                                                                    'routes']['data'][
+                                                                                                    0]['id']:
+                                                                                            next_page_path = \
+                                                                                            route['attributes']['url']
+
+                                                                                    params = {
+                                                                                        'action': 'list_page',
+                                                                                        'page_path': next_page_path
+                                                                                    }
+
                                                                         else:
                                                                             title = None
+                                                                            params = {}
 
                                                                         # Fanart
                                                                         if collectionItem['relationships'].get('image'):
@@ -703,22 +735,6 @@ def list_page(page_path, search_query=None):
                                                                         art = {
                                                                             'fanart': fanart_image,
                                                                             'thumb': fanart_image
-                                                                        }
-
-                                                                        for collectionItem2 in collectionItems:
-                                                                            # 1 = Promotion items
-                                                                            if \
-                                                                                    collection['relationships'][
-                                                                                        'items']['data'][1][
-                                                                                        'id'] == collectionItem2['id']:
-                                                                                collection_id = \
-                                                                                    collectionItem2['relationships'][
-                                                                                        'collection']['data']['id']
-
-                                                                        params = {
-                                                                            'action': 'list_collection_items',
-                                                                            'page_path': page_path,
-                                                                            'collection_id': collection_id
                                                                         }
 
                                                                         helper.add_item(title, params, art=art,
