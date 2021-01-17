@@ -1456,19 +1456,20 @@ def list_collection(collection_id, mandatoryParams=None, parameter=None):
         [str(x['id']) for x in helper.d.get_favorites()['data']['relationships']['favorites']['data']])
     user_packages = ",".join([str(x) for x in helper.d.get_user_data()['attributes']['packages']])
 
-    collections = list(filter(lambda x: x['type'] == 'collection', page_data['included']))
-    collectionItems = list(filter(lambda x: x['type'] == 'collectionItem', page_data['included']))
-    images = list(filter(lambda x: x['type'] == 'image', page_data['included']))
-    shows = list(filter(lambda x: x['type'] == 'show', page_data['included']))
-    videos = list(filter(lambda x: x['type'] == 'video', page_data['included']))
-    channels = list(filter(lambda x: x['type'] == 'channel', page_data['included']))
-    genres = list(filter(lambda x: x['type'] == 'genre', page_data['included']))
-    links = list(filter(lambda x: x['type'] == 'link', page_data['included']))
-    routes = list(filter(lambda x: x['type'] == 'route', page_data['included']))
-    taxonomyNodes = list(filter(lambda x: x['type'] == 'taxonomyNode', page_data['included']))
-
     # Don't try to list empty collection
     if page_data['data'].get('relationships'):
+
+        collections = list(filter(lambda x: x['type'] == 'collection', page_data['included']))
+        collectionItems = list(filter(lambda x: x['type'] == 'collectionItem', page_data['included']))
+        images = list(filter(lambda x: x['type'] == 'image', page_data['included']))
+        shows = list(filter(lambda x: x['type'] == 'show', page_data['included']))
+        videos = list(filter(lambda x: x['type'] == 'video', page_data['included']))
+        channels = list(filter(lambda x: x['type'] == 'channel', page_data['included']))
+        genres = list(filter(lambda x: x['type'] == 'genre', page_data['included']))
+        links = list(filter(lambda x: x['type'] == 'link', page_data['included']))
+        routes = list(filter(lambda x: x['type'] == 'route', page_data['included']))
+        taxonomyNodes = list(filter(lambda x: x['type'] == 'taxonomyNode', page_data['included']))
+
         # Get order of content from page_data['data']
         for collection_relationship in page_data['data']['relationships']['items']['data']:
             for collectionItem in collectionItems:
@@ -1721,7 +1722,7 @@ def list_collection(collection_id, mandatoryParams=None, parameter=None):
 
                                         helper.add_item(title, params,
                                                         content='videos')
-                                        
+
                     # discoveryplus.com (US) search result 'collections' folder content
                     if collectionItem['relationships'].get('link'):
                         for link in links:
