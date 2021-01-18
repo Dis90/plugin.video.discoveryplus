@@ -3,8 +3,11 @@
     <setting id="site" type="action" option="close" action="RunPlugin(plugin://plugin.video.discoveryplus/?setting=set_locale)" label="30013" default="discoveryplus.fi" />
     <setting id="locale" type="text" visible="false" default="fi_FI" />
 	<setting id="numresults" type="slider" label="30018" default="100" range="1,100" option="int"/>
-    <setting id="username" type="text" label="30015" default=""/>
-    <setting id="password" type="text" label="30016" option="hidden" default=""/>
-    <setting id="reset_credentials" type="action" label="30005" action="RunPlugin(plugin://plugin.video.discoveryplus/?setting=reset_credentials)"/>
+
+    <setting id="cookiestxt" label="30020" type="bool" default="false"/>
+    <setting id="cookiestxt_file" label="30021" type="file" default="" visible="eq(-1,true)" subsetting="true"/>
+    <setting id="username" type="text" label="30015" default="" enable="eq(-2,false)"/>
+    <setting id="password" type="text" label="30016" option="hidden" default="" enable="eq(-3,false)"/>
+    <setting id="reset_credentials" type="action" label="30005" action="RunPlugin(plugin://plugin.video.discoveryplus/?setting=reset_credentials)" enable="eq(-4,false)"/>
   </category>
 </settings>

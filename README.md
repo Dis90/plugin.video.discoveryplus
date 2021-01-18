@@ -26,3 +26,7 @@ This addon is unofficial and it is not supported by Discovery Networks, so it ca
 - Playback progress is same in discovery+ site and on Kodi addon (you can start video on site and continue it on Kodi or other way round)
 - Live TV channels
 - Videos
+
+# Login fails?
+You can use cookies exported from Chrome to fix login issues. Use <a href="https://chrome.google.com/webstore/detail/get-cookiestxt/bgaddhkoddajcdgocldbbfleckgcbcid">Get cookies.txt</a>
+ to export cookies and from addon settings specify location of cookies.txt.

@@ -31,7 +31,7 @@ msgstr "Info"
 
 msgctxt "#30004"
 msgid "Please enter your login credentials in the add-on settings."
-msgstr ""
+msgstr "Aseta kirjautumistietosi lisäosan asetuksissa."
 
 msgctxt "#30005"
 msgid "Reset credentials"
@@ -92,3 +92,15 @@ msgstr "Tuloksia per sivu"
 msgctxt "#30019"
 msgid "Next Page"
 msgstr "Seuraava sivu"
+
+msgctxt "#30020"
+msgid "I use my own cookies.txt"
+msgstr "Käytän omaa cookies.txt"
+
+msgctxt "#30021"
+msgid "Cookies.txt location"
+msgstr "Cookies.txt sijainti"
+
+msgctxt "#30022"
+msgid "It looks like you are not logged in to discovery+. Please login using Chrome and export cookies to file."
+msgstr "Näyttää siltä, että et ole kirjautunut sisään discovery+:aan. Kirjaudu sisään käyttäen Chromea ja vie evästeet tiedostoon."

@@ -31,7 +31,7 @@ except NameError:  # Python 3
     unicode = str  # pylint: disable=redefined-builtin,invalid-name
 
 class Dplay(object):
-    def __init__(self, settings_folder, site, locale, logging_prefix, numresults):
+    def __init__(self, settings_folder, site, locale, logging_prefix, numresults, cookiestxt, cookiestxt_file):
         self.logging_prefix = logging_prefix
         self.site_url = site
         self.locale = locale
@@ -59,7 +59,13 @@ class Dplay(object):
         self.unwanted_menu_items = ('Hae mukaan', 'Info', 'Tablå', 'Live TV', 'TV-guide')
         if not os.path.exists(self.tempdir):
             os.makedirs(self.tempdir)
-        self.cookie_jar = cookielib.LWPCookieJar(os.path.join(self.settings_folder, 'cookie_file'))
+
+        # If cookiestxt setting is true use users cookies file
+        if cookiestxt:
+            self.cookie_jar = cookielib.MozillaCookieJar(cookiestxt_file)
+        else:
+            self.cookie_jar = cookielib.LWPCookieJar(os.path.join(self.settings_folder, 'cookie_file'))
+
         try:
             self.cookie_jar.load(ignore_discard=True, ignore_expires=True)
         except IOError:
@@ -95,7 +101,10 @@ class Dplay(object):
                 req = self.http_session.post(url, params=params, data=payload, headers=headers)
             self.log('Response code: %s' % req.status_code)
             self.log('Response: %s' % req.content)
-            self.cookie_jar.save(ignore_discard=True, ignore_expires=True)
+            try:
+                self.cookie_jar.save(ignore_discard=True, ignore_expires=True)
+            except FileNotFoundError:
+                pass
             self.raise_dplay_error(req.content)
             if text:
                 return req.text

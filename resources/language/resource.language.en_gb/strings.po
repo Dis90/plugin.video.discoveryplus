@@ -92,3 +92,15 @@ msgstr ""
 msgctxt "#30019"
 msgid "Next Page"
 msgstr ""
+
+msgctxt "#30020"
+msgid "I use my own cookies.txt"
+msgstr ""
+
+msgctxt "#30021"
+msgid "Cookies.txt location"
+msgstr ""
+
+msgctxt "#30022"
+msgid "It looks like you are not logged in to discovery+. Please login using Chrome and export cookies to file."
+msgstr ""

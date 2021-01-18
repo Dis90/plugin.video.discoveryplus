@@ -35,7 +35,7 @@ class KodiHelper(object):
         if not xbmcvfs.exists(self.addon_profile):
             xbmcvfs.mkdir(self.addon_profile)
         self.d = Dplay(self.addon_profile, self.get_setting('site'), self.get_setting('locale'), self.logging_prefix,
-                       self.get_setting('numresults'))
+                       self.get_setting('numresults'), self.get_setting('cookiestxt'), self.get_setting('cookiestxt_file'))
 
     def get_addon(self):
         """Returns a fresh addon instance."""
@@ -100,8 +100,9 @@ class KodiHelper(object):
     def set_login_credentials(self):
         username = self.get_setting('username')
         password = self.get_setting('password')
+        cookiestxt = self.get_setting('cookiestxt')
 
-        if not username or not password:
+        if not username or not password and cookiestxt is False:
             self.dialog('ok', self.language(30003), self.language(30004))
             self.get_addon().openSettings()
             return False
@@ -111,7 +112,11 @@ class KodiHelper(object):
     def check_for_credentials(self):
         self.d.get_token()  # Get new token before checking credentials
         if self.d.get_user_data()['attributes']['anonymous'] == True:
-            self.login_process()
+            # If user is using own cookies file and user_data returns anonymous
+            if self.get_setting('cookiestxt'):
+                raise self.d.DplayError(self.language(30022))
+            else:
+                self.login_process()
         return True
 
     def set_locale(self, locale=None):
