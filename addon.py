@@ -1787,7 +1787,7 @@ def list_collection(collection_id, mandatoryParams=None, parameter=None, page=No
                     'parameter': parameter,
                     'mandatoryParams': mandatoryParams
                 }
-                helper.add_item(helper.language(30019), params, content='tvshows')
+                helper.add_item(helper.language(30019), params, content='tvshows', sort_method='bottom')
         except KeyError:
             pass
 
