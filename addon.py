@@ -1783,9 +1783,11 @@ def list_collection(collection_id, mandatoryParams=None, parameter=None, page=No
                 params = {
                     'action': 'list_collection',
                     'collection_id': collection_id,
-                    'page': nextPage
+                    'page': nextPage,
+                    'parameter': parameter,
+                    'mandatoryParams': mandatoryParams
                 }
-                helper.add_item('Next Page', params, content='tvshows')
+                helper.add_item(helper.language(30019), params, content='tvshows')
         except KeyError:
             pass
 

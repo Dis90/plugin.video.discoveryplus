@@ -88,3 +88,7 @@ msgstr ""
 msgctxt "#30018"
 msgid "Results per Page"
 msgstr ""
+
+msgctxt "#30019"
+msgid "Next Page"
+msgstr ""

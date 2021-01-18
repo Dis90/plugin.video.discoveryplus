@@ -88,3 +88,7 @@ msgstr "Suosikit"
 msgctxt "#30018"
 msgid "Results per Page"
 msgstr "Results per Page"
+
+msgctxt "#30019"
+msgid "Next Page"
+msgstr "Next Page"
