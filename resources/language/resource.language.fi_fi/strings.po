@@ -84,3 +84,11 @@ msgstr "Salasana"
 msgctxt "#30017"
 msgid "Favorites"
 msgstr "Suosikit"
+
+msgctxt "#30018"
+msgid "Results per Page"
+msgstr "Tuloksia per sivu"
+
+msgctxt "#30019"
+msgid "Next Page"
+msgstr "Seuraava sivu"

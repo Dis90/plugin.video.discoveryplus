@@ -7,7 +7,7 @@ This addon is unofficial and it is not supported by Discovery Networks, so it ca
 # Supported platforms
 - Linux
 - Mac
-- Windows (not tested)
+- Windows
 - Android (not tested)
 
 # Supported countries
@@ -19,6 +19,7 @@ This addon is unofficial and it is not supported by Discovery Networks, so it ca
 - Spain
 - Italy
 - United Kingdom
+- United States
 
 # Features
 - Supports <a href="https://forum.kodi.tv/showthread.php?tid=336747">Up Next</a>

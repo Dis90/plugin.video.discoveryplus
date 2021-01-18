@@ -31,14 +31,28 @@ except NameError:  # Python 3
     unicode = str  # pylint: disable=redefined-builtin,invalid-name
 
 class Dplay(object):
-    def __init__(self, settings_folder, site, locale, logging_prefix):
+    def __init__(self, settings_folder, site, locale, logging_prefix, numresults):
         self.logging_prefix = logging_prefix
         self.site_url = site
         self.locale = locale
+        self.numResults = numresults
         self.locale_suffix = self.locale.split('_')[1].lower()
         self.client_id = str(uuid.uuid1())
         self.device_id = self.client_id.replace("-", "")
-        self.api_url = 'https://disco-api.' + self.site_url
+
+        if self.locale_suffix == 'gb':
+            self.api_url = 'https://disco-api.' + self.site_url
+            self.realm = 'questuk'
+            self.site_headers = {'x-disco-params': 'realm='+self.realm}
+        elif self.locale_suffix == 'us':
+            self.api_url = 'https://us1-prod-direct.' + self.site_url
+            self.realm = 'go'
+            self.site_headers = {'x-disco-params': 'realm=go,siteLookupKey=dplus_us', 'x-disco-client': 'WEB:UNKNOWN:dplus_us:0.0.1'}
+        else:
+            self.api_url = 'https://disco-api.' + self.site_url
+            self.realm = 'dplay' + self.locale_suffix
+            self.site_headers = {'x-disco-params': 'realm='+self.realm}
+
         self.http_session = requests.Session()
         self.settings_folder = settings_folder
         self.tempdir = os.path.join(settings_folder, 'tmp')
@@ -114,20 +128,13 @@ class Dplay(object):
     def get_token(self):
         url = '{api_url}/token'.format(api_url=self.api_url)
 
-        #dplayfi dplayse dplayno dplaydk dplaynl dplayes dplayit questuk go
-        # .com uses go, co.uk uses questuk and others dplay+locale
-        if self.locale_suffix == 'gb':
-            realm = 'questuk'
-        else:
-            realm = 'dplay' + self.locale_suffix
-
         params = {
-            'realm': realm,
+            'realm': self.realm,
             'deviceId': self.device_id,
             'shortlived': 'true'
         }
 
-        return self.make_request(url, 'get', params=params)
+        return self.make_request(url, 'get', params=params, headers=self.site_headers)
 
     def url_encode(self, url):
         """Converts an URL in url encode characters
@@ -318,36 +325,52 @@ class Dplay(object):
             'include': 'default'
         }
 
-        data = json.loads(self.make_request(url, 'get', params=params))
+        data = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))
         return data
 
-    def get_page(self, path):
+    def get_page(self, path, search_query=None):
         url = '{api_url}/cms/routes{path}'.format(api_url=self.api_url, path=path)
 
         params = {
-            'decorators': 'viewingHistory',
             'include': 'default'
         }
 
-        data = json.loads(self.make_request(url, 'get', params=params))
+        # discoveryplus.com (US)
+        if self.locale_suffix == 'us':
+            params['decorators'] = 'viewingHistory,isFavorite'
+        else:
+            params['decorators'] = 'viewingHistory'
+
+        # discoveryplus.com (US)
+        if search_query:
+            params['contentFilter[query]'] = search_query
+
+        data = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))
         return data
 
-    def get_collections(self, collection_id, mandatoryParams=None, parameter=None):
+    def get_collections(self, collection_id, mandatoryParams=None, parameter=None, page=1):
         if mandatoryParams and parameter:
             url = '{api_url}/cms/collections/{collection_id}?{mandatoryParams}&{parameter}'.format(api_url=self.api_url, collection_id=collection_id, mandatoryParams=mandatoryParams, parameter=parameter)
         elif mandatoryParams is None and parameter:
             url = '{api_url}/cms/collections/{collection_id}?{parameter}'.format(api_url=self.api_url, collection_id=collection_id, parameter=parameter)
-        else:
+        elif mandatoryParams and parameter is None:
             url = '{api_url}/cms/collections/{collection_id}?{mandatoryParams}'.format(api_url=self.api_url, collection_id=collection_id, mandatoryParams=mandatoryParams)
+        else:
+            url = '{api_url}/cms/collections/{collection_id}'.format(api_url=self.api_url, collection_id=collection_id)
 
         params = {
-            'decorators': 'viewingHistory',
             'include': 'default',
-            'page[items.number]': 1,
-            'page[items.size]': 100
+            'page[items.number]': page,
+            'page[items.size]': self.numResults
         }
 
-        data = json.loads(self.make_request(url, 'get', params=params))
+        if self.locale_suffix == 'us':
+            params['decorators'] = 'viewingHistory,isFavorite'
+        else:
+            params['decorators'] = 'viewingHistory'
+
+
+        data = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))
         return data
 
     def get_search_shows(self, search_query):
@@ -368,7 +391,7 @@ class Dplay(object):
             'include': 'default'
         }
 
-        data = json.loads(self.make_request(url, 'get', params=params))
+        data = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))
         return data
 
     def update_playback_progress(self, method, video_id, position):
@@ -388,7 +411,7 @@ class Dplay(object):
             'include': 'genres,images,primaryChannel,show,show.images'
         }
 
-        data = json.loads(self.make_request(url, 'get', params=params))
+        data = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))
         return data
 
     def get_next_episode_info(self, current_video_id):
@@ -399,14 +422,14 @@ class Dplay(object):
             'include': 'genres,images,primaryChannel,show,show.images,contentPackages'
         }
 
-        data = json.loads(self.make_request(url, 'get', params=params))
+        data = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))
         return data
 
     def add_or_delete_favorite(self, method, show_id):
         # POST for adding and DELETE for delete
         url = '{api_url}/users/me/favorites/shows/{show_id}'.format(api_url=self.api_url, show_id=show_id)
 
-        return self.make_request(url, method)
+        return self.make_request(url, method, headers=self.site_headers)
 
     def decode_html_entities(self, s):
         s = s.strip()
@@ -478,7 +501,7 @@ class Dplay(object):
 
     # This is used for Inputstream Adaptive versions below 2.4.6 (Kodi 18) and versions below 2.6.1 (Kodi 19)
     def get_subtitles(self, video_url, video_id):
-        playlist = self.make_request(video_url, 'get', headers=None, text=True)
+        playlist = self.make_request(video_url, 'get', headers=self.site_headers, text=True)
         self.log('Video playlist url: %s' % video_url)
 
         line1 = urljoin(video_url, urlparse(video_url).path)
@@ -522,18 +545,32 @@ class Dplay(object):
 
         params = {'usePreAuth': 'true'}
 
-        if video_type == 'channel':
-            url = '{api_url}/playback/v2/channelPlaybackInfo/{video_id}'.format(api_url=self.api_url, video_id=video_id)
+        # discoveryplus.com (US)
+        if self.locale_suffix == 'us':
+            jsonPayload = {'deviceInfo': {'adBlocker': 'true'}, 'videoId': video_id,
+                           'wisteriaProperties': {'product': 'dplus_us'}}
+
+            url = '{api_url}/playback/v3/videoPlaybackInfo'.format(api_url=self.api_url)
+
+            data_dict = json.loads(self.make_request(url, 'post', params=params, headers=self.site_headers, payload=json.dumps(jsonPayload)))['data']
         else:
-            url = '{api_url}/playback/v2/videoPlaybackInfo/{video_id}'.format(api_url=self.api_url, video_id=video_id)
+            if video_type == 'channel':
+                url = '{api_url}/playback/v2/channelPlaybackInfo/{video_id}'.format(api_url=self.api_url, video_id=video_id)
+            else:
+                url = '{api_url}/playback/v2/videoPlaybackInfo/{video_id}'.format(api_url=self.api_url, video_id=video_id)
 
-        data_dict = json.loads(self.make_request(url, 'get', params=params, headers=None))['data']
+            data_dict = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))['data']
 
-        stream['hls_url'] = data_dict['attributes']['streaming']['hls']['url']
-        stream['mpd_url'] = data_dict['attributes']['streaming']['dash']['url']
-        stream['license_url'] = data_dict['attributes']['protection']['key_servers']['widevine']
-        stream['drm_token'] = data_dict['attributes']['protection']['drm_token']
-        stream['drm_enabled'] = data_dict['attributes']['protection']['drm_enabled']
+        # discoveryplus.com (US)
+        if self.locale_suffix == 'us':
+            stream['hls_url'] = data_dict['attributes']['streaming'][0]['url']
+            stream['drm_enabled'] = data_dict['attributes']['streaming'][0]['protection']['drmEnabled']
+        else:
+            stream['hls_url'] = data_dict['attributes']['streaming']['hls']['url']
+            stream['mpd_url'] = data_dict['attributes']['streaming']['dash']['url']
+            stream['license_url'] = data_dict['attributes']['protection']['key_servers']['widevine']
+            stream['drm_token'] = data_dict['attributes']['protection']['drm_token']
+            stream['drm_enabled'] = data_dict['attributes']['protection']['drm_enabled']
 
         return stream
 
