@@ -31,10 +31,11 @@ except NameError:  # Python 3
     unicode = str  # pylint: disable=redefined-builtin,invalid-name
 
 class Dplay(object):
-    def __init__(self, settings_folder, site, locale, logging_prefix):
+    def __init__(self, settings_folder, site, locale, logging_prefix, numresults):
         self.logging_prefix = logging_prefix
         self.site_url = site
         self.locale = locale
+        self.numResults = numresults
         self.locale_suffix = self.locale.split('_')[1].lower()
         self.client_id = str(uuid.uuid1())
         self.device_id = self.client_id.replace("-", "")
@@ -347,7 +348,7 @@ class Dplay(object):
         data = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))
         return data
 
-    def get_collections(self, collection_id, mandatoryParams=None, parameter=None):
+    def get_collections(self, collection_id, mandatoryParams=None, parameter=None, page=1):
         if mandatoryParams and parameter:
             url = '{api_url}/cms/collections/{collection_id}?{mandatoryParams}&{parameter}'.format(api_url=self.api_url, collection_id=collection_id, mandatoryParams=mandatoryParams, parameter=parameter)
         elif mandatoryParams is None and parameter:
@@ -359,8 +360,8 @@ class Dplay(object):
 
         params = {
             'include': 'default',
-            'page[items.number]': 1,
-            'page[items.size]': 100
+            'page[items.number]': page,
+            'page[items.size]': self.numResults
         }
 
         if self.locale_suffix == 'us':
@@ -390,7 +391,7 @@ class Dplay(object):
             'include': 'default'
         }
 
-        data = json.loads(self.make_request(url, 'get', params=params))
+        data = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))
         return data
 
     def update_playback_progress(self, method, video_id, position):

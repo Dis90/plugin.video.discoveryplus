@@ -33,7 +33,7 @@ class KodiHelper(object):
         self.logging_prefix = '[%s-%s]' % (self.addon_name, self.addon_version)
         if not xbmcvfs.exists(self.addon_profile):
             xbmcvfs.mkdir(self.addon_profile)
-        self.d = Dplay(self.addon_profile, self.get_setting('site'), self.get_setting('locale'), self.logging_prefix)
+        self.d = Dplay(self.addon_profile, self.get_setting('site'), self.get_setting('locale'), self.logging_prefix, self.get_setting('numresults'))
 
     def get_addon(self):
         """Returns a fresh addon instance."""

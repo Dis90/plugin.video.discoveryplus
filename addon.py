@@ -1461,12 +1461,12 @@ def list_favorites():
 
     helper.eod()
 
-def list_collection(collection_id, mandatoryParams=None, parameter=None):
+def list_collection(collection_id, mandatoryParams=None, parameter=None, page=None):
     if mandatoryParams is None and parameter is None:
-        page_data = helper.d.get_collections(collection_id=collection_id)
+        page_data = helper.d.get_collections(collection_id=collection_id, page=page)
     else:
         page_data = helper.d.get_collections(collection_id=collection_id, mandatoryParams=mandatoryParams,
-                                             parameter=parameter)
+                                             parameter=parameter, page=page)
 
     user_favorites = ",".join(
         [str(x['id']) for x in helper.d.get_favorites()['data']['relationships']['favorites']['data']])
@@ -1777,6 +1777,20 @@ def list_collection(collection_id, mandatoryParams=None, parameter=None):
                                                 art=link_art,
                                                 folder_name=page_data['data']['attributes'].get('title'))
 
+        try:
+            if page_data['data']['meta']['itemsCurrentPage'] != page_data['data']['meta']['itemsTotalPages']:
+                nextPage = page_data['data']['meta']['itemsCurrentPage'] + 1
+                params = {
+                    'action': 'list_collection',
+                    'collection_id': collection_id,
+                    'page': nextPage,
+                    'parameter': parameter,
+                    'mandatoryParams': mandatoryParams
+                }
+                helper.add_item(helper.language(30019), params, content='tvshows')
+        except KeyError:
+            pass
+
     helper.eod()
 
 def search():
@@ -1814,9 +1828,15 @@ def router(paramstring):
             list_favorites()
         elif params['action'] == 'list_collection':
             if params.get('mandatoryParams'):
-                list_collection(collection_id=params['collection_id'], mandatoryParams=params['mandatoryParams'])
+                try:
+                    list_collection(collection_id=params['collection_id'], mandatoryParams=params['mandatoryParams'], page=params['page'])
+                except KeyError:
+                    list_collection(collection_id=params['collection_id'], mandatoryParams=params['mandatoryParams'])
             else:
-                list_collection(collection_id=params['collection_id'])
+                try:
+                    list_collection(collection_id=params['collection_id'], page=params['page'])
+                except KeyError:
+                    list_collection(collection_id=params['collection_id'])
         elif params['action'] == 'list_collection_items':
             list_collection_items(collection_id=params['collection_id'], page_path=params['page_path'])
         elif params['action'] == 'list_videos':
