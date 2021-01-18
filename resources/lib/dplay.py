@@ -545,18 +545,21 @@ class Dplay(object):
 
         params = {'usePreAuth': 'true'}
 
-        jsonPayload = {'deviceInfo': {'adBlocker': 'true'}, 'videoId': video_id, 'wisteriaProperties':{'product':'dplus_us'}}
-
         # discoveryplus.com (US)
         if self.locale_suffix == 'us':
+            jsonPayload = {'deviceInfo': {'adBlocker': 'true'}, 'videoId': video_id,
+                           'wisteriaProperties': {'product': 'dplus_us'}}
+
             url = '{api_url}/playback/v3/videoPlaybackInfo'.format(api_url=self.api_url)
+
+            data_dict = json.loads(self.make_request(url, 'post', params=params, headers=self.site_headers, payload=json.dumps(jsonPayload)))['data']
         else:
             if video_type == 'channel':
                 url = '{api_url}/playback/v2/channelPlaybackInfo/{video_id}'.format(api_url=self.api_url, video_id=video_id)
             else:
                 url = '{api_url}/playback/v2/videoPlaybackInfo/{video_id}'.format(api_url=self.api_url, video_id=video_id)
 
-        data_dict = json.loads(self.make_request(url, 'post', params=params, headers=self.site_headers, payload=json.dumps(jsonPayload)))['data']
+            data_dict = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))['data']
 
         # discoveryplus.com (US)
         if self.locale_suffix == 'us':
