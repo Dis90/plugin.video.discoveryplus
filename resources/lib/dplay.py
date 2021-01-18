@@ -103,7 +103,7 @@ class Dplay(object):
             self.log('Response: %s' % req.content)
             try:
                 self.cookie_jar.save(ignore_discard=True, ignore_expires=True)
-            except FileNotFoundError:
+            except IOError:
                 pass
             self.raise_dplay_error(req.content)
             if text:
