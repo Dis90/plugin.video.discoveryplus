@@ -15,10 +15,11 @@ from xbmcaddon import Addon
 import inputstreamhelper
 from base64 import b64encode
 
-try: # Python 3
+try:  # Python 3
     from urllib.parse import urlencode
-except ImportError: # Python 2
+except ImportError:  # Python 2
     from urllib import urlencode
+
 
 class KodiHelper(object):
     def __init__(self, base_url=None, handle=None):
@@ -33,7 +34,8 @@ class KodiHelper(object):
         self.logging_prefix = '[%s-%s]' % (self.addon_name, self.addon_version)
         if not xbmcvfs.exists(self.addon_profile):
             xbmcvfs.mkdir(self.addon_profile)
-        self.d = Dplay(self.addon_profile, self.get_setting('site'), self.get_setting('locale'), self.logging_prefix, self.get_setting('numresults'))
+        self.d = Dplay(self.addon_profile, self.get_setting('site'), self.get_setting('locale'), self.logging_prefix,
+                       self.get_setting('numresults'))
 
     def get_addon(self):
         """Returns a fresh addon instance."""
@@ -55,7 +57,7 @@ class KodiHelper(object):
 
     def get_ia_version(self):
         version = xbmc.getInfoLabel('System.AddonVersion(inputstream.adaptive)')
-        return version.replace('.','')
+        return version.replace('.', '')
 
     def set_setting(self, key, value):
         return self.get_addon().setSetting(key, value)
@@ -92,7 +94,8 @@ class KodiHelper(object):
             return None
 
     def check_for_prerequisites(self):
-        return self.set_locale(self.get_setting('locale')) and self.set_login_credentials() and self.check_for_credentials()
+        return self.set_locale(
+            self.get_setting('locale')) and self.set_login_credentials() and self.check_for_credentials()
 
     def set_login_credentials(self):
         username = self.get_setting('username')
@@ -106,7 +109,7 @@ class KodiHelper(object):
             return True
 
     def check_for_credentials(self):
-        self.d.get_token() # Get new token before checking credentials
+        self.d.get_token()  # Get new token before checking credentials
         if self.d.get_user_data()['attributes']['anonymous'] == True:
             self.login_process()
         return True
@@ -114,7 +117,9 @@ class KodiHelper(object):
     def set_locale(self, locale=None):
         countries = ['fi_FI', 'sv_SE', 'da_DK', 'nb_NO', 'nl_NL', 'es_ES', 'it_IT', 'en_GB', 'en_US']
         if not locale:
-            options = ['discoveryplus.fi', 'discoveryplus.se', 'discoveryplus.dk', 'discoveryplus.no', 'discoveryplus.nl', 'discoveryplus.es', 'discoveryplus.it', 'discoveryplus.co.uk', 'discoveryplus.com']
+            options = ['discoveryplus.fi', 'discoveryplus.se', 'discoveryplus.dk', 'discoveryplus.no',
+                       'discoveryplus.nl', 'discoveryplus.es', 'discoveryplus.it', 'discoveryplus.co.uk',
+                       'discoveryplus.com']
             selected_site = self.dialog('select', self.language(30013), options=options)
             if selected_site is None:
                 selected_site = 0  # default to .fi
@@ -132,7 +137,8 @@ class KodiHelper(object):
         self.set_setting('username', '')
         self.set_setting('password', '')
 
-    def add_item(self, title, params, items=False, folder=True, playable=False, info=None, art=None, content=False, menu=None, resume=None, total=None, folder_name=None, sort_method=None):
+    def add_item(self, title, params, items=False, folder=True, playable=False, info=None, art=None, content=False,
+                 menu=None, resume=None, total=None, folder_name=None, sort_method=None):
         addon = self.get_addon()
         listitem = xbmcgui.ListItem(label=title)
 
@@ -142,7 +148,9 @@ class KodiHelper(object):
         if resume:
             listitem.setProperty("ResumeTime", str(resume))
             listitem.setProperty("TotalTime", str(total))
-            rpccmd = json.dumps({"jsonrpc": "2.0", "method": "Files.SetFileDetails", "params": {"file": self.base_url + '?' + urlencode(params), "media": "video", "resume": {"position":resume, "total": total}}, "id": "1"})
+            rpccmd = json.dumps({"jsonrpc": "2.0", "method": "Files.SetFileDetails",
+                                 "params": {"file": self.base_url + '?' + urlencode(params), "media": "video",
+                                            "resume": {"position": resume, "total": total}}, "id": "1"})
             result = xbmc.executeJSONRPC(rpccmd)
             self.log('rpc result: %s' % json.loads(result))
         if art:
@@ -170,6 +178,8 @@ class KodiHelper(object):
             if sort_method == 'sort_episodes':
                 xbmcplugin.addSortMethod(self.handle, xbmcplugin.SORT_METHOD_EPISODE)
                 xbmcplugin.addSortMethod(self.handle, xbmcplugin.SORT_METHOD_VIDEO_TITLE)
+            if sort_method == 'bottom':
+                listitem.setProperty("SpecialSort", "bottom")
 
         recursive_url = self.base_url + '?' + urlencode(params)
 
@@ -232,6 +242,7 @@ class KodiHelper(object):
 
         media = 'plugin://' + self.addon_name + '/?action=play&video_id=' + next_video_id + '&video_type=EPISODE'
         xbmc.executebuiltin('PlayMedia({})'.format(media))
+
     # End of Up next integration
 
     def play_item(self, video_id, video_type):
@@ -250,12 +261,12 @@ class KodiHelper(object):
                     # Kodi 18 Leia
                     else:
                         playitem.setProperty('inputstreamaddon', 'inputstream.adaptive')
-                        
+
                     playitem.setProperty('inputstream.adaptive.manifest_type', 'mpd')
                     playitem.setProperty('inputstream.adaptive.license_type', 'com.widevine.alpha')
                     header = 'PreAuthorization=' + stream['drm_token']
                     playitem.setProperty('inputstream.adaptive.license_key',
-                                             stream['license_url'] + '|' + header + '|R{SSM}|')
+                                         stream['license_url'] + '|' + header + '|R{SSM}|')
             else:
                 playitem = xbmcgui.ListItem(path=stream['hls_url'])
 
@@ -337,6 +348,7 @@ class KodiHelper(object):
         except self.d.DplayError as error:
             self.dialog('ok', self.language(30006), error.value)
 
+
 class DplayPlayer(xbmc.Player):
     def __init__(self):
         base_url = sys.argv[0]
@@ -359,7 +371,8 @@ class DplayPlayer(xbmc.Player):
 
         if next_episode.get('data'):
             self.helper.log('Current episode name: %s' % self.current_episode_info['title'].encode('utf-8'))
-            self.helper.log('Next episode name: %s' % next_episode['data'][0]['attributes'].get('name').encode('utf-8').lstrip())
+            self.helper.log(
+                'Next episode name: %s' % next_episode['data'][0]['attributes'].get('name').encode('utf-8').lstrip())
 
             images = list(filter(lambda x: x['type'] == 'image', next_episode['included']))
             shows = list(filter(lambda x: x['type'] == 'show', next_episode['included']))
@@ -376,12 +389,14 @@ class DplayPlayer(xbmc.Player):
                 next_episode_fanart_image = None
 
             if self.current_episode_info.get('aired'):
-                current_episode_aired = self.helper.d.parse_datetime(self.current_episode_info['aired']).strftime('%d.%m.%Y')
+                current_episode_aired = self.helper.d.parse_datetime(self.current_episode_info['aired']).strftime(
+                    '%d.%m.%Y')
             else:
                 current_episode_aired = ''
 
             if next_episode['data'][0]['attributes'].get('airDate'):
-                next_episode_aired = self.helper.d.parse_datetime(next_episode['data'][0]['attributes']['airDate']).strftime('%d.%m.%Y')
+                next_episode_aired = self.helper.d.parse_datetime(
+                    next_episode['data'][0]['attributes']['airDate']).strftime('%d.%m.%Y')
             else:
                 next_episode_aired = ''
 
@@ -429,7 +444,8 @@ class DplayPlayer(xbmc.Player):
                     runtime=next_episode['data'][0]['attributes'].get('videoDuration') / 1000.0,
                 ),
 
-                play_url='plugin://' + self.helper.addon_name + '/?action=play_upnext&next_video_id=' + next_episode['data'][0]['id'],
+                play_url='plugin://' + self.helper.addon_name + '/?action=play_upnext&next_video_id=' +
+                         next_episode['data'][0]['id'],
                 notification_time='',
             )
 
