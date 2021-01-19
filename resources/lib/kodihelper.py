@@ -350,6 +350,10 @@ class KodiHelper(object):
 
                     xbmc.sleep(1000)
 
+            # Live TV
+            else:
+                xbmcplugin.setResolvedUrl(self.handle, True, listitem=playitem)
+
         except self.d.DplayError as error:
             self.dialog('ok', self.language(30006), error.value)
 
