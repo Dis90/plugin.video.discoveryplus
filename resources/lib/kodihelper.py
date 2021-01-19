@@ -94,15 +94,16 @@ class KodiHelper(object):
             return None
 
     def check_for_prerequisites(self):
-        return self.set_locale(
-            self.get_setting('locale')) and self.set_login_credentials() and self.check_for_credentials()
+        return self.set_login_credentials() and self.check_for_credentials()
 
     def set_login_credentials(self):
         username = self.get_setting('username')
         password = self.get_setting('password')
         cookiestxt = self.get_setting('cookiestxt')
 
-        if not username or not password and cookiestxt is False:
+        if cookiestxt:
+            return True
+        elif not username or not password:
             self.dialog('ok', self.language(30003), self.language(30004))
             self.get_addon().openSettings()
             return False
@@ -131,7 +132,7 @@ class KodiHelper(object):
             self.set_setting('site', options[selected_site])
             self.set_setting('locale', countries[selected_site])
 
-        return True
+        return self.get_addon().openSettings()
 
     def login_process(self):
         username = self.get_setting('username')
