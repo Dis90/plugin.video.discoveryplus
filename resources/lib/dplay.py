@@ -577,9 +577,9 @@ class Dplay(object):
         else:
             stream['hls_url'] = data_dict['attributes']['streaming']['hls']['url']
             stream['mpd_url'] = data_dict['attributes']['streaming']['dash']['url']
-            stream['license_url'] = data_dict['attributes']['protection']['key_servers']['widevine']
-            stream['drm_token'] = data_dict['attributes']['protection']['drm_token']
-            stream['drm_enabled'] = data_dict['attributes']['protection']['drm_enabled']
+            stream['license_url'] = data_dict['attributes']['protection']['schemes']['widevine']['licenseUrl']
+            stream['drm_token'] = data_dict['attributes']['protection']['drmToken']
+            stream['drm_enabled'] = data_dict['attributes']['protection']['drmEnabled']
 
         return stream
 
