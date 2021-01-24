@@ -13,6 +13,7 @@ import calendar
 from datetime import datetime, timedelta, date
 import requests
 import uuid
+import xbmcaddon
 
 try: # Python 3
     import http.cookiejar as cookielib
@@ -29,7 +30,14 @@ try:  # Python 2
     unicode
 except NameError:  # Python 3
     unicode = str  # pylint: disable=redefined-builtin,invalid-name
-
+    
+def slugify(text):
+    non_url_safe = [' ','"', '#', '$', '%', '&', '+',',', '/', ':', ';', '=', '?','@', '[', '\\', ']', '^', '`','{', '|', '}', '~', "'"]
+    non_url_safe_regex = re.compile(r'[{}]'.format(''.join(re.escape(x) for x in non_url_safe)))
+    text = non_url_safe_regex.sub('', text).strip()
+    text = u'_'.join(re.split(r'\s+', text))
+    return text
+    
 class Dplay(object):
     def __init__(self, settings_folder, site, locale, logging_prefix, numresults, cookiestxt, cookiestxt_file):
         self.logging_prefix = logging_prefix
@@ -450,7 +458,7 @@ class Dplay(object):
             url = 'plugin://plugin.video.discoveryplus/?action=play&video_id={channel_id}&video_type=channel'.format(channel_id=value['id'])
 
             channels_list.append(dict(
-                id=key,
+                id='%s@%s'%(key,slugify(xbmcaddon.Addon(id='plugin.video.discoveryplus').getAddonInfo('name'))),
                 name=value['logo']['title'],
                 logo=value['logo']['src'],
                 stream=url,
