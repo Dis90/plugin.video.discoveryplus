@@ -10,7 +10,7 @@ import json
 import codecs
 import time
 import calendar
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import requests
 import uuid
 
@@ -439,6 +439,74 @@ class Dplay(object):
         url = '{api_url}/users/me/favorites/shows/{show_id}'.format(api_url=self.api_url, show_id=show_id)
 
         return self.make_request(url, method, headers=self.site_headers)
+
+    def get_channels(self):
+        url = '{api_url}/cms/configs/web-prod'.format(api_url=self.api_url)
+        epg_channels = json.loads(self.make_request(url, 'get', headers=self.site_headers))['data']['attributes']['config']['epg']['channels']
+
+        channels_list = []
+
+        for key, value in epg_channels.items():
+            url = 'plugin://plugin.video.discoveryplus/?action=play&video_id={channel_id}&video_type=channel'.format(channel_id=value['id'])
+
+            channels_list.append(dict(
+                id=key,
+                name=value['logo']['title'],
+                logo=value['logo']['src'],
+                stream=url,
+                preset=value['order']
+
+            ))
+        return channels_list
+
+    def get_epg(self):
+        from collections import defaultdict
+        epg = defaultdict(list)
+
+        for channel in self.get_channels():
+            # discovery+ website TV guide displays +- 8 days
+            startDate = date.today() - timedelta(days=8)
+            endDate = date.today() + timedelta(days=8)
+
+            url = '{api_url}/tvlistings/v2/channels/{tvguide_id}?startDate={startDate}T04:00:00.000Z&endDate={endDate}T03:59:59.000Z'.format(api_url=self.api_url, tvguide_id=channel['id'], startDate=startDate, endDate=endDate)
+            data = json.loads(self.make_request(url, 'get', headers=self.site_headers))
+
+            for epg_data in data['data']:
+                start_time = epg_data['attributes'].get('utcStart')
+                duration = epg_data['attributes'].get('duration')
+
+                # Convert UTC datetime to seconds since the Epoch
+                date_time_format = '%Y-%m-%dT%H:%M:%SZ'
+                datetime_obj = datetime(*(time.strptime(start_time, date_time_format)[0:6]))
+                start_time_unix = (datetime_obj - datetime(1970, 1, 1)).total_seconds()
+                # Add episode duration to start time
+                stop_time = start_time_unix + duration
+                # Convert to ISO-8601
+                stop_time_iso = datetime.utcfromtimestamp(stop_time).isoformat()
+
+                if epg_data['attributes'].get('season') and epg_data['attributes'].get('episode'):
+                    episode = 'S' + str(epg_data['attributes']['season']) + 'E' + str(epg_data['attributes']['episode'])
+                else:
+                    episode = ''
+
+                # Don't add eventName to subtitle if it same as showName
+                if epg_data['attributes'].get('showName') and epg_data['attributes'].get('eventName'):
+                    if epg_data['attributes']['showName'] == epg_data['attributes']['eventName']:
+                        subtitle = ''
+                    else:
+                        subtitle = epg_data['attributes']['eventName']
+                else:
+                    subtitle = ''
+
+                epg[channel['id']].append(dict(
+                    start=epg_data['attributes'].get('utcStart'),
+                    stop=stop_time_iso,
+                    title=epg_data['attributes'].get('showName'),
+                    description=epg_data['attributes']['description'] if epg_data['attributes'].get('description') else '',
+                    subtitle=subtitle,
+                    episode=episode
+                ))
+        return epg
 
     def decode_html_entities(self, s):
         s = s.strip()

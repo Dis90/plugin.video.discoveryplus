@@ -104,3 +104,19 @@ msgstr ""
 msgctxt "#30022"
 msgid "It looks like you are not logged in to discovery+. Please login using Chrome and export cookies to file."
 msgstr ""
+
+msgctxt "#30023"
+msgid "Integration"
+msgstr ""
+
+msgctxt "#30024"
+msgid "Install IPTV Manager add-on"
+msgstr ""
+
+msgctxt "#30025"
+msgid "Enable IPTV Manager integration"
+msgstr ""
+
+msgctxt "#30026"
+msgid "IPTV Manager settings…"
+msgstr ""

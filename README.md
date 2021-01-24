@@ -22,7 +22,7 @@ This addon is unofficial and it is not supported by Discovery Networks, so it ca
 - United States
 
 # Features
-- Supports <a href="https://forum.kodi.tv/showthread.php?tid=336747">Up Next</a>
+- Supports <a href="https://forum.kodi.tv/showthread.php?tid=336747">Up Next</a> and <a href="https://github.com/add-ons/service.iptv.manager">IPTV Manager</a>
 - Playback progress is same in discovery+ site and on Kodi addon (you can start video on site and continue it on Kodi or other way round)
 - Live TV channels
 - Videos

@@ -1805,7 +1805,24 @@ def router(paramstring):
             helper.reset_credentials()
         if params['setting'] == 'set_locale':
             helper.set_locale()
+    elif 'iptv' in params:
+        # Get new token
+        helper.d.get_token()
+
+        if params['iptv'] == 'channels':
+            """Return JSON-STREAMS formatted data for all live channels"""
+            from resources.lib.iptvmanager import IPTVManager
+            port = int(params.get('port'))
+            IPTVManager(port).send_channels()
+        if params['iptv'] == 'epg':
+            """Return JSON-EPG formatted data for all live channel EPG data"""
+            from resources.lib.iptvmanager import IPTVManager
+            port = int(params.get('port'))
+            IPTVManager(port).send_epg()
     elif 'action' in params:
+        # Get new token
+        helper.d.get_token()
+
         if params['action'] == 'list_page':
             list_page(page_path=params['page_path'])
         elif params['action'] == 'list_favorites':
