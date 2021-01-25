@@ -975,9 +975,7 @@ def list_collection_items(collection_id, page_path=None):
                                             'genre': g,
                                             'studio': primaryChannel,
                                             'season': len(show['attributes'].get('seasonNumbers')),
-                                            'totalSeasons': len(show['attributes'].get('seasonNumbers')),
-                                            'episode': show['attributes'].get('episodeCount'),
-                                            'totalEpisodes': show['attributes'].get('episodeCount')
+                                            'episode': show['attributes'].get('episodeCount')
                                         }
 
                                         # Add or delete favorite context menu
@@ -1315,9 +1313,7 @@ def list_search_shows(search_query):
             'plot': show['attributes'].get('description'),
             'genre': g,
             'season': len(show['attributes'].get('seasonNumbers')),
-            'totalSeasons': len(show['attributes'].get('seasonNumbers')),
-            'episode': show['attributes'].get('episodeCount'),
-            'totalEpisodes': show['attributes'].get('episodeCount')
+            'episode': show['attributes'].get('episodeCount')
         }
 
         # Add or delete favorite context menu
@@ -1403,9 +1399,7 @@ def list_favorites():
                     'genre': g,
                     'studio': primaryChannel,
                     'season': len(show_data['attributes'].get('seasonNumbers')),
-                    'totalSeasons': len(show_data['attributes'].get('seasonNumbers')),
-                    'episode': show_data['attributes'].get('episodeCount'),
-                    'totalEpisodes': show_data['attributes'].get('episodeCount')
+                    'episode': show_data['attributes'].get('episodeCount')
                 }
 
                 menu = []
@@ -1512,9 +1506,7 @@ def list_collection(collection_id, mandatoryParams=None, parameter=None, page=No
                                     'genre': g,
                                     'studio': primaryChannel,
                                     'season': len(show['attributes'].get('seasonNumbers')),
-                                    'totalSeasons': len(show['attributes'].get('seasonNumbers')),
-                                    'episode': show['attributes'].get('episodeCount'),
-                                    'totalEpisodes': show['attributes'].get('episodeCount')
+                                    'episode': show['attributes'].get('episodeCount')
                                 }
 
                                 # Add or delete favorite context menu
