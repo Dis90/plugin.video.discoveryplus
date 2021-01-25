@@ -339,36 +339,33 @@ def list_page(page_path, search_query=None):
                                                                             'playcount': '0'
                                                                         }
 
+                                                                        channel_logo = None
+                                                                        fanart_image = None
                                                                         if channel['relationships'].get('images'):
                                                                             for image in images:
-                                                                                if image['id'] == \
-                                                                                        channel['relationships'][
-                                                                                            'images'][
-                                                                                            'data'][0][
-                                                                                            'id']:
-                                                                                    fanart_image = image['attributes'][
-                                                                                        'src']
-                                                                                if image['id'] == \
-                                                                                        channel['relationships'][
-                                                                                            'images'][
-                                                                                            'data'][-1][
-                                                                                            'id']:
-                                                                                    thumb_image = image['attributes'][
-                                                                                        'src']
+                                                                                for channel_images in \
+                                                                                channel['relationships']['images'][
+                                                                                    'data']:
+                                                                                    if image['id'] == channel_images[
+                                                                                        'id']:
+                                                                                        if image['attributes'][
+                                                                                            'kind'] == 'logo':
+                                                                                            channel_logo = \
+                                                                                            image['attributes']['src']
+                                                                                        if image['attributes'][
+                                                                                            'kind'] == 'default':
+                                                                                            fanart_image = \
+                                                                                            image['attributes']['src']
+
+                                                                        if channel_logo:
+                                                                            thumb_image = channel_logo
                                                                         else:
-                                                                            fanart_image = None
-                                                                            thumb_image = None
+                                                                            thumb_image = fanart_image
 
                                                                         channel_art = {
                                                                             'fanart': fanart_image,
                                                                             'thumb': thumb_image
                                                                         }
-
-                                                                        if channel['relationships'].get('images'):
-                                                                            channel_art[
-                                                                                'clearlogo'] = thumb_image if len(
-                                                                                channel['relationships']['images'][
-                                                                                    'data']) >= 2 else None
 
                                                                         helper.add_item(
                                                                             helper.language(30014) + ' ' + channel[
@@ -779,34 +776,33 @@ def list_page(page_path, search_query=None):
                                                                                 'description')
                                                                         }
 
+                                                                        channel_logo = None
+                                                                        fanart_image = None
                                                                         if channel['relationships'].get('images'):
                                                                             for image in images:
-                                                                                if image['id'] == \
-                                                                                        channel['relationships'][
-                                                                                            'images'][
-                                                                                            'data'][0]['id']:
-                                                                                    fanart_image = image['attributes'][
-                                                                                        'src']
-                                                                                if image['id'] == \
-                                                                                        channel['relationships'][
-                                                                                            'images'][
-                                                                                            'data'][-1]['id']:
-                                                                                    thumb_image = image['attributes'][
-                                                                                        'src']
+                                                                                for channel_images in \
+                                                                                channel['relationships']['images'][
+                                                                                    'data']:
+                                                                                    if image['id'] == channel_images[
+                                                                                        'id']:
+                                                                                        if image['attributes'][
+                                                                                            'kind'] == 'logo':
+                                                                                            channel_logo = \
+                                                                                            image['attributes']['src']
+                                                                                        if image['attributes'][
+                                                                                            'kind'] == 'default':
+                                                                                            fanart_image = \
+                                                                                            image['attributes']['src']
+
+                                                                        if channel_logo:
+                                                                            thumb_image = channel_logo
                                                                         else:
-                                                                            fanart_image = None
-                                                                            thumb_image = None
+                                                                            thumb_image = fanart_image
 
                                                                         channel_art = {
                                                                             'fanart': fanart_image,
                                                                             'thumb': thumb_image
                                                                         }
-
-                                                                        if channel['relationships'].get('images'):
-                                                                            channel_art[
-                                                                                'clearlogo'] = thumb_image if len(
-                                                                                channel['relationships']['images'][
-                                                                                    'data']) >= 2 else None
 
                                                                         helper.add_item(
                                                                             channel['attributes'].get('name'),
@@ -979,9 +975,7 @@ def list_collection_items(collection_id, page_path=None):
                                             'genre': g,
                                             'studio': primaryChannel,
                                             'season': len(show['attributes'].get('seasonNumbers')),
-                                            'totalSeasons': len(show['attributes'].get('seasonNumbers')),
-                                            'episode': show['attributes'].get('episodeCount'),
-                                            'totalEpisodes': show['attributes'].get('episodeCount')
+                                            'episode': show['attributes'].get('episodeCount')
                                         }
 
                                         # Add or delete favorite context menu
@@ -1168,30 +1162,26 @@ def list_collection_items(collection_id, page_path=None):
                                                 'plot': channel['attributes'].get('description')
                                             }
 
+                                            channel_logo = None
+                                            fanart_image = None
                                             if channel['relationships'].get('images'):
                                                 for image in images:
-                                                    if image['id'] == \
-                                                            channel['relationships']['images'][
-                                                                'data'][0]['id']:
-                                                        fanart_image = image['attributes'][
-                                                            'src']
-                                                    if image['id'] == \
-                                                            channel['relationships']['images'][
-                                                                'data'][-1]['id']:
-                                                        thumb_image = image['attributes']['src']
+                                                    for channel_images in channel['relationships']['images']['data']:
+                                                        if image['id'] == channel_images['id']:
+                                                            if image['attributes']['kind'] == 'logo':
+                                                                channel_logo = image['attributes']['src']
+                                                            if image['attributes']['kind'] == 'default':
+                                                                fanart_image = image['attributes']['src']
+
+                                            if channel_logo:
+                                                thumb_image = channel_logo
                                             else:
-                                                fanart_image = None
-                                                thumb_image = None
+                                                thumb_image = fanart_image
 
                                             channel_art = {
                                                 'fanart': fanart_image,
                                                 'thumb': thumb_image
                                             }
-
-                                            if channel['relationships'].get('images'):
-                                                channel_art['clearlogo'] = thumb_image if len(
-                                                    channel['relationships']['images'][
-                                                        'data']) >= 2 else None
 
                                             helper.add_item(channel['attributes'].get('name'), params,
                                                             info=channel_info,
@@ -1215,26 +1205,26 @@ def list_collection_items(collection_id, page_path=None):
                                                 'playcount': '0'
                                             }
 
+                                            channel_logo = None
+                                            fanart_image = None
                                             if channel['relationships'].get('images'):
                                                 for image in images:
-                                                    if image['id'] == channel['relationships']['images']['data'][0][
-                                                        'id']:
-                                                        fanart_image = image['attributes']['src']
-                                                    if image['id'] == channel['relationships']['images']['data'][-1][
-                                                        'id']:
-                                                        thumb_image = image['attributes']['src']
+                                                    for channel_images in channel['relationships']['images']['data']:
+                                                        if image['id'] == channel_images['id']:
+                                                            if image['attributes']['kind'] == 'logo':
+                                                                channel_logo = image['attributes']['src']
+                                                            if image['attributes']['kind'] == 'default':
+                                                                fanart_image = image['attributes']['src']
+
+                                            if channel_logo:
+                                                thumb_image = channel_logo
                                             else:
-                                                fanart_image = None
-                                                thumb_image = None
+                                                thumb_image = fanart_image
 
                                             channel_art = {
                                                 'fanart': fanart_image,
                                                 'thumb': thumb_image
                                             }
-
-                                            if channel['relationships'].get('images'):
-                                                channel_art['clearlogo'] = thumb_image if len(
-                                                    channel['relationships']['images']['data']) >= 2 else None
 
                                             helper.add_item(
                                                 helper.language(30014) + ' ' + channel['attributes'].get('name'),
@@ -1323,9 +1313,7 @@ def list_search_shows(search_query):
             'plot': show['attributes'].get('description'),
             'genre': g,
             'season': len(show['attributes'].get('seasonNumbers')),
-            'totalSeasons': len(show['attributes'].get('seasonNumbers')),
-            'episode': show['attributes'].get('episodeCount'),
-            'totalEpisodes': show['attributes'].get('episodeCount')
+            'episode': show['attributes'].get('episodeCount')
         }
 
         # Add or delete favorite context menu
@@ -1411,9 +1399,7 @@ def list_favorites():
                     'genre': g,
                     'studio': primaryChannel,
                     'season': len(show_data['attributes'].get('seasonNumbers')),
-                    'totalSeasons': len(show_data['attributes'].get('seasonNumbers')),
-                    'episode': show_data['attributes'].get('episodeCount'),
-                    'totalEpisodes': show_data['attributes'].get('episodeCount')
+                    'episode': show_data['attributes'].get('episodeCount')
                 }
 
                 menu = []
@@ -1520,9 +1506,7 @@ def list_collection(collection_id, mandatoryParams=None, parameter=None, page=No
                                     'genre': g,
                                     'studio': primaryChannel,
                                     'season': len(show['attributes'].get('seasonNumbers')),
-                                    'totalSeasons': len(show['attributes'].get('seasonNumbers')),
-                                    'episode': show['attributes'].get('episodeCount'),
-                                    'totalEpisodes': show['attributes'].get('episodeCount')
+                                    'episode': show['attributes'].get('episodeCount')
                                 }
 
                                 # Add or delete favorite context menu
