@@ -13,6 +13,7 @@ import calendar
 from datetime import datetime, timedelta, date
 import requests
 import uuid
+import xbmcaddon
 
 try: # Python 3
     import http.cookiejar as cookielib
@@ -29,6 +30,13 @@ try:  # Python 2
     unicode
 except NameError:  # Python 3
     unicode = str  # pylint: disable=redefined-builtin,invalid-name
+
+def slugify(text):
+    non_url_safe = [' ','"', '#', '$', '%', '&', '+',',', '/', ':', ';', '=', '?','@', '[', '\\', ']', '^', '`','{', '|', '}', '~', "'"]
+    non_url_safe_regex = re.compile(r'[{}]'.format(''.join(re.escape(x) for x in non_url_safe)))
+    text = non_url_safe_regex.sub('', text).strip()
+    text = u'_'.join(re.split(r'\s+', text))
+    return text
 
 class Dplay(object):
     def __init__(self, settings_folder, site, locale, logging_prefix, numresults, cookiestxt, cookiestxt_file):
@@ -450,7 +458,7 @@ class Dplay(object):
             url = 'plugin://plugin.video.discoveryplus/?action=play&video_id={channel_id}&video_type=channel'.format(channel_id=value['id'])
 
             channels_list.append(dict(
-                id=key,
+                id='%s@%s'%(key,slugify(xbmcaddon.Addon(id='plugin.video.discoveryplus').getAddonInfo('name'))),
                 name=value['logo']['title'],
                 logo=value['logo']['src'],
                 stream=url,
@@ -460,15 +468,18 @@ class Dplay(object):
         return channels_list
 
     def get_epg(self):
+        url = '{api_url}/cms/configs/web-prod'.format(api_url=self.api_url)
+        epg_channels = json.loads(self.make_request(url, 'get', headers=self.site_headers))['data']['attributes']['config']['epg']['channels']
+
         from collections import defaultdict
         epg = defaultdict(list)
 
-        for channel in self.get_channels():
+        for key in epg_channels.keys():
             # discovery+ website TV guide displays +- 8 days
             startDate = date.today() - timedelta(days=8)
             endDate = date.today() + timedelta(days=8)
 
-            url = '{api_url}/tvlistings/v2/channels/{tvguide_id}?startDate={startDate}T04:00:00.000Z&endDate={endDate}T03:59:59.000Z'.format(api_url=self.api_url, tvguide_id=channel['id'], startDate=startDate, endDate=endDate)
+            url = '{api_url}/tvlistings/v2/channels/{tvguide_id}?startDate={startDate}T04:00:00.000Z&endDate={endDate}T03:59:59.000Z'.format(api_url=self.api_url, tvguide_id=key, startDate=startDate, endDate=endDate)
             data = json.loads(self.make_request(url, 'get', headers=self.site_headers))
 
             for epg_data in data['data']:
@@ -498,7 +509,9 @@ class Dplay(object):
                 else:
                     subtitle = ''
 
-                epg[channel['id']].append(dict(
+                channel_id = '%s@%s'%(key,slugify(xbmcaddon.Addon(id='plugin.video.discoveryplus').getAddonInfo('name')))
+
+                epg[channel_id].append(dict(
                     start=epg_data['attributes'].get('utcStart'),
                     stop=stop_time_iso,
                     title=epg_data['attributes'].get('showName'),
