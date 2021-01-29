@@ -294,8 +294,8 @@ class KodiHelper(object):
                 # Have to use hls for shows because mpd encryption type 'clearkey' is not supported by inputstream.adaptive
                 playitem.setProperty('inputstream.adaptive.manifest_type', 'hls')
 
-            # Get metadata to use for Up next only in episodes (can also be aired sport events)
-            if video_type == 'EPISODE':
+            # Get metadata to use for Up next only in episodes and clips (can also be aired sport events)
+            if video_type == 'EPISODE' or video_type == 'CLIP':
                 # Get current episode info
                 current_episode = self.d.get_current_episode_info(video_id=video_id)
 
