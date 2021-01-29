@@ -467,6 +467,105 @@ class Dplay(object):
             ))
         return channels_list
 
+    def get_channels_us(self):
+        page_data = self.get_page('/home')
+
+        collections = list(filter(lambda x: x['type'] == 'collection', page_data['included']))
+        collectionItems = list(filter(lambda x: x['type'] == 'collectionItem', page_data['included']))
+        channels = list(filter(lambda x: x['type'] == 'channel', page_data['included']))
+        images = list(filter(lambda x: x['type'] == 'image', page_data['included']))
+
+        channels_list = []
+
+        for collection in collections:
+            # Introducing discovery+ Channels - Category
+            if collection['attributes']['alias'] == 'home-rail-jip-channels':
+                for c in collection['relationships']['items']['data']:
+                    for collectionItem in collectionItems:
+                        if c['id'] == collectionItem['id']:
+                            if collectionItem['relationships'].get('channel'):
+                                for channel in channels:
+                                    if \
+                                            collectionItem['relationships']['channel']['data'][
+                                                'id'] == channel['id']:
+
+                                        if channel['attributes']['hasLiveStream']:
+                                            url = 'plugin://plugin.video.discoveryplus/?action=play&video_id={channel_id}&video_type=channel'.format(
+                                                channel_id=channel['id'])
+
+                                            channel_logo = None
+                                            fanart_image = None
+                                            if channel['relationships'].get('images'):
+                                                for image in images:
+                                                    for channel_images in \
+                                                            channel['relationships']['images'][
+                                                                'data']:
+                                                        if image['id'] == channel_images[
+                                                            'id']:
+                                                            if image['attributes'][
+                                                                'kind'] == 'logo':
+                                                                channel_logo = \
+                                                                    image['attributes']['src']
+                                                            if image['attributes'][
+                                                                'kind'] == 'default':
+                                                                fanart_image = \
+                                                                    image['attributes']['src']
+
+                                            channels_list.append(dict(
+                                                id='%s@%s' % (channel['id'], slugify(
+                                                    xbmcaddon.Addon(id='plugin.video.discoveryplus').getAddonInfo(
+                                                        'name'))),
+                                                name=channel['attributes']['name'],
+                                                logo=channel_logo if channel_logo else fanart_image,
+                                                stream=url,
+                                                group=collection['attributes']['title']
+                                            ))
+
+            # Normal channels
+            if collection['attributes']['alias'] == 'networks':
+                for c in collection['relationships']['items']['data']:
+                    for collectionItem in collectionItems:
+                        if c['id'] == collectionItem['id']:
+                            if collectionItem['relationships'].get('channel'):
+                                for channel in channels:
+                                    if \
+                                            collectionItem['relationships']['channel']['data'][
+                                                'id'] == channel['id']:
+
+                                        if channel['attributes']['hasLiveStream']:
+                                            url = 'plugin://plugin.video.discoveryplus/?action=play&video_id={channel_id}&video_type=channel'.format(
+                                                channel_id=channel['id'])
+
+                                            channel_logo = None
+                                            fanart_image = None
+                                            if channel['relationships'].get('images'):
+                                                for image in images:
+                                                    for channel_images in \
+                                                            channel['relationships']['images'][
+                                                                'data']:
+                                                        if image['id'] == channel_images[
+                                                            'id']:
+                                                            if image['attributes'][
+                                                                'kind'] == 'logo':
+                                                                channel_logo = \
+                                                                    image['attributes']['src']
+                                                            if image['attributes'][
+                                                                'kind'] == 'default':
+                                                                fanart_image = \
+                                                                    image['attributes']['src']
+
+                                            channels_list.append(dict(
+                                                id='%s@%s' % (channel['id'], slugify(
+                                                    xbmcaddon.Addon(id='plugin.video.discoveryplus').getAddonInfo(
+                                                        'name'))),
+                                                name=channel['attributes']['name'],
+                                                logo=channel_logo if channel_logo else fanart_image,
+                                                stream=url
+
+                                            ))
+
+        return channels_list
+
     def get_epg(self):
         url = '{api_url}/cms/configs/web-prod'.format(api_url=self.api_url)
         epg_channels = json.loads(self.make_request(url, 'get', headers=self.site_headers))['data']['attributes']['config']['epg']['channels']
@@ -637,10 +736,17 @@ class Dplay(object):
 
         # discoveryplus.com (US)
         if self.locale_suffix == 'us':
-            jsonPayload = {'deviceInfo': {'adBlocker': 'true'}, 'videoId': video_id,
-                           'wisteriaProperties': {'product': 'dplus_us'}}
+            if video_type == 'channel':
+                jsonPayload = {'deviceInfo': {'adBlocker': 'true'}, 'channelId': video_id,
+                               'wisteriaProperties': {'product': 'dplus_us'}}
 
-            url = '{api_url}/playback/v3/videoPlaybackInfo'.format(api_url=self.api_url)
+                url = '{api_url}/playback/v3/channelPlaybackInfo'.format(api_url=self.api_url)
+
+            else:
+                jsonPayload = {'deviceInfo': {'adBlocker': 'true'}, 'videoId': video_id,
+                               'wisteriaProperties': {'product': 'dplus_us'}}
+
+                url = '{api_url}/playback/v3/videoPlaybackInfo'.format(api_url=self.api_url)
 
             data_dict = json.loads(self.make_request(url, 'post', params=params, headers=self.site_headers, payload=json.dumps(jsonPayload)))['data']
         else:
