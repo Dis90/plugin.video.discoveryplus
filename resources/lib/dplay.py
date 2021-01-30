@@ -744,8 +744,8 @@ class Dplay(object):
                     'channelId': video_id,
                                'wisteriaProperties': {
                                    'advertiser': {
-                                       'firstPlay': '0',
-                                       'fwIsLat': '0'
+                                       'firstPlay': 0,
+                                       'fwIsLat': 0
                                    },
                                    'device': {
                                        'type': 'desktop'
@@ -754,9 +754,9 @@ class Dplay(object):
                                    'product': 'dplus_us',
                                    'sessionId': self.client_id,
                                    'streamProvider': {
-                                       'suspendBeaconing': '0',
-                                       'hlsVersion': '7',
-                                       'pingConfig': '1'
+                                       'suspendBeaconing': 0,
+                                       'hlsVersion': 7,
+                                       'pingConfig': 1
                                    }
                                }
                 }
