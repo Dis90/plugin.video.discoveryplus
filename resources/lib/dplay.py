@@ -737,8 +737,29 @@ class Dplay(object):
         # discoveryplus.com (US)
         if self.locale_suffix == 'us':
             if video_type == 'channel':
-                jsonPayload = {'deviceInfo': {'adBlocker': 'true'}, 'channelId': video_id,
-                               'wisteriaProperties': {'product': 'dplus_us'}}
+                jsonPayload = {
+                    'deviceInfo': {
+                        'adBlocker': 'true'
+                    },
+                    'channelId': video_id,
+                               'wisteriaProperties': {
+                                   'advertiser': {
+                                       'firstPlay': '0',
+                                       'fwIsLat': '0'
+                                   },
+                                   'device': {
+                                       'type': 'desktop'
+                                    },
+                                   'platform': 'desktop',
+                                   'product': 'dplus_us',
+                                   'sessionId': self.client_id,
+                                   'streamProvider': {
+                                       'suspendBeaconing': '0',
+                                       'hlsVersion': '7',
+                                       'pingConfig': '1'
+                                   }
+                               }
+                }
 
                 url = '{api_url}/playback/v3/channelPlaybackInfo'.format(api_url=self.api_url)
 
