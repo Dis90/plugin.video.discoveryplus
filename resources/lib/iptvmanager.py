@@ -35,9 +35,8 @@ class IPTVManager:
     @via_socket
     def send_channels(self):
         """Return JSON-STREAMS formatted python datastructure to IPTV Manager"""
-        # US doesn't have Live TV
         if helper.d.locale_suffix == 'us':
-            streams = []
+            streams = helper.d.get_channels_us()
         else:
             streams = helper.d.get_channels()
 
@@ -46,9 +45,8 @@ class IPTVManager:
     @via_socket
     def send_epg(self):
         """Return JSON-EPG formatted python data structure to IPTV Manager"""
-        # US doesn't have Live TV
         if helper.d.locale_suffix == 'us':
-            epg = []
+            epg = helper.d.get_epg_us()
         else:
             epg = helper.d.get_epg()
 
