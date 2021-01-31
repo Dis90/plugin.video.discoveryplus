@@ -12,7 +12,7 @@ ADDON_PATH    = REAL_SETTINGS.getAddonInfo('path')
 ADDON_VERSION = REAL_SETTINGS.getAddonInfo('version')
 ICON          = REAL_SETTINGS.getAddonInfo('icon')
 MONITOR       = xbmc.Monitor()
-  
+
 def slugify(text):
     non_url_safe = [' ','"', '#', '$', '%', '&', '+',',', '/', ':', ';', '=', '?','@', '[', '\\', ']', '^', '`','{', '|', '}', '~', "'"]
     non_url_safe_regex = re.compile(r'[{}]'.format(''.join(re.escape(x) for x in non_url_safe)))
@@ -35,7 +35,7 @@ def regPseudoTV():
                 break
             
             if REAL_SETTINGS.getSettingBool('iptv.enabled'):
-                asset = {'type':'iptv','name':ADDON_NAME,'icon':ICON.replace(ADDON_PATH,'special://home/addons/%s/'%(ADDON_ID)).replace('\\','/'),'m3u':{'path':IPTV_M3U,'slug':'@%s'%(slugify(ADDON_NAME))},'xmltv':{'path':IPTV_XMLTV},'id':ADDON_ID}
+                asset = {'iptv':{'type':'iptv','name':ADDON_NAME,'path':ADDON_PATH,'icon':ICON.replace(ADDON_PATH,'special://home/addons/%s/'%(ADDON_ID)).replace('\\','/'),'m3u':{'path':IPTV_M3U,'slug':'@%s'%(slugify(ADDON_NAME))},'xmltv':{'path':IPTV_XMLTV},'id':ADDON_ID}}
                 xbmcgui.Window(10000).setProperty(PROP_KEY, json.dumps(asset))
                 WAIT_TIME = 900
             else:
