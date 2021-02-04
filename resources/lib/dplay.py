@@ -39,7 +39,7 @@ def slugify(text):
     return text
 
 class Dplay(object):
-    def __init__(self, settings_folder, site, locale, logging_prefix, numresults, cookiestxt, cookiestxt_file):
+    def __init__(self, settings_folder, site, locale, logging_prefix, numresults, cookiestxt, cookiestxt_file, sync_playback):
         self.logging_prefix = logging_prefix
         self.site_url = site
         self.locale = locale
@@ -47,6 +47,7 @@ class Dplay(object):
         self.locale_suffix = self.locale.split('_')[1].lower()
         self.client_id = str(uuid.uuid1())
         self.device_id = self.client_id.replace("-", "")
+        self.sync_playback = sync_playback
 
         if self.locale_suffix == 'gb':
             self.api_url = 'https://disco-api.' + self.site_url
@@ -412,6 +413,9 @@ class Dplay(object):
         return data
 
     def update_playback_progress(self, method, video_id, position):
+        if not self.sync_playback:
+            return
+
         url = '{api_url}/playback/v2/report/video/{video_id}'.format(api_url=self.api_url, video_id=video_id)
 
         params = {

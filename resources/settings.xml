@@ -9,6 +9,7 @@
     <setting id="username" type="text" label="30015" default="" enable="eq(-2,false)"/>
     <setting id="password" type="text" label="30016" option="hidden" default="" enable="eq(-3,false)"/>
     <setting id="reset_credentials" type="action" label="30005" action="RunPlugin(plugin://plugin.video.discoveryplus/?setting=reset_credentials)" enable="eq(-4,false)"/>
+    <setting id="sync_playback" label="30027" type="bool" default="true"/>
   </category>
     <category label="30023">
         <setting label="30024" type="action" action="InstallAddon(service.iptv.manager)" option="close" visible="!System.HasAddon(service.iptv.manager)"/>
