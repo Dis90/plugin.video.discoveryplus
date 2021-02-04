@@ -120,3 +120,7 @@ msgstr ""
 msgctxt "#30026"
 msgid "IPTV Manager settings…"
 msgstr ""
+
+msgctxt "#30027"
+msgid "Sync to Discovery+"
+msgstr ""
