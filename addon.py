@@ -1380,19 +1380,23 @@ def list_collection_items(collection_id, page_path=None):
                                         }
 
                                         # Watched status from Discovery+
-                                        if video['attributes']['viewingHistory']['viewed']:
-                                            if video['attributes']['viewingHistory'].get('completed'):  # Watched video
-                                                episode_info['playcount'] = '1'
-                                                resume = 0
-                                                total = duration
-                                            else:  # Partly watched video
+                                        if helper.d.sync_playback:
+                                            if video['attributes']['viewingHistory']['viewed']:
+                                                if video['attributes']['viewingHistory'].get('completed'):  # Watched video
+                                                    episode_info['playcount'] = '1'
+                                                    resume = 0
+                                                    total = duration
+                                                else:  # Partly watched video
+                                                    episode_info['playcount'] = '0'
+                                                    resume = video['attributes']['viewingHistory']['position'] / 1000.0
+                                                    total = duration
+                                            else:  # Unwatched video
                                                 episode_info['playcount'] = '0'
-                                                resume = video['attributes']['viewingHistory']['position'] / 1000.0
-                                                total = duration
-                                        else:  # Unwatched video
-                                            episode_info['playcount'] = '0'
-                                            resume = 0
-                                            total = 1
+                                                resume = 0
+                                                total = 1
+                                        else:  # Kodis resume data used
+                                            resume = None
+                                            total = None
 
                                         episode_art = {
                                             'fanart': fanart_image,
@@ -1914,19 +1918,23 @@ def list_collection(collection_id, mandatoryParams=None, parameter=None, page=No
                                 }
 
                                 # Watched status from discovery+
-                                if video['attributes']['viewingHistory']['viewed']:
-                                    if video['attributes']['viewingHistory']['completed']:  # Watched video
-                                        episode_info['playcount'] = '1'
-                                        resume = 0
-                                        total = duration
-                                    else:  # Partly watched video
+                                if helper.d.sync_playback:
+                                    if video['attributes']['viewingHistory']['viewed']:
+                                        if video['attributes']['viewingHistory']['completed']:  # Watched video
+                                            episode_info['playcount'] = '1'
+                                            resume = 0
+                                            total = duration
+                                        else:  # Partly watched video
+                                            episode_info['playcount'] = '0'
+                                            resume = video['attributes']['viewingHistory']['position'] / 1000.0
+                                            total = duration
+                                    else:  # Unwatched video
                                         episode_info['playcount'] = '0'
-                                        resume = video['attributes']['viewingHistory']['position'] / 1000.0
-                                        total = duration
-                                else:  # Unwatched video
-                                    episode_info['playcount'] = '0'
-                                    resume = 0
-                                    total = 1
+                                        resume = 0
+                                        total = 1
+                                else:  # Kodis resume data used
+                                    resume = None
+                                    total = None
 
                                 episode_art = {
                                     'fanart': fanart_image,

@@ -35,7 +35,7 @@ class KodiHelper(object):
         if not xbmcvfs.exists(self.addon_profile):
             xbmcvfs.mkdir(self.addon_profile)
         self.d = Dplay(self.addon_profile, self.get_setting('site'), self.get_setting('locale'), self.logging_prefix,
-                       self.get_setting('numresults'), self.get_setting('cookiestxt'), self.get_setting('cookiestxt_file'))
+                       self.get_setting('numresults'), self.get_setting('cookiestxt'), self.get_setting('cookiestxt_file'), self.get_setting('sync_playback'))
 
     def get_addon(self):
         """Returns a fresh addon instance."""
