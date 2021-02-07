@@ -124,3 +124,11 @@ msgstr ""
 msgctxt "#30027"
 msgid "Sync to Discovery+"
 msgstr ""
+
+msgctxt "#30028"
+msgid "Use InputStream Adaptive"
+msgstr ""
+
+msgctxt "#30029"
+msgid "Enable UHD"
+msgstr ""

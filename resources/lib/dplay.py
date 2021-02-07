@@ -14,6 +14,7 @@ from datetime import datetime, timedelta, date
 import requests
 import uuid
 import xbmcaddon
+import xbmcgui
 
 try: # Python 3
     import http.cookiejar as cookielib
@@ -39,7 +40,7 @@ def slugify(text):
     return text
 
 class Dplay(object):
-    def __init__(self, settings_folder, site, locale, logging_prefix, numresults, cookiestxt, cookiestxt_file, sync_playback):
+    def __init__(self, settings_folder, site, locale, logging_prefix, numresults, cookiestxt, cookiestxt_file, sync_playback, us_uhd):
         self.logging_prefix = logging_prefix
         self.site_url = site
         self.locale = locale
@@ -48,6 +49,7 @@ class Dplay(object):
         self.client_id = str(uuid.uuid1())
         self.device_id = self.client_id.replace("-", "")
         self.sync_playback = sync_playback
+        self.us_uhd = us_uhd
 
         if self.locale_suffix == 'gb':
             self.api_url = 'https://disco-api.' + self.site_url
@@ -753,8 +755,17 @@ class Dplay(object):
     def get_stream(self, video_id, video_type):
         stream = {}
 
-        params = {'usePreAuth': 'true'}
+        screenHeight = xbmcgui.getScreenHeight()
+        screenWidth = xbmcgui.getScreenWidth()
 
+        if self.us_uhd:
+            hwDecoding = ['H264','H265']
+            platform = 'firetv'
+        else:
+            hwDecoding = []
+            platform = 'desktop'
+
+        params = {'usePreAuth': 'true'}
         # discoveryplus.com (US)
         if self.locale_suffix == 'us':
             if video_type == 'channel':
@@ -785,9 +796,25 @@ class Dplay(object):
                 url = '{api_url}/playback/v3/channelPlaybackInfo'.format(api_url=self.api_url)
 
             else:
-                jsonPayload = {'deviceInfo': {'adBlocker': 'true'}, 'videoId': video_id,
-                               'wisteriaProperties': {'product': 'dplus_us'}}
-
+                jsonPayload = {
+                    'deviceInfo': {
+                        'adBlocker': 'true',
+                        'hwDecodingCapabilities': hwDecoding,
+                        'screen':{
+                            'width':screenWidth,
+                            'height':screenHeight
+                        },
+                        'player':{
+                            'width':screenWidth,
+                            'height':screenHeight
+                        }
+                    },
+                    'videoId': video_id,
+                    'wisteriaProperties':{
+                        'platform': platform,
+                        'product': 'dplus_us'
+                    }
+                }
                 url = '{api_url}/playback/v3/videoPlaybackInfo'.format(api_url=self.api_url)
 
             data_dict = json.loads(self.make_request(url, 'post', params=params, headers=self.site_headers, payload=json.dumps(jsonPayload)))['data']
