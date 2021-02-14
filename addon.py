@@ -15,14 +15,17 @@ helper = KodiHelper(base_url, handle)
 
 def list_pages():
     # discoveryplus.com all menu items will come from helper.d.get_menu()
-    if helper.d.locale_suffix != 'us':
+    if helper.d.locale_suffix != 'us' and helper.d.locale_suffix != 'in':
         helper.add_item(helper.language(30001), params={'action': 'list_page', 'page_path': '/home'})
         helper.add_item(helper.language(30017), params={'action': 'list_favorites'})
 
-    helper.add_item(helper.language(30007), params={'action': 'search'})
-
     # List menu items (Shows, Categories)
-    page_data = helper.d.get_menu()
+    if helper.d.locale_suffix == 'in':
+        helper.add_item(helper.language(30017), params={'action': 'list_page', 'page_path': '/liked-videos'})
+        helper.add_item('Watchlist', params={'action': 'list_page', 'page_path': '/watch-later'})
+        page_data = helper.d.get_menu('/bottom-menu-v3')
+    else:
+        page_data = helper.d.get_menu('/web-menubar')
 
     collections = list(filter(lambda x: x['type'] == 'collection', page_data['included']))
     collectionItems = list(filter(lambda x: x['type'] == 'collectionItem', page_data['included']))
@@ -67,7 +70,6 @@ def list_pages():
                                 thumb_image = None
 
                             link_art = {
-                                'fanart': thumb_image,
                                 'thumb': thumb_image
                             }
                             # Have to use collection title instead link title because some links doesn't have title
@@ -85,7 +87,8 @@ def list_pages():
                                     if collectionItem2['relationships'].get('link'):
                                         for link in links:
                                             # Hide unwanted menu links
-                                            if collectionItem2['relationships']['link']['data']['id'] == link['id'] and \
+                                            if collectionItem2['relationships']['link']['data']['id'] == link[
+                                                'id'] and \
                                                     link['attributes'][
                                                         'kind'] == 'Internal Link' and collection['attributes'][
                                                 'title'] not in helper.d.unwanted_menu_items:
@@ -108,14 +111,14 @@ def list_pages():
 
                                                 if link['relationships'].get('images'):
                                                     for image in images:
-                                                        if image['id'] == link['relationships']['images']['data'][0][
-                                                            'id']:
+                                                        if image['id'] == \
+                                                                link['relationships']['images']['data'][0][
+                                                                    'id']:
                                                             thumb_image = image['attributes']['src']
                                                 else:
                                                     thumb_image = None
 
                                                 link_art = {
-                                                    'fanart': thumb_image,
                                                     'thumb': thumb_image
                                                 }
                                                 # Have to use collection title instead link title because some links doesn't have title
@@ -123,6 +126,344 @@ def list_pages():
                                                                 info=link_info,
                                                                 content='videos',
                                                                 art=link_art)
+
+    # Search
+    helper.add_item(helper.language(30007), params={'action': 'search'})
+
+    helper.eod()
+
+def list_page_in(page_path):
+    page_data = helper.d.get_page(page_path)
+
+    pages = list(filter(lambda x: x['type'] == 'page', page_data['included']))
+    pageItems = list(filter(lambda x: x['type'] == 'pageItem', page_data['included']))
+    collections = list(filter(lambda x: x['type'] == 'collection', page_data['included']))
+    collectionItems = list(filter(lambda x: x['type'] == 'collectionItem', page_data['included']))
+    images = list(filter(lambda x: x['type'] == 'image', page_data['included']))
+    channels = list(filter(lambda x: x['type'] == 'channel', page_data['included']))
+    links = list(filter(lambda x: x['type'] == 'link', page_data['included']))
+    routes = list(filter(lambda x: x['type'] == 'route', page_data['included']))
+    taxonomyNodes = list(filter(lambda x: x['type'] == 'taxonomyNode', page_data['included']))
+
+    if page_data['data']['type'] == 'route':
+        if page_path == '/home':
+
+            home_collections = helper.d.get_config_in()['data']['attributes']['config']['pageCollections']['home']
+            for home_collection in home_collections:
+                try:
+                    collection = helper.d.get_collections(collection_id=home_collection)['data']
+                except:
+                    continue
+                if collection['attributes']['component']['id'] == 'carousel':
+                    params = {
+                        'action': 'list_collection',
+                        'collection_id': collection['id']
+                    }
+
+                    if collection['attributes'].get('title'):
+                        title = collection['attributes']['title']
+                    else:
+                        title = collection['attributes']['name']
+
+                    helper.add_item(title, params,
+                                    content='videos')
+
+        for page in pages:
+            # If only one pageItem in page -> relationships -> items -> data, list content page
+            if len(page['relationships']['items']['data']) == 1:
+                for pageItem in pageItems:
+                    if page['relationships']['items']['data'][0]['id'] == pageItem['id']:
+                        for collection in collections:
+                            if pageItem['relationships']['collection']['data']['id'] == collection['id']:
+                                # Some collections doesn't have component
+                                if collection['attributes'].get('component'):
+
+                                    # if content-grid after pageItem -> list content
+                                    if collection['attributes']['component']['id'] == 'content-grid':
+
+                                        list_collection_items(collection_id=collection['id'], page_path=page_path)
+
+                                    if collection['attributes']['component']['id'] == 'mindblown-composite' or collection['attributes']['component']['id'] == 'tab-bar':
+                                        for collection_relationship in collection['relationships']['items']['data']:
+                                            for collectionItem in collectionItems:
+                                                if collection_relationship['id'] == collectionItem['id']:
+                                                    for c2 in collections:
+                                                        if c2['id'] == collectionItem['relationships']['collection']['data']['id']:
+                                                            if c2['attributes']['component']['id']  == 'mindblown-videos-list':
+                                                                list_collection_items(collection_id=c2['id'], page_path=page_path)
+
+                                                            # Favorites (Episodes, Shorts, Shows) and Watchlist (Episodes, Shorts)
+                                                            if c2['attributes']['component']['id']  == 'tab-bar-item':
+                                                                params = {
+                                                                    'action': 'list_collection',
+                                                                    'collection_id': c2['id']
+                                                                }
+
+                                                                if c2['attributes'].get('title'):
+                                                                    title = c2['attributes']['title']
+                                                                else:
+                                                                    title = c2['attributes']['name']
+
+                                                                helper.add_item(title, params,
+                                                                                content='videos',
+                                                                                folder_name=c2[
+                                                                                    'attributes'].get('title'))
+
+            # More than one pageItem (explore, mindblown...)
+            else:
+                for page_relationship in page['relationships']['items']['data']:
+                    for pageItem in pageItems:
+                        if page_relationship['id'] == pageItem['id']:
+                            for collection in collections:
+                                # Some collections doesn't have component
+                                if collection['attributes'].get('component'):
+
+                                    # PageItems have only one collection
+                                    if pageItem['relationships']['collection']['data']['id'] == collection['id']:
+
+                                        if collection['attributes']['component']['id'] == 'promoted-shorts-list':
+                                            if collection.get('relationships'):
+                                                if collection['attributes'].get('title'):
+                                                    params = {
+                                                        'action': 'list_collection_items',
+                                                        'page_path': page_path,
+                                                        'collection_id': collection['id']
+                                                    }
+
+                                                    if collection['attributes'].get('title'):
+                                                        title = collection['attributes']['title']
+                                                    else:
+                                                        title = collection['attributes']['name']
+
+                                                    helper.add_item(title, params,
+                                                                    content='videos',
+                                                                    folder_name=page['attributes'].get(
+                                                                        'pageMetadataTitle'))
+
+                                        if collection['attributes']['component']['id'] == 'mindblown-listing':
+                                            for c in collection['relationships']['items']['data']:
+                                                for collectionItem in collectionItems:
+                                                    if c['id'] == collectionItem['id']:
+                                                        for c2 in collections:
+                                                            if c2['id'] == \
+                                                                    collectionItem['relationships']['collection'][
+                                                                        'data']['id']:
+                                                                for collectionItem2 in collectionItems:
+                                                                    if collectionItem2['id'] == \
+                                                                            c2['relationships']['items']['data'][0][
+                                                                                'id']:
+
+                                                                        thumb_image = None
+                                                                        for link in links:
+                                                                            if link['id'] == \
+                                                                                    collectionItem2['relationships'][
+                                                                                        'link']['data']['id']:
+
+                                                                                # Find page path from routes
+                                                                                for route in routes:
+                                                                                    if route['id'] == \
+                                                                                            link['relationships'][
+                                                                                                'linkedContentRoutes'][
+                                                                                                'data'][0]['id']:
+                                                                                        next_page_path = \
+                                                                                        route['attributes']['url']
+
+                                                                                if link['relationships'].get('images'):
+                                                                                    for image in images:
+                                                                                        if image['id'] == \
+                                                                                                link['relationships'][
+                                                                                                    'images'][
+                                                                                                    'data'][0][
+                                                                                                    'id']:
+                                                                                            thumb_image = \
+                                                                                                image['attributes'][
+                                                                                                    'src']
+
+                                                                        params = {
+                                                                            'action': 'list_page',
+                                                                            'page_path': next_page_path
+                                                                        }
+
+                                                                        info = {
+                                                                            'title': c2['attributes'].get(
+                                                                                'title'),
+                                                                            'plot': c2['attributes'].get(
+                                                                                'description')
+                                                                        }
+
+
+                                                                        category_art = {
+                                                                            'fanart': thumb_image,
+                                                                            'thumb': thumb_image
+                                                                        }
+
+                                                                        helper.add_item(c2['attributes']['title'],
+                                                                                        params,
+                                                                                        info=info,
+                                                                                        content='videos',
+                                                                                        art=category_art,
+                                                                                        folder_name=page[
+                                                                                            'attributes'].get(
+                                                                                            'pageMetadataTitle'))
+
+                                        # Shows page in discoveryplus.in
+                                        if collection['attributes']['component']['id'] == 'show-container':
+                                            list_collection_items(collection_id=collection['id'], page_path=page_path)
+
+                                        # Channels page category links and 'Explore Shows and Full Episodes' -> BBC
+                                        if collection['attributes']['component']['id'] == 'content-grid':
+                                            # Hide empty grids (example upcoming events when there is no upcoming events).
+                                            if collection.get('relationships'):
+                                                if collection['attributes'].get('title'):
+                                                    params = {
+                                                        'action': 'list_collection_items',
+                                                        'page_path': page_path,
+                                                        'collection_id': collection['id']
+                                                    }
+
+                                                    if collection['attributes'].get('title'):
+                                                        title = collection['attributes']['title']
+                                                    else:
+                                                        title = collection['attributes']['name']
+
+                                                    helper.add_item(title, params,
+                                                                    content='videos',
+                                                                    folder_name=page['attributes'].get(
+                                                                        'pageMetadataTitle'))
+                                                # Explore Shows and Full Episodes -> BBC
+                                                else:
+                                                    list_collection_items(collection_id=collection['id'],
+                                                                          page_path=page_path)
+
+                                        # Channel livestream
+                                        if collection['attributes']['component']['id'] == 'channel-hero-player':
+                                            for collectionItem in collectionItems:
+                                                if collection['relationships']['items']['data'][0]['id'] == collectionItem['id']:
+                                                    if collectionItem['relationships'].get('channel'):
+
+                                                        # Channel livestream
+                                                        for channel in channels:
+                                                            if \
+                                                                    collectionItem['relationships']['channel'][
+                                                                        'data'][
+                                                                        'id'] == channel['id']:
+                                                                params = {
+                                                                    'action': 'play',
+                                                                    'video_id': channel['id'],
+                                                                    'video_type': 'channel'
+                                                                }
+
+                                                                channel_info = {
+                                                                    'mediatype': 'video',
+                                                                    'title': helper.language(30014) + ' ' +
+                                                                             channel[
+                                                                                 'attributes'].get('name'),
+                                                                    'plot': channel['attributes'].get(
+                                                                        'description'),
+                                                                    'playcount': '0'
+                                                                }
+
+                                                                channel_logo = None
+                                                                fanart_image = None
+                                                                if channel['relationships'].get('images'):
+                                                                    for image in images:
+                                                                        for channel_images in \
+                                                                                channel['relationships']['images'][
+                                                                                    'data']:
+                                                                            if image['id'] == channel_images[
+                                                                                'id']:
+                                                                                if image['attributes'][
+                                                                                    'kind'] == 'logo':
+                                                                                    channel_logo = \
+                                                                                        image['attributes']['src']
+                                                                                if image['attributes'][
+                                                                                    'kind'] == 'default':
+                                                                                    fanart_image = \
+                                                                                        image['attributes']['src']
+
+                                                                if channel_logo:
+                                                                    thumb_image = channel_logo
+                                                                else:
+                                                                    thumb_image = fanart_image
+
+                                                                channel_art = {
+                                                                    'fanart': fanart_image,
+                                                                    'thumb': thumb_image
+                                                                }
+
+                                                                helper.add_item(
+                                                                    helper.language(30014) + ' ' + channel[
+                                                                        'attributes'].get('name'),
+                                                                    params=params,
+                                                                    art=channel_art, info=channel_info,
+                                                                    content='videos',
+                                                                    playable=True)
+
+                                        # Used in Premium page, Home (Category and OMG Moments!) and Shorts genres content
+                                        if collection['attributes']['component']['id'] == 'carousel':
+                                            params = {
+                                                'action': 'list_collection',
+                                                'collection_id': collection['id']
+                                            }
+
+                                            if collection['attributes'].get('title'):
+                                                title = collection['attributes']['title']
+                                            else:
+                                                title = collection['attributes']['name']
+
+                                            helper.add_item(title, params,
+                                                            content='videos',
+                                                            folder_name=page['attributes'].get('pageMetadataTitle'))
+
+                                        # Shorts page categories
+                                        if collection['attributes']['component']['id'] == 'all-taxonomies':
+                                            for collectionItem in collectionItems:
+                                                for collection_relationship in collection['relationships']['items']['data']:
+                                                    if collectionItem['id'] == collection_relationship['id']:
+                                                        if collectionItem['relationships'].get('collection'):
+                                                            for c2 in collections:
+                                                                if c2['id'] == collectionItem['relationships']['collection']['data']['id']:
+                                                                    if c2.get('relationships'):
+                                                                        for c2_relationship in \
+                                                                        c2['relationships']['items']['data']:
+                                                                            for collectionItem2 in collectionItems:
+                                                                                if collectionItem2['id'] == \
+                                                                                        c2_relationship['id']:
+                                                                                    if collectionItem2[
+                                                                                        'relationships'].get(
+                                                                                            'taxonomyNode'):
+
+                                                                                        for taxonomyNode in taxonomyNodes:
+                                                                                            if taxonomyNode['id'] == \
+                                                                                                    collectionItem2[
+                                                                                                        'relationships'][
+                                                                                                        'taxonomyNode'][
+                                                                                                        'data']['id']:
+
+                                                                                                # Find page path from routes
+                                                                                                for route in routes:
+                                                                                                    if route['id'] == \
+                                                                                                            taxonomyNode[
+                                                                                                                'relationships'][
+                                                                                                                'routes'][
+                                                                                                                'data'][
+                                                                                                                0][
+                                                                                                                'id']:
+                                                                                                        next_page_path = \
+                                                                                                        route[
+                                                                                                            'attributes'][
+                                                                                                            'url']
+
+                                                                                                params = {
+                                                                                                    'action': 'list_page',
+                                                                                                    'page_path': next_page_path
+                                                                                                }
+
+                                                                                                helper.add_item(
+                                                                                                    taxonomyNode[
+                                                                                                        'attributes'][
+                                                                                                        'name'], params,
+                                                                                                    content='videos')
 
     helper.eod()
 
@@ -1100,8 +1441,8 @@ def list_collection_items(collection_id, page_path=None):
 
     for collection in collections:
         if collection['id'] == collection_id:
-            # dicoveryplus.com (US) list series season grid
-            if collection['attributes']['component']['id'] == 'tabbed-content':
+            # dicoveryplus.com (US) and discoveryplus.in list series season grid
+            if collection['attributes'].get('component') and collection['attributes']['component']['id'] == 'tabbed-content':
                 # Check if there's any seasons of show or sport event
                 if collection['attributes']['component'].get('filters'):
                     for option in collection['attributes']['component']['filters'][0][
@@ -1177,8 +1518,11 @@ def list_collection_items(collection_id, page_path=None):
                                         'thumb': thumb_image
                                     }
 
-                                    folder_name = show['attributes'].get('name') + ' / ' + collection['attributes'].get(
-                                        'title')
+                                    if collection['attributes'].get('title'):
+                                        folder_name = show['attributes'].get('name') + ' / ' + collection['attributes'].get(
+                                            'title')
+                                    else:
+                                        folder_name = show['attributes'].get('name')
                         else:
                             info = {}
                             show_art = {}
@@ -1186,8 +1530,7 @@ def list_collection_items(collection_id, page_path=None):
 
 
                         helper.add_item(title, params, info=info, art=show_art,
-                                        content='seasons',
-                                        folder_name=folder_name,
+                                        content='seasons', folder_name=folder_name,
                                         sort_method='sort_label')
 
             # content-grid, content-hero etc
@@ -1195,6 +1538,30 @@ def list_collection_items(collection_id, page_path=None):
                 for collection_relationship in collection['relationships']['items']['data']:
                     for collectionItem in collectionItems:
                         if collection_relationship['id'] == collectionItem['id']:
+
+                            # discoveryplus.in (Episodes, Shorts)
+                            if collectionItem['relationships'].get('collection'):
+                                for c2 in collections:
+                                    if collectionItem['relationships']['collection']['data']['id'] == c2['id']:
+                                        # Don't list empty category
+                                        if c2.get('relationships'):
+                                                params = {
+                                                    'action': 'list_collection_items',
+                                                    'page_path': page_path,
+                                                    'collection_id': c2['id']
+                                                }
+
+                                                if c2['attributes'].get('name'):
+                                                    if c2['attributes']['name'] == 'blueprint-show-seasons-grid':
+                                                        title = 'Episodes'
+                                                    elif c2['attributes']['name'] == 'blueprint-show-shorts':
+                                                        title = 'Shorts'
+                                                    else:
+                                                        title = c2['attributes']['name']
+                                                else:
+                                                    title = ''
+
+                                                helper.add_item(title, params, content='videos', folder_name=pages[0]['attributes'].get('title'))
 
                             # List shows
                             if collectionItem['relationships'].get('show'):
@@ -1545,7 +1912,6 @@ def list_collection_items(collection_id, page_path=None):
                                         helper.add_item(link_title, params, content='videos',
                                                         art=category_art,
                                                         folder_name=collection['attributes'].get('title'))
-
 
     helper.eod()
 
@@ -1957,7 +2323,7 @@ def list_collection(collection_id, mandatoryParams=None, parameter=None, page=No
                                                 content='episodes', playable=True, resume=resume, total=total,
                                                 folder_name=folder_name, sort_method='sort_episodes')
 
-                    # List collections in discoveryplus.com (US)
+                    # List collections in discoveryplus.com (US) and discoveryplus.in
                     # Browse -> Channel or genre -> Category listing (A-Z, Trending...)
                     if collectionItem['relationships'].get('collection'):
                         for collection in collections:
@@ -1980,6 +2346,61 @@ def list_collection(collection_id, mandatoryParams=None, parameter=None, page=No
 
                                         helper.add_item(title, params,
                                                         content='videos')
+
+                                # discoveryplus.in
+                                if collection['attributes']['component']['id'] == 'taxonomy-replica':
+                                    # Don't list empty category
+                                    if collection.get('relationships'):
+                                        # Genres in discoveryplus.in
+                                        if collection['relationships'].get('cmpContextLink'):
+                                            for link in links:
+                                                if collection['relationships']['cmpContextLink']['data']['id'] == link[
+                                                    'id']:
+                                                    # Find page path from routes
+                                                    for route in routes:
+                                                        if route['id'] == \
+                                                                link['relationships']['linkedContentRoutes'][
+                                                                    'data'][0]['id']:
+                                                            next_page_path = route['attributes']['url']
+
+                                                    params = {
+                                                        'action': 'list_page',
+                                                        'page_path': next_page_path
+                                                    }
+
+                                                    for collectionItem2 in collectionItems:
+                                                        if collection['relationships']['items']['data'][0]['id'] == \
+                                                                collectionItem2['id']:
+                                                            if collectionItem2['relationships'].get('image'):
+                                                                for image in images:
+                                                                    if image['id'] == \
+                                                                            collectionItem2['relationships'][
+                                                                                'image'][
+                                                                                'data'][
+                                                                                'id']:
+                                                                        thumb_image = image['attributes']['src']
+                                                            else:
+                                                                thumb_image = None
+
+                                                    category_art = {
+                                                        'fanart': thumb_image,
+                                                        'thumb': thumb_image
+                                                    }
+
+                                                    # Category titles have stored in different places
+                                                    if collection['attributes'].get('title'):
+                                                        link_title = collection['attributes']['title']
+                                                    elif link['attributes'].get('title'):
+                                                        link_title = link['attributes']['title']
+                                                    elif link['attributes'].get('name'):
+                                                        link_title = link['attributes']['name']
+                                                    else:
+                                                        link_title = None
+
+                                                    helper.add_item(link_title, params, content='videos',
+                                                                    art=category_art,
+                                                                    folder_name=collection['attributes'].get(
+                                                                        'title'))
 
                     # discoveryplus.com (US) search result 'collections' folder content
                     if collectionItem['relationships'].get('link'):
@@ -2082,7 +2503,10 @@ def router(paramstring):
         helper.d.get_token()
 
         if params['action'] == 'list_page':
-            list_page(page_path=params['page_path'])
+            if helper.d.locale_suffix == 'in':
+                list_page_in(page_path=params['page_path'])
+            else:
+                list_page(page_path=params['page_path'])
         elif params['action'] == 'list_favorites':
             list_favorites()
         elif params['action'] == 'list_collection':
