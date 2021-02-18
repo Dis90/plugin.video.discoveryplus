@@ -422,6 +422,46 @@ class Dplay(object):
         data = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))
         return data
 
+    def get_watchlist_in(self, playlist):
+        url = '{api_url}/content/videos'.format(api_url=self.api_url)
+        params = {
+            'decorators': 'viewingHistory,isFavorite',
+            'include': 'images,contentPackages,show,genres,primaryChannel,taxonomyNodes',
+            'filter[playlist]': playlist,
+            'page[size]': 100,
+            'page[number]': 1
+        }
+
+        data = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))
+        return data
+
+    def get_favorites_in(self):
+        url = '{api_url}/content/shows'.format(api_url=self.api_url)
+        params = {
+            'decorators': 'isFavorite',
+            'include': 'images,contentPackages,taxonomyNodes',
+            'filter[isFavorite]': 'true',
+            'page[size]': 100,
+            'page[number]': 1
+        }
+
+        data = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))
+        return data
+
+    def get_favorite_videos_in(self, videoType):
+        url = '{api_url}/content/videos'.format(api_url=self.api_url)
+        params = {
+            'decorators': 'viewingHistory,isFavorite',
+            'include': 'images,contentPackages,show,genres,primaryChannel,taxonomyNodes',
+            'filter[isFavorite]': 'true',
+            'page[size]': 100,
+            'page[number]': 1,
+            'filter[videoType]': videoType
+        }
+
+        data = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))
+        return data
+
     def update_playback_progress(self, method, video_id, position):
         if not self.sync_playback:
             return
