@@ -37,6 +37,8 @@ class IPTVManager:
         """Return JSON-STREAMS formatted python datastructure to IPTV Manager"""
         if helper.d.locale_suffix == 'us':
             streams = helper.d.get_channels_us()
+        elif helper.d.locale_suffix == 'in':
+            streams = helper.d.get_channels_in()
         else:
             streams = helper.d.get_channels()
 
@@ -47,6 +49,8 @@ class IPTVManager:
         """Return JSON-EPG formatted python data structure to IPTV Manager"""
         if helper.d.locale_suffix == 'us':
             epg = helper.d.get_epg_us()
+        elif helper.d.locale_suffix == 'in':
+            epg = helper.d.get_epg_in()
         else:
             epg = helper.d.get_epg()
 
