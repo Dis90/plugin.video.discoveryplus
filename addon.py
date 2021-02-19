@@ -1065,7 +1065,7 @@ def list_page(page_path, search_query=None):
                                                                             # Extras and Episodes list when there's no season listing (movies)
                                                                             else:
                                                                                 params = {
-                                                                                    'action': 'list_videos',
+                                                                                    'action': 'list_collection',
                                                                                     'collection_id': c2['id'],
                                                                                     # 66290614510668341673562607828298581172
                                                                                     'mandatoryParams':
@@ -1100,7 +1100,7 @@ def list_page(page_path, search_query=None):
 
                                             # discoveryplus.com (US) -> search -> collections -> list content of collection
                                             if collection['attributes']['component']['id'] == 'playlist':
-                                                list_collection(collection_id=collection['id'])
+                                                list_collection(collection_id=collection['id'], page=1)
 
                                             # discoveryplus.com (US) -> Introducing discovery+ Channels -> channel page live stream
                                             if collection['attributes']['component']['id'] == 'player':
@@ -1182,7 +1182,7 @@ def list_page(page_path, search_query=None):
                                                         'options']:
                                                         title = helper.language(30011) + ' ' + str(option['id'])
                                                         params = {
-                                                            'action': 'list_videos',
+                                                            'action': 'list_collection',
                                                             'collection_id': collection['id'],
                                                             # 66290614510668341673562607828298581172
                                                             'mandatoryParams': collection['attributes'][
@@ -1474,7 +1474,7 @@ def list_collection_items(collection_id, page_path=None):
                         'options']:
                         title = helper.language(30011) + ' ' + str(option['id'])
                         params = {
-                            'action': 'list_videos',
+                            'action': 'list_collection',
                             'collection_id': collection['id'],
                             # 66290614510668341673562607828298581172
                             'mandatoryParams': collection['attributes'][
@@ -2297,12 +2297,12 @@ def list_favorite_watchlist_videos_in(videoType=None, playlist=None):
 
     helper.eod()
 
-def list_collection(collection_id, mandatoryParams=None, parameter=None, page=None):
+def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
     if mandatoryParams is None and parameter is None:
         page_data = helper.d.get_collections(collection_id=collection_id, page=page)
     else:
-        page_data = helper.d.get_collections(collection_id=collection_id, mandatoryParams=mandatoryParams,
-                                             parameter=parameter, page=page)
+        page_data = helper.d.get_collections(collection_id=collection_id, page=page, mandatoryParams=mandatoryParams,
+                                             parameter=parameter)
 
     user_favorites = ",".join(
         [str(x['id']) for x in helper.d.get_favorites()['data']['relationships']['favorites']['data']])
@@ -2745,23 +2745,14 @@ def router(paramstring):
         elif params['action'] == 'list_favorite_watchlist_videos':
             list_favorite_watchlist_videos_in(videoType=params.get('videoType'), playlist=params.get('playlist'))
         elif params['action'] == 'list_collection':
-            if params.get('mandatoryParams'):
-                try:
-                    list_collection(collection_id=params['collection_id'], mandatoryParams=params['mandatoryParams'], page=params['page'])
-                except KeyError:
-                    list_collection(collection_id=params['collection_id'], mandatoryParams=params['mandatoryParams'])
-            else:
-                try:
-                    list_collection(collection_id=params['collection_id'], page=params['page'])
-                except KeyError:
-                    list_collection(collection_id=params['collection_id'])
+            try:
+                list_collection(collection_id=params['collection_id'], page=params['page'],
+                                mandatoryParams=params.get('mandatoryParams'), parameter=params.get('parameter'))
+            except KeyError:
+                list_collection(collection_id=params['collection_id'], page=1,
+                                mandatoryParams=params.get('mandatoryParams'), parameter=params.get('parameter'))
         elif params['action'] == 'list_collection_items':
             list_collection_items(collection_id=params['collection_id'], page_path=params['page_path'])
-        elif params['action'] == 'list_videos':
-            if params.get('parameter'):
-                list_collection(collection_id=params['collection_id'], mandatoryParams=params['mandatoryParams'], parameter=params['parameter'])
-            else:
-                list_collection(collection_id=params['collection_id'], mandatoryParams=params['mandatoryParams'])
         elif params['action'] == 'play':
             # Play a video from a provided URL.
             helper.play_item(params['video_id'], params['video_type'])

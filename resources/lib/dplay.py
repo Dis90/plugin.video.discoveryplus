@@ -376,7 +376,7 @@ class Dplay(object):
         data = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))
         return data
 
-    def get_collections(self, collection_id, mandatoryParams=None, parameter=None, page=1):
+    def get_collections(self, collection_id, page, mandatoryParams=None, parameter=None):
         if mandatoryParams and parameter:
             url = '{api_url}/cms/collections/{collection_id}?{mandatoryParams}&{parameter}'.format(api_url=self.api_url, collection_id=collection_id, mandatoryParams=mandatoryParams, parameter=parameter)
         elif mandatoryParams is None and parameter:
@@ -396,7 +396,6 @@ class Dplay(object):
             params['decorators'] = 'viewingHistory,isFavorite'
         else:
             params['decorators'] = 'viewingHistory'
-
 
         data = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))
         return data
