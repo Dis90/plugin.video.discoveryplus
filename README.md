@@ -11,15 +11,18 @@ This addon is unofficial and it is not supported by Discovery Networks and becau
 - Android (not tested)
 
 # Supported countries
-- Finland
-- Sweden
 - Denmark
-- Norway
-- Netherlands
-- Spain
+- Finland
+- India (*)
 - Italy
+- Netherlands
+- Norway
+- Spain
+- Sweden
 - United Kingdom
 - United States
+
+(*) Login is not supported. Use Get cookies.txt method as specified in "Login fails?" section.
 
 # Features
 - Supports: <a href="https://forum.kodi.tv/showthread.php?tid=336747">Up Next</a>, <a href="https://github.com/add-ons/service.iptv.manager">IPTV Manager</a> and <a href="https://forum.kodi.tv/forumdisplay.php?fid=231">PseudoTV Live</a> (Kodi 19)
