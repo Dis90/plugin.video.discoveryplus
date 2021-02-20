@@ -57,6 +57,10 @@ class Dplay(object):
             self.api_url = 'https://us1-prod-direct.' + self.site_url
             self.realm = 'go'
             self.site_headers = {'x-disco-params': 'realm=go,siteLookupKey=dplus_us', 'x-disco-client': 'WEB:UNKNOWN:dplus_us:0.0.1'}
+        elif self.locale_suffix == 'in':
+            self.api_url = 'https://ap2-prod-direct.' + self.site_url
+            self.realm = 'dplusindia'
+            self.site_headers = {'x-disco-params': 'realm=dplusindia', 'x-disco-client': 'WEB:UNKNOWN:dplus-india:prod'}
         else:
             self.api_url = 'https://disco-api.' + self.site_url
             self.realm = 'dplay' + self.locale_suffix
@@ -336,14 +340,20 @@ class Dplay(object):
         data = self.make_request(url, 'get')
         return json.loads(data)['data']
 
-    def get_menu(self):
-        url = '{api_url}/cms/collections/web-menubar'.format(api_url=self.api_url)
+    def get_menu(self, menu):
+        url = '{api_url}/cms/collections{menu}'.format(api_url=self.api_url, menu=menu)
 
         params = {
             'include': 'default'
         }
 
         data = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))
+        return data
+
+    def get_config_in(self):
+        url = '{api_url}/cms/configs/client-config-pwa'.format(api_url=self.api_url)
+
+        data = json.loads(self.make_request(url, 'get', headers=self.site_headers))
         return data
 
     def get_page(self, path, search_query=None):
@@ -353,8 +363,8 @@ class Dplay(object):
             'include': 'default'
         }
 
-        # discoveryplus.com (US)
-        if self.locale_suffix == 'us':
+        # discoveryplus.com (US) and discoveryplus.in
+        if self.locale_suffix == 'us' or self.locale_suffix == 'in':
             params['decorators'] = 'viewingHistory,isFavorite'
         else:
             params['decorators'] = 'viewingHistory'
@@ -382,7 +392,7 @@ class Dplay(object):
             'page[items.size]': self.numResults
         }
 
-        if self.locale_suffix == 'us':
+        if self.locale_suffix == 'us' or self.locale_suffix == 'in':
             params['decorators'] = 'viewingHistory,isFavorite'
         else:
             params['decorators'] = 'viewingHistory'
@@ -406,6 +416,46 @@ class Dplay(object):
         url = '{api_url}/users/me/favorites'.format(api_url=self.api_url)
         params = {
             'include': 'default'
+        }
+
+        data = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))
+        return data
+
+    def get_watchlist_in(self, playlist):
+        url = '{api_url}/content/videos'.format(api_url=self.api_url)
+        params = {
+            'decorators': 'viewingHistory,isFavorite',
+            'include': 'images,contentPackages,show,genres,primaryChannel,taxonomyNodes',
+            'filter[playlist]': playlist,
+            'page[size]': 100,
+            'page[number]': 1
+        }
+
+        data = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))
+        return data
+
+    def get_favorites_in(self):
+        url = '{api_url}/content/shows'.format(api_url=self.api_url)
+        params = {
+            'decorators': 'isFavorite',
+            'include': 'images,contentPackages,taxonomyNodes',
+            'filter[isFavorite]': 'true',
+            'page[size]': 100,
+            'page[number]': 1
+        }
+
+        data = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))
+        return data
+
+    def get_favorite_videos_in(self, videoType):
+        url = '{api_url}/content/videos'.format(api_url=self.api_url)
+        params = {
+            'decorators': 'viewingHistory,isFavorite',
+            'include': 'images,contentPackages,show,genres,primaryChannel,taxonomyNodes',
+            'filter[isFavorite]': 'true',
+            'page[size]': 100,
+            'page[number]': 1,
+            'filter[videoType]': videoType
         }
 
         data = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))
@@ -569,6 +619,60 @@ class Dplay(object):
 
         return channels_list
 
+    def get_channels_in(self):
+        page_data = self.get_page('/explore-v2')
+
+        collections = list(filter(lambda x: x['type'] == 'collection', page_data['included']))
+        collectionItems = list(filter(lambda x: x['type'] == 'collectionItem', page_data['included']))
+        channels = list(filter(lambda x: x['type'] == 'channel', page_data['included']))
+        images = list(filter(lambda x: x['type'] == 'image', page_data['included']))
+
+        channels_list = []
+
+        for collection in collections:
+            if collection['attributes']['alias'] == 'explore-national-live-channels-list':
+                for c in collection['relationships']['items']['data']:
+                    for collectionItem in collectionItems:
+                        if c['id'] == collectionItem['id']:
+                            if collectionItem['relationships'].get('channel'):
+                                for channel in channels:
+                                    if \
+                                            collectionItem['relationships']['channel']['data'][
+                                                'id'] == channel['id']:
+
+                                        if channel['attributes']['hasLiveStream']:
+                                            url = 'plugin://plugin.video.discoveryplus/?action=play&video_id={channel_id}&video_type=channel'.format(
+                                                channel_id=channel['id'])
+
+                                            channel_logo = None
+                                            fanart_image = None
+                                            if channel['relationships'].get('images'):
+                                                for image in images:
+                                                    for channel_images in \
+                                                            channel['relationships']['images'][
+                                                                'data']:
+                                                        if image['id'] == channel_images[
+                                                            'id']:
+                                                            if image['attributes'][
+                                                                'kind'] == 'logo':
+                                                                channel_logo = \
+                                                                    image['attributes']['src']
+                                                            if image['attributes'][
+                                                                'kind'] == 'default':
+                                                                fanart_image = \
+                                                                    image['attributes']['src']
+
+                                            channels_list.append(dict(
+                                                id='%s@%s' % (channel['id'], slugify(
+                                                    xbmcaddon.Addon(id='plugin.video.discoveryplus').getAddonInfo(
+                                                        'name'))),
+                                                name=channel['attributes']['name'],
+                                                logo=channel_logo if channel_logo else fanart_image,
+                                                stream=url
+                                            ))
+
+        return channels_list
+
     def get_epg(self):
         url = '{api_url}/cms/configs/web-prod'.format(api_url=self.api_url)
         epg_channels = json.loads(self.make_request(url, 'get', headers=self.site_headers))['data']['attributes']['config']['epg']['channels']
@@ -633,6 +737,23 @@ class Dplay(object):
         end = start + timedelta(1)
 
         for channel in self.get_channels_us():
+            epg[channel['id']].append(dict(
+                start=start.isoformat(),
+                stop=end.isoformat(),
+                title=channel['name']
+            ))
+        return epg
+
+    # discoveryplus.in doesn't have EPG so we use channel name as show name
+    def get_epg_in(self):
+        from collections import defaultdict
+        epg = defaultdict(list)
+
+        today = datetime.utcnow().date()
+        start = datetime(today.year, today.month, today.day).astimezone()
+        end = start + timedelta(1)
+
+        for channel in self.get_channels_in():
             epg[channel['id']].append(dict(
                 start=start.isoformat(),
                 stop=end.isoformat(),
