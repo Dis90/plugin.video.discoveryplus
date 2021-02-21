@@ -124,3 +124,11 @@ msgstr "IPTV Manager asetukset…"
 msgctxt "#30027"
 msgid "Sync to Discovery+"
 msgstr "Synkronoi Discovery+:aan"
+
+msgctxt "#30028"
+msgid "Use InputStream Adaptive"
+msgstr "Käytä InputStream Adaptive"
+
+msgctxt "#30029"
+msgid "Enable UHD (experimental)"
+msgstr "Ota käyttöön UHD (kokeellinen)"
