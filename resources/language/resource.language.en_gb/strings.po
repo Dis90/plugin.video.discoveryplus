@@ -130,5 +130,5 @@ msgid "Use InputStream Adaptive"
 msgstr ""
 
 msgctxt "#30029"
-msgid "Enable UHD"
+msgid "Enable UHD (experimental)"
 msgstr ""
