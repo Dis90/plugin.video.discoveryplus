@@ -336,7 +336,7 @@ class KodiHelper(object):
 
                 playitem.setArt(art)
 
-                player = DplayPlayer()
+                player = DplusPlayer()
                 player.resolve(playitem)
 
                 player.video_id = video_id
@@ -358,8 +358,7 @@ class KodiHelper(object):
         except self.d.DplayError as error:
             self.dialog('ok', self.language(30006), error.value)
 
-
-class DplayPlayer(xbmc.Player):
+class DplusPlayer(xbmc.Player):
     def __init__(self):
         base_url = sys.argv[0]
         handle = int(sys.argv[1])
@@ -474,7 +473,7 @@ class DplayPlayer(xbmc.Player):
             # Get new token before updating playback progress
             self.helper.d.get_token()
 
-            # Dplay wants POST before PUT
+            # discovery+ wants POST before PUT
             self.helper.d.update_playback_progress('post', self.video_id, video_totaltime_msec)
             self.helper.d.update_playback_progress('put', self.video_id, video_totaltime_msec)
             return xbmc.executebuiltin('Container.Update')
@@ -495,7 +494,7 @@ class DplayPlayer(xbmc.Player):
             # Get new token before updating playback progress
             self.helper.d.get_token()
 
-            # Dplay wants POST before PUT
+            # discovery+ wants POST before PUT
             self.helper.d.update_playback_progress('post', self.video_id, video_lastpos_msec)
             self.helper.d.update_playback_progress('put', self.video_id, video_lastpos_msec)
 
