@@ -1,8 +1,8 @@
 # plugin.video.discoveryplus
-discovery+ addon for Kodi
+discovery+ add-on for Kodi
 
 # Disclaimer
-This addon is unofficial and it is not supported by Discovery Networks and because of that it can break at anytime.
+This add-on is unofficial and it is not supported by Discovery Networks and because of that it can break at anytime.
 
 # Supported platforms
 - Linux
@@ -32,5 +32,5 @@ This addon is unofficial and it is not supported by Discovery Networks and becau
 - Favorites
 
 # Login fails?
-You can use cookies exported from Chrome to fix login issues. Use <a href="https://chrome.google.com/webstore/detail/get-cookiestxt/bgaddhkoddajcdgocldbbfleckgcbcid">Get cookies.txt</a>
+If you are experiencing problems with login example "Error logging in. Invalid Arkose token." you can use cookies exported from Chrome to fix login issues. Use <a href="https://chrome.google.com/webstore/detail/get-cookiestxt/bgaddhkoddajcdgocldbbfleckgcbcid">Get cookies.txt</a>
  to export cookies and from addon settings specify location of cookies.txt.
