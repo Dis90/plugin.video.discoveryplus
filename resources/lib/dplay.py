@@ -3,11 +3,9 @@
 A Kodi-agnostic library for Discovery+
 """
 import os
-from io import open, StringIO
 import xbmc
 import re
 import json
-import codecs
 import time
 import calendar
 from datetime import datetime, timedelta, date
@@ -762,115 +760,6 @@ class Dplay(object):
                 title=channel['name']
             ))
         return epg
-
-    def decode_html_entities(self, s):
-        s = s.strip()
-        s = s.replace('&lt;', '<')
-        s = s.replace('&gt;', '>')
-        s = s.replace('&nbsp;', ' ')
-        # Must do ampersand last
-        s = s.replace('&amp;', '&')
-        return s
-
-    def webvtt_to_srt(self, subdata):
-        # Modified from:
-        # https://github.com/spaam/svtplay-dl/blob/master/lib/svtplay_dl/subtitle/__init__.py
-        ssubdata = StringIO(subdata)
-        srt = ""
-        subtract = False
-        number_b = 1
-        number = 0
-        block = 0
-        subnr = False
-
-        for i in ssubdata.readlines():
-            match = re.search(r"^[\r\n]+", i)
-            match2 = re.search(r"([\d:\.]+ --> [\d:\.]+)", i)
-            match3 = re.search(r"^(\d+)\s", i)
-            if i[:6] == "WEBVTT":
-                continue
-            elif "X-TIMESTAMP" in i:
-                continue
-            elif match and number_b > 1:
-                block = 0
-                srt += "\n"
-            elif match2:
-                if not subnr:
-                    srt += "%s\n" % number_b
-                matchx = re.search(r"(?P<h1>\d+):(?P<m1>\d+):(?P<s1>[\d\.]+) --> (?P<h2>\d+):(?P<m2>\d+):(?P<s2>[\d\.]+)", i)
-                if matchx:
-                    hour1 = int(matchx.group("h1"))
-                    hour2 = int(matchx.group("h2"))
-                    if int(number) == 1:
-                        if hour1 > 9:
-                            subtract = True
-                    if subtract:
-                        hour1 -= 10
-                        hour2 -= 10
-                else:
-                    matchx = re.search(r"(?P<m1>\d+):(?P<s1>[\d\.]+) --> (?P<m2>\d+):(?P<s2>[\d\.]+)", i)
-                    hour1 = 0
-                    hour2 = 0
-                time = "{:02d}:{}:{} --> {:02d}:{}:{}\n".format(
-                    hour1, matchx.group("m1"), matchx.group("s1").replace(".", ","), hour2, matchx.group("m2"), matchx.group("s2").replace(".", ",")
-                )
-                srt += time
-                block = 1
-                subnr = False
-                number_b += 1
-
-            elif match3 and block == 0:
-                number = match3.group(1)
-                srt += "%s\n" % number
-                subnr = True
-            else:
-                sub = re.sub("<[^>]*>", "", i)
-                srt += sub.strip()
-                srt += "\n"
-
-        srt = self.decode_html_entities(srt)
-        return srt
-
-    # This is used for Inputstream Adaptive versions below 2.4.6 (Kodi 18) and versions below 2.6.1 (Kodi 19)
-    def get_subtitles(self, video_url, video_id):
-        playlist = self.make_request(video_url, 'get', headers=self.site_headers, text=True)
-        self.log('Video playlist url: %s' % video_url)
-
-        line1 = urljoin(video_url, urlparse(video_url).path)
-        url = line1.replace("playlist.m3u8", "")
-
-        paths = []
-        for line in playlist.splitlines():
-            if "#EXT-X-MEDIA:TYPE=SUBTITLES" in line:
-                line2 = line.split(',')[7] #URI line from file playlist.m3u8
-                #URI="exp=1537779948~acl=%2f*~data=hdntl~hmac=f62bc6753397ac3837b7e173b688e7bd45b2d79c12c40d2adeab3b67bc74f839/1155354603-prog_index.m3u8?version_hash=299f6771"
-
-                line3 = line2.split('"')[1] #URI content
-                # Response option 1: exp=1537735286~acl=%2f*~data=hdntl~hmac=de7dacddbe65cc734725c836cc0ffd0f1c0b069bde3999fa084141112dc9f57f/1155354603-prog_index.m3u8?hdntl=exp=1537735286~acl=/*~data=hdntl~hmac=de7dacddbe65cc734725c836cc0ffd0f1c0b069bde3999fa084141112dc9f57f&version_hash=5a73e2ce
-                # Response option 2: 1155354603-prog_index.m3u8?version_hash=299f6771
-                line4 = line3.replace("prog_index.m3u8", "0.vtt") # Change prog_index.m3u8 -> 0.vtt to get subtitle file url
-                # Output: exp=1537779948~acl=%2f*~data=hdntl~hmac=f62bc6753397ac3837b7e173b688e7bd45b2d79c12c40d2adeab3b67bc74f839/1155354603-0.vtt?version_hash=299f6771
-                subtitle_url = url + line4 # Subtitle file full address
-                self.log('Full subtitle url: %s' % subtitle_url)
-
-                lang_code = line.split(',')[3].split('"')[1] # Subtitle language, returns fi, sv, da or no
-
-                # Save subtitle files to addon temp folder
-                path = os.path.join(self.tempdir, '{0}.{1}.srt'.format(video_id, lang_code))
-                # Don't download subtitles if files already exist in addon temp folder
-                if os.path.exists(path) is False:
-                    with open(path, 'w', encoding='utf-8') as subfile:
-                        # Download subtitles
-                        sub_str = self.make_request(subtitle_url, 'get')
-
-                        # Convert WEBVTT subtitles to SRT subtitles
-                        sub_str = sub_str.decode('utf-8', 'ignore')
-                        sub_str = self.webvtt_to_srt(sub_str)
-
-                        subfile.write(sub_str)
-                paths.append(path)
-
-        return paths
 
     def get_stream(self, video_id, video_type):
         stream = {}
