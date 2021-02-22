@@ -160,6 +160,11 @@ def list_page_us(page_path, search_query=None):
                                 # Some collections doesn't have component
                                 if collection['attributes'].get('component'):
 
+                                    # if content-grid after pageItem -> list content (My List)
+                                    if collection['attributes']['component']['id'] == 'content-grid':
+
+                                        list_collection_items(collection_id=collection['id'], page_path=page_path)
+
                                     # discoveryplus.com (US) search result categories (Shows, Episodes, Specials, Collections, Extras)
                                     if collection['attributes']['component']['id'] == 'tabbed-component':
                                         for c in collection['relationships']['items']['data']:
