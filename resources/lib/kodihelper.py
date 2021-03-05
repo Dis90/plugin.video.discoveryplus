@@ -343,7 +343,7 @@ class DplusPlayer(xbmc.Player):
         base_url = sys.argv[0]
         handle = int(sys.argv[1])
         self.helper = KodiHelper(base_url, handle)
-        self.video_id = 0
+        self.video_id = None
         self.current_episode_info = ''
         self.current_episode_art = ''
         self.video_lastpos = 0
@@ -383,7 +383,7 @@ class DplusPlayer(xbmc.Player):
             self.helper.d.update_playback_progress('put', self.video_id, video_lastpos_msec)
 
     def onPlayBackStarted(self):
-        if self.video_id:
+        if self.video_id is not None:
             self.helper.log('Getting next episode info')
             next_episode = self.helper.d.get_next_episode_info(current_video_id=self.video_id)
 
@@ -474,7 +474,7 @@ class DplusPlayer(xbmc.Player):
                 self.helper.log('No next episode available')
 
     def onPlayBackEnded(self):
-        if self.running and self.video_id:
+        if self.running and self.video_id is not None:
             self.running = False
             self.helper.log('Playback ended')
 
@@ -483,7 +483,7 @@ class DplusPlayer(xbmc.Player):
             return xbmc.executebuiltin('Container.Update')
 
     def onPlayBackStopped(self):
-        if self.running and self.video_id:
+        if self.running and self.video_id is not None:
             self.running = False
             self.helper.log('Playback stopped')
 
@@ -493,10 +493,10 @@ class DplusPlayer(xbmc.Player):
 
     # Used with Up Next
     def onPlayBackResumed(self):
-        if self.video_id:
+        if self.video_id is not None:
             # Update previous video playback progress
             self.update_playback_progress()
 
             # Reset current video id
-            self.video_id = False
+            self.video_id = None
             self.helper.log('Start playing next episode from Up Next')
