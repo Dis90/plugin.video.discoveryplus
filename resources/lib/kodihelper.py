@@ -324,7 +324,7 @@ class KodiHelper(object):
                 player.current_episode_art = art
 
                 monitor = xbmc.Monitor()
-                while not monitor.abortRequested() and player.running:
+                while not monitor.abortRequested() and player.playing:
                     if player.isPlayingVideo():
                         player.video_totaltime = player.getTotalTime()
                         player.video_lastpos = player.getTime()
@@ -348,16 +348,170 @@ class DplusPlayer(xbmc.Player):
         self.current_episode_art = ''
         self.video_lastpos = 0
         self.video_totaltime = 0
-        self.running = False
+        self.playing = False
+        self.paused = False
 
     def resolve(self, li):
         xbmcplugin.setResolvedUrl(self.helper.handle, True, listitem=li)
-        self.running = True
+        self.playing = True
+
+    def onPlayBackStarted(self):  # pylint: disable=invalid-name
+        """Called when user starts playing a file"""
+        self.helper.log('[DplusPlayer] Event onPlayBackStarted')
+
+        self.onAVStarted()
+
+    def onAVStarted(self):  # pylint: disable=invalid-name
+        """Called when Kodi has a video or audiostream"""
+        self.helper.log('[DplusPlayer] Event onAVStarted')
+        self.push_upnext()
+
+    def onPlayBackSeek(self, time, seekOffset):  # pylint: disable=invalid-name
+        """Called when user seeks to a time"""
+        self.helper.log('[DplusPlayer] Event onPlayBackSeek time=' + str(time) + ' offset=' + str(seekOffset))
+        self.video_lastpos = time // 1000
+
+        # If we seek beyond the end, exit Player
+        if self.video_lastpos >= self.video_totaltime:
+            self.stop()
+
+    def onPlayBackPaused(self):  # pylint: disable=invalid-name
+        """Called when user pauses a playing file"""
+        self.helper.log('[DplusPlayer] Event onPlayBackPaused')
+        self.update_playback_progress()
+        self.paused = True
+
+    def onPlayBackEnded(self):  # pylint: disable=invalid-name
+        """Called when Kodi has ended playing a file"""
+        self.helper.log('[DplusPlayer] Event onPlayBackEnded')
+        self.playing = False
+        self.update_playback_progress()
+
+    def onPlayBackStopped(self):  # pylint: disable=invalid-name
+        """Called when user stops Kodi playing a file"""
+        self.helper.log('[DplusPlayer] Event onPlayBackStopped')
+        self.playing = False
+        self.update_playback_progress()
+
+    def onPlayerExit(self):  # pylint: disable=invalid-name
+        """Called when player exits"""
+        self.helper.log('[DplusPlayer] Event onPlayerExit')
+        self.playing = False
+        self.update_playback_progress()
+
+    def onPlayBackResumed(self):  # pylint: disable=invalid-name
+        """Called when user resumes a paused file or a next playlist item is started"""
+        if self.paused:
+            suffix = 'after pausing'
+            self.paused = False
+        else:  # playlist change (Up Next)
+            suffix = 'after playlist change'
+            self.paused = False
+            self.update_playback_progress()
+            # Reset current video id
+            self.video_id = None
+        log = '[DplusPlayer] Event onPlayBackResumed ' + suffix
+        self.helper.log(log)
+
+    def push_upnext(self):
+        if not self.video_id:
+            return
+        self.helper.log('Getting next episode info')
+        next_episode = self.helper.d.get_next_episode_info(current_video_id=self.video_id)
+
+        if next_episode.get('data'):
+            self.helper.log('Current episode name: %s' % self.current_episode_info['title'].encode('utf-8'))
+            self.helper.log(
+                'Next episode name: %s' % next_episode['data'][0]['attributes'].get('name').encode(
+                    'utf-8').lstrip())
+
+            images = list(filter(lambda x: x['type'] == 'image', next_episode['included']))
+            shows = list(filter(lambda x: x['type'] == 'show', next_episode['included']))
+
+            for s in shows:
+                if s['id'] == next_episode['data'][0]['relationships']['show']['data']['id']:
+                    next_episode_show_title = s['attributes']['name']
+
+            if next_episode['data'][0]['relationships'].get('images'):
+                for i in images:
+                    if i['id'] == next_episode['data'][0]['relationships']['images']['data'][0]['id']:
+                        next_episode_fanart_image = i['attributes']['src']
+            else:
+                next_episode_fanart_image = None
+
+            if self.current_episode_info.get('aired'):
+                current_episode_aired = self.helper.d.parse_datetime(self.current_episode_info['aired']).strftime(
+                    '%d.%m.%Y')
+            else:
+                current_episode_aired = ''
+
+            if next_episode['data'][0]['attributes'].get('airDate'):
+                next_episode_aired = self.helper.d.parse_datetime(
+                    next_episode['data'][0]['attributes']['airDate']).strftime('%d.%m.%Y')
+            else:
+                next_episode_aired = ''
+
+            next_info = dict(
+                current_episode=dict(
+                    episodeid=self.video_id,
+                    tvshowid='',
+                    title=self.current_episode_info['title'],
+                    art={
+                        'thumb': self.current_episode_art['thumb'],
+                        'tvshow.clearart': '',
+                        'tvshow.clearlogo': '',
+                        'tvshow.fanart': self.current_episode_art['fanart'],
+                        'tvshow.landscape': '',
+                        'tvshow.poster': '',
+                    },
+                    season=self.current_episode_info['season'],
+                    episode=self.current_episode_info['episode'],
+                    showtitle=self.current_episode_info['tvshowtitle'],
+                    plot=self.current_episode_info['title'],
+                    playcount='',
+                    rating=None,
+                    firstaired=current_episode_aired,
+                    runtime=self.current_episode_info['duration'],
+                ),
+                next_episode=dict(
+                    episodeid=next_episode['data'][0]['id'],
+                    tvshowid='',
+                    title=next_episode['data'][0]['attributes'].get('name').lstrip(),
+                    art={
+                        'thumb': next_episode_fanart_image,
+                        'tvshow.clearart': '',
+                        'tvshow.clearlogo': '',
+                        'tvshow.fanart': next_episode_fanart_image,
+                        'tvshow.landscape:': '',
+                        'tvshow.poster': '',
+                    },
+                    season=next_episode['data'][0]['attributes'].get('seasonNumber'),
+                    episode=next_episode['data'][0]['attributes'].get('episodeNumber'),
+                    showtitle=next_episode_show_title,
+                    plot=next_episode['data'][0]['attributes'].get('description'),
+                    playcount='',
+                    rating=None,
+                    firstaired=next_episode_aired,
+                    runtime=next_episode['data'][0]['attributes'].get('videoDuration') / 1000.0,
+                ),
+
+                play_url='plugin://' + self.helper.addon_name + '/?action=play&video_id=' +
+                         next_episode['data'][0]['id'] + '&video_type=' + next_episode['data'][0]['attributes'][
+                             'videoType'],
+                notification_time='',
+            )
+
+            self.helper.upnext_signal(sender=self.helper.addon_name, next_info=next_info)
+
+        else:
+            self.helper.log('No next episode available')
 
     def update_playback_progress(self):
+        if not self.video_id:
+            return
         video_lastpos = format(self.video_lastpos, '.0f')
         video_totaltime = format(self.video_totaltime, '.0f')
-        video_percentage = self.video_lastpos*100/self.video_totaltime
+        video_percentage = self.video_lastpos * 100 / self.video_totaltime
 
         # Convert to milliseconds
         video_lastpos_msec = int(video_lastpos) * 1000
@@ -381,122 +535,3 @@ class DplusPlayer(xbmc.Player):
             # discovery+ wants POST before PUT
             self.helper.d.update_playback_progress('post', self.video_id, video_lastpos_msec)
             self.helper.d.update_playback_progress('put', self.video_id, video_lastpos_msec)
-
-    def onPlayBackStarted(self):
-        if self.video_id is not None:
-            self.helper.log('Getting next episode info')
-            next_episode = self.helper.d.get_next_episode_info(current_video_id=self.video_id)
-
-            if next_episode.get('data'):
-                self.helper.log('Current episode name: %s' % self.current_episode_info['title'].encode('utf-8'))
-                self.helper.log(
-                    'Next episode name: %s' % next_episode['data'][0]['attributes'].get('name').encode(
-                        'utf-8').lstrip())
-
-                images = list(filter(lambda x: x['type'] == 'image', next_episode['included']))
-                shows = list(filter(lambda x: x['type'] == 'show', next_episode['included']))
-
-                for s in shows:
-                    if s['id'] == next_episode['data'][0]['relationships']['show']['data']['id']:
-                        next_episode_show_title = s['attributes']['name']
-
-                if next_episode['data'][0]['relationships'].get('images'):
-                    for i in images:
-                        if i['id'] == next_episode['data'][0]['relationships']['images']['data'][0]['id']:
-                            next_episode_fanart_image = i['attributes']['src']
-                else:
-                    next_episode_fanart_image = None
-
-                if self.current_episode_info.get('aired'):
-                    current_episode_aired = self.helper.d.parse_datetime(self.current_episode_info['aired']).strftime(
-                        '%d.%m.%Y')
-                else:
-                    current_episode_aired = ''
-
-                if next_episode['data'][0]['attributes'].get('airDate'):
-                    next_episode_aired = self.helper.d.parse_datetime(
-                        next_episode['data'][0]['attributes']['airDate']).strftime('%d.%m.%Y')
-                else:
-                    next_episode_aired = ''
-
-                next_info = dict(
-                    current_episode=dict(
-                        episodeid=self.video_id,
-                        tvshowid='',
-                        title=self.current_episode_info['title'],
-                        art={
-                            'thumb': self.current_episode_art['thumb'],
-                            'tvshow.clearart': '',
-                            'tvshow.clearlogo': '',
-                            'tvshow.fanart': self.current_episode_art['fanart'],
-                            'tvshow.landscape': '',
-                            'tvshow.poster': '',
-                        },
-                        season=self.current_episode_info['season'],
-                        episode=self.current_episode_info['episode'],
-                        showtitle=self.current_episode_info['tvshowtitle'],
-                        plot=self.current_episode_info['title'],
-                        playcount='',
-                        rating=None,
-                        firstaired=current_episode_aired,
-                        runtime=self.current_episode_info['duration'],
-                    ),
-                    next_episode=dict(
-                        episodeid=next_episode['data'][0]['id'],
-                        tvshowid='',
-                        title=next_episode['data'][0]['attributes'].get('name').lstrip(),
-                        art={
-                            'thumb': next_episode_fanart_image,
-                            'tvshow.clearart': '',
-                            'tvshow.clearlogo': '',
-                            'tvshow.fanart': next_episode_fanart_image,
-                            'tvshow.landscape:': '',
-                            'tvshow.poster': '',
-                        },
-                        season=next_episode['data'][0]['attributes'].get('seasonNumber'),
-                        episode=next_episode['data'][0]['attributes'].get('episodeNumber'),
-                        showtitle=next_episode_show_title,
-                        plot=next_episode['data'][0]['attributes'].get('description'),
-                        playcount='',
-                        rating=None,
-                        firstaired=next_episode_aired,
-                        runtime=next_episode['data'][0]['attributes'].get('videoDuration') / 1000.0,
-                    ),
-
-                    play_url='plugin://' + self.helper.addon_name + '/?action=play&video_id=' +
-                             next_episode['data'][0]['id'] + '&video_type=' + next_episode['data'][0]['attributes']['videoType'],
-                    notification_time='',
-                )
-
-                self.helper.upnext_signal(sender=self.helper.addon_name, next_info=next_info)
-
-            else:
-                self.helper.log('No next episode available')
-
-    def onPlayBackEnded(self):
-        if self.running and self.video_id is not None:
-            self.running = False
-            self.helper.log('Playback ended')
-
-            self.update_playback_progress()
-
-            return xbmc.executebuiltin('Container.Update')
-
-    def onPlayBackStopped(self):
-        if self.running and self.video_id is not None:
-            self.running = False
-            self.helper.log('Playback stopped')
-
-            self.update_playback_progress()
-
-            return xbmc.executebuiltin('Container.Update')
-
-    # Used with Up Next
-    def onPlayBackResumed(self):
-        if self.video_id is not None:
-            # Update previous video playback progress
-            self.update_playback_progress()
-
-            # Reset current video id
-            self.video_id = None
-            self.helper.log('Start playing next episode from Up Next')
