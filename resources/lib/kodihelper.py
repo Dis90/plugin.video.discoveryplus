@@ -350,6 +350,7 @@ class DplusPlayer(xbmc.Player):
         self.video_totaltime = 0
         self.playing = False
         self.paused = False
+        self.first_video = True
 
     def resolve(self, li):
         xbmcplugin.setResolvedUrl(self.helper.handle, True, listitem=li)
@@ -359,12 +360,19 @@ class DplusPlayer(xbmc.Player):
         """Called when user starts playing a file"""
         self.helper.log('[DplusPlayer] Event onPlayBackStarted')
 
+        # Up Next calls onPlayBackStarted after onPlayBackEnded if user doesn't select Watch Now
+        # Make sure Kodi is not playing first video in playback session before resetting video_id
+        if self.first_video is False:
+            # Reset previous video id
+            self.video_id = None
+
         self.onAVStarted()
 
     def onAVStarted(self):  # pylint: disable=invalid-name
         """Called when Kodi has a video or audiostream"""
         self.helper.log('[DplusPlayer] Event onAVStarted')
         self.push_upnext()
+        self.first_video = False
 
     def onPlayBackSeek(self, time, seekOffset):  # pylint: disable=invalid-name
         """Called when user seeks to a time"""
@@ -392,6 +400,8 @@ class DplusPlayer(xbmc.Player):
         self.helper.log('[DplusPlayer] Event onPlayBackStopped')
         self.playing = False
         self.update_playback_progress()
+        # Reset current video id
+        self.video_id = None
 
     def onPlayerExit(self):  # pylint: disable=invalid-name
         """Called when player exits"""
@@ -404,7 +414,10 @@ class DplusPlayer(xbmc.Player):
         if self.paused:
             suffix = 'after pausing'
             self.paused = False
-        else:  # playlist change (Up Next)
+        # playlist change
+        # Up Next uses this when user clicks Watch Now, only happens if user is watching first episode in row after
+        # that onPlayBackEnded is used even if user clicks Watch Now
+        else:
             suffix = 'after playlist change'
             self.paused = False
             self.update_playback_progress()
@@ -511,11 +524,21 @@ class DplusPlayer(xbmc.Player):
             return
         video_lastpos = format(self.video_lastpos, '.0f')
         video_totaltime = format(self.video_totaltime, '.0f')
-        video_percentage = self.video_lastpos * 100 / self.video_totaltime
 
-        # Convert to milliseconds
-        video_lastpos_msec = int(video_lastpos) * 1000
-        video_totaltime_msec = int(video_totaltime) * 1000
+        # Video completely watched or
+        # video_lastpos and video_totaltime is 0 (this happens when Up Next changes episode after timeout)
+        if self.video_lastpos >= self.video_totaltime:
+            video_percentage = 100
+            # Convert to milliseconds
+            video_lastpos_msec = int(video_lastpos) * 1000
+            # Because totaltime is 0 when we need to update previous episode as watched when Up Next starts new episode
+            # we are using current_episode_info to get episode duration
+            video_totaltime_msec = int(self.current_episode_info['duration']) * 1000
+        else:
+            video_percentage = self.video_lastpos * 100 / self.video_totaltime
+            # Convert to milliseconds
+            video_lastpos_msec = int(video_lastpos) * 1000
+            video_totaltime_msec = int(video_totaltime) * 1000
 
         self.helper.log('Video totaltime msec: %s' % str(video_totaltime_msec))
         self.helper.log('Video lastpos msec: %s' % str(video_lastpos_msec))
