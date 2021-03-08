@@ -1837,7 +1837,7 @@ def list_collection_items(collection_id, page_path=None):
                                         }
 
                                         # Watched status from Discovery+
-                                        if helper.d.sync_playback:
+                                        if helper.get_setting('sync_playback'):
                                             if video['attributes']['viewingHistory']['viewed']:
                                                 if video['attributes']['viewingHistory'].get('completed'):  # Watched video
                                                     episode_info['playcount'] = '1'
@@ -2326,7 +2326,7 @@ def list_favorite_watchlist_videos_in(videoType=None, playlist=None):
         }
 
         # Watched status from discovery+
-        if helper.d.sync_playback:
+        if helper.get_setting('sync_playback'):
             if video['attributes']['viewingHistory']['viewed']:
                 if video['attributes']['viewingHistory']['completed']:  # Watched video
                     episode_info['playcount'] = '1'
@@ -2579,7 +2579,7 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                 }
 
                                 # Watched status from discovery+
-                                if helper.d.sync_playback:
+                                if helper.get_setting('sync_playback'):
                                     if video['attributes']['viewingHistory']['viewed']:
                                         if video['attributes']['viewingHistory']['completed']:  # Watched video
                                             episode_info['playcount'] = '1'

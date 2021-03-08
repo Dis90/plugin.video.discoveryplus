@@ -35,7 +35,7 @@ class KodiHelper(object):
         if not xbmcvfs.exists(self.addon_profile):
             xbmcvfs.mkdir(self.addon_profile)
         self.d = Dplay(self.addon_profile, self.get_setting('site'), self.get_setting('locale'), self.logging_prefix,
-                       self.get_setting('numresults'), self.get_setting('cookiestxt'), self.get_setting('cookiestxt_file'), self.get_setting('sync_playback'), self.get_setting('us_uhd'))
+                       self.get_setting('numresults'), self.get_setting('cookiestxt'), self.get_setting('cookiestxt_file'), self.get_setting('us_uhd'))
 
     def get_addon(self):
         """Returns a fresh addon instance."""
@@ -521,6 +521,8 @@ class DplusPlayer(xbmc.Player):
 
     def update_playback_progress(self):
         if not self.video_id:
+            return
+        if not self.helper.get_setting('sync_playback'):
             return
         video_lastpos = format(self.video_lastpos, '.0f')
         video_totaltime = format(self.video_totaltime, '.0f')
