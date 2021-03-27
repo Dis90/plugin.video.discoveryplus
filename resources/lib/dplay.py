@@ -833,7 +833,13 @@ class Dplay(object):
 
         # discoveryplus.com (US)
         if self.locale_suffix == 'us':
-            stream['hls_url'] = data_dict['attributes']['streaming'][0]['url']
+            originalm3u8 = requests.get(data_dict['attributes']['streaming'][0]['url']).text
+            updatedm3u8 = originalm3u8.replace("30.000", "29.970")
+            tempm3u8 = open(self.tempdir + "temp.m3u8", "w")
+            tempm3u8.write(updatedm3u8)
+            tempm3u8.close()
+            tempm3u8path = self.tempdir.replace("\\", "/") #replace backslashes in path with frontslashes on windows or ISA fails to load path
+            stream['hls_url'] = tempm3u8path + "temp.m3u8"
             stream['drm_enabled'] = data_dict['attributes']['streaming'][0]['protection']['drmEnabled']
         else:
             stream['hls_url'] = data_dict['attributes']['streaming']['hls']['url']
