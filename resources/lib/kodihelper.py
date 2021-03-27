@@ -20,6 +20,7 @@ try:  # Python 3
 except ImportError:  # Python 2
     from urllib import urlencode
 
+import requests
 
 class KodiHelper(object):
     def __init__(self, base_url=None, handle=None):
@@ -261,7 +262,18 @@ class KodiHelper(object):
                     playitem.setProperty('inputstream.adaptive.license_key',
                                          stream['license_url'] + '|' + header + '|R{SSM}|')
             else:
-                playitem = xbmcgui.ListItem(path=stream['hls_url'])
+                url = stream['hls_url']
+                
+                if self.get_setting('locale') == 'en_US':
+                    originalm3u8 = requests.get(url).text
+                    updatedm3u8 = originalm3u8.replace("30.000", "29.970")
+                    tempm3u8 = open(self.addon_profile+'temp.m3u8', "w")
+                    tempm3u8.write(updatedm3u8)
+                    tempm3u8.close()
+                    tempm3u8path = self.addon_profile.replace("\\", "/") #replace backslashes in path with frontslashes on windows or ISA fails to load path
+                    playitem = xbmcgui.ListItem(path=tempm3u8path+'temp.m3u8')
+                else:
+                    playitem = xbmcgui.ListItem(path=stream['hls_url'])
 
                 if useIsa:
                     # Kodi 19 Matrix or higher
