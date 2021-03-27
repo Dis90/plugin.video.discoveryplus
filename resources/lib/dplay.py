@@ -833,6 +833,7 @@ class Dplay(object):
 
         # discoveryplus.com (US)
         if self.locale_suffix == 'us':
+            # discoveryplus.com has frame-rate="30.000" even though videos are 29.970 fps. This downloads the m3u8 and changes 30.000 to 29.970
             originalm3u8 = requests.get(data_dict['attributes']['streaming'][0]['url']).text
             updatedm3u8 = originalm3u8.replace("30.000", "29.970")
             tempm3u8 = open(self.tempdir + "temp.m3u8", "w")
