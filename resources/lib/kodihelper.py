@@ -320,6 +320,7 @@ class KodiHelper(object):
                 player.resolve(playitem)
 
                 player.video_id = video_id
+                player.current_show_id = current_episode['data']['relationships']['show']['data']['id']
                 player.current_episode_info = info
                 player.current_episode_art = art
 
@@ -344,6 +345,7 @@ class DplusPlayer(xbmc.Player):
         handle = int(sys.argv[1])
         self.helper = KodiHelper(base_url, handle)
         self.video_id = None
+        self.current_show_id = None
         self.current_episode_info = ''
         self.current_episode_art = ''
         self.video_lastpos = 0
@@ -462,7 +464,7 @@ class DplusPlayer(xbmc.Player):
             next_info = dict(
                 current_episode=dict(
                     episodeid=self.video_id,
-                    tvshowid='',
+                    tvshowid=self.current_show_id,
                     title=self.current_episode_info['title'],
                     art={
                         'thumb': self.current_episode_art['thumb'],
@@ -483,7 +485,7 @@ class DplusPlayer(xbmc.Player):
                 ),
                 next_episode=dict(
                     episodeid=next_episode['data'][0]['id'],
-                    tvshowid='',
+                    tvshowid=next_episode['data'][0]['relationships']['show']['data']['id'],
                     title=next_episode['data'][0]['attributes'].get('name').lstrip(),
                     art={
                         'thumb': next_episode_fanart_image,
