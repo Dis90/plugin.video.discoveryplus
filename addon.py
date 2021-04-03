@@ -1753,9 +1753,18 @@ def list_collection_items(collection_id, page_path=None):
                                             'video_type': video['attributes']['videoType']
                                         }
 
+                                        show_fanart_image = None
                                         for show in shows:
                                             if show['id'] == video['relationships']['show']['data']['id']:
                                                 show_title = show['attributes']['name']
+
+                                                if show['relationships'].get('images'):
+                                                    for image in images:
+                                                        if image['id'] == \
+                                                                show['relationships']['images']['data'][0][
+                                                                    'id']:
+                                                            if image['attributes'].get('src'):
+                                                                show_fanart_image = image['attributes']['src']
 
                                         g = []
                                         if video['relationships'].get('genres'):
@@ -1775,9 +1784,9 @@ def list_collection_items(collection_id, page_path=None):
                                         if video['relationships'].get('images'):
                                             for image in images:
                                                 if image['id'] == video['relationships']['images']['data'][0]['id']:
-                                                    fanart_image = image['attributes']['src']
+                                                    video_thumb_image = image['attributes']['src']
                                         else:
-                                            fanart_image = None
+                                            video_thumb_image = None
 
                                         duration = video['attributes']['videoDuration'] / 1000.0 if video[
                                             'attributes'].get(
@@ -1856,8 +1865,8 @@ def list_collection_items(collection_id, page_path=None):
                                             total = None
 
                                         episode_art = {
-                                            'fanart': fanart_image,
-                                            'thumb': fanart_image
+                                            'fanart': show_fanart_image,
+                                            'thumb': video_thumb_image
                                         }
 
                                         helper.add_item(video['attributes'].get('name').lstrip(), params=params,
@@ -2246,9 +2255,18 @@ def list_favorite_watchlist_videos_in(videoType=None, playlist=None):
             'video_type': video['attributes']['videoType']
         }
 
+        show_fanart_image = None
         for show in shows:
             if show['id'] == video['relationships']['show']['data']['id']:
                 show_title = show['attributes']['name']
+
+            if show['relationships'].get('images'):
+                for image in images:
+                    if image['id'] == \
+                            show['relationships']['images']['data'][0][
+                                'id']:
+                        if image['attributes'].get('src'):
+                            show_fanart_image = image['attributes']['src']
 
         g = []
         if video['relationships'].get('txGenres'):
@@ -2267,9 +2285,9 @@ def list_favorite_watchlist_videos_in(videoType=None, playlist=None):
         if video['relationships'].get('images'):
             for image in images:
                 if image['id'] == video['relationships']['images']['data'][0]['id']:
-                    fanart_image = image['attributes']['src']
+                    video_thumb_image = image['attributes']['src']
         else:
-            fanart_image = None
+            video_thumb_image = None
 
         duration = video['attributes']['videoDuration'] / 1000.0 if video['attributes'].get(
             'videoDuration') else None
@@ -2345,8 +2363,8 @@ def list_favorite_watchlist_videos_in(videoType=None, playlist=None):
             total = None
 
         episode_art = {
-            'fanart': fanart_image,
-            'thumb': fanart_image
+            'fanart': show_fanart_image,
+            'thumb': video_thumb_image
         }
 
         if videoType:
@@ -2493,9 +2511,18 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                     'video_type': video['attributes']['videoType']
                                 }
 
+                                show_fanart_image = None
                                 for show in shows:
                                     if show['id'] == video['relationships']['show']['data']['id']:
                                         show_title = show['attributes']['name']
+
+                                        if show['relationships'].get('images'):
+                                            for image in images:
+                                                if image['id'] == \
+                                                        show['relationships']['images']['data'][0][
+                                                            'id']:
+                                                    if image['attributes'].get('src'):
+                                                        show_fanart_image = image['attributes']['src']
 
                                 g = []
                                 if video['relationships'].get('genres'):
@@ -2520,9 +2547,9 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                 if video['relationships'].get('images'):
                                     for image in images:
                                         if image['id'] == video['relationships']['images']['data'][0]['id']:
-                                            fanart_image = image['attributes']['src']
+                                            video_thumb_image = image['attributes']['src']
                                 else:
-                                    fanart_image = None
+                                    video_thumb_image = None
 
                                 duration = video['attributes']['videoDuration'] / 1000.0 if video['attributes'].get(
                                     'videoDuration') else None
@@ -2598,8 +2625,8 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                     total = None
 
                                 episode_art = {
-                                    'fanart': fanart_image,
-                                    'thumb': fanart_image
+                                    'fanart': show_fanart_image,
+                                    'thumb': video_thumb_image
                                 }
 
                                 # mandatoryParams and no paramerer = list search result videos (Episodes, Specials, Extras)
