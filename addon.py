@@ -1288,29 +1288,28 @@ def list_page(page_path):
                                                     info['genre'] = g
                                                     info['studio'] = primaryChannel
 
+                                                    fanart_image = None
+                                                    thumb_image = None
+                                                    logo_image = None
+                                                    poster_image = None
                                                     if show['relationships'].get('images'):
                                                         for image in images:
-                                                            if image['id'] == \
-                                                                    show['relationships']['images']['data'][0][
-                                                                        'id']:
-                                                                if image['attributes'].get('src'):
-                                                                    fanart_image = image['attributes']['src']
-                                                                else:
-                                                                    fanart_image = None
-                                                            if image['id'] == \
-                                                                    show['relationships']['images']['data'][-1][
-                                                                        'id']:
-                                                                if image['attributes'].get('src'):
-                                                                    thumb_image = image['attributes']['src']
-                                                                else:
-                                                                    thumb_image = None
-                                                    else:
-                                                        fanart_image = None
-                                                        thumb_image = None
+                                                            for show_images in show['relationships']['images']['data']:
+                                                                if image['id'] == show_images['id']:
+                                                                    if image['attributes']['kind'] == 'default':
+                                                                        fanart_image = image['attributes']['src']
+                                                                        thumb_image = image['attributes']['src']
+                                                                    if image['attributes']['kind'] == 'logo':
+                                                                        logo_image = image['attributes']['src']
+                                                                    if image['attributes'][
+                                                                        'kind'] == 'poster_with_logo':
+                                                                        poster_image = image['attributes']['src']
 
                                                     show_art = {
                                                         'fanart': fanart_image,
-                                                        'thumb': thumb_image
+                                                        'thumb': thumb_image,
+                                                        'clearlogo': logo_image,
+                                                        'poster': poster_image
                                                     }
 
                                                     helper.add_item(title, params, info=info, art=show_art,
@@ -1583,29 +1582,27 @@ def list_collection_items(collection_id, page_path=None):
                                     info['genre'] = g
                                     info['studio'] = primaryChannel
 
+                                    fanart_image = None
+                                    thumb_image = None
+                                    logo_image = None
+                                    poster_image = None
                                     if show['relationships'].get('images'):
                                         for image in images:
-                                            if image['id'] == \
-                                                    show['relationships']['images']['data'][0][
-                                                        'id']:
-                                                if image['attributes'].get('src'):
-                                                    fanart_image = image['attributes']['src']
-                                                else:
-                                                    fanart_image = None
-                                            if image['id'] == \
-                                                    show['relationships']['images']['data'][-1][
-                                                        'id']:
-                                                if image['attributes'].get('src'):
-                                                    thumb_image = image['attributes']['src']
-                                                else:
-                                                    thumb_image = None
-                                    else:
-                                        fanart_image = None
-                                        thumb_image = None
+                                            for show_images in show['relationships']['images']['data']:
+                                                if image['id'] == show_images['id']:
+                                                    if image['attributes']['kind'] == 'default':
+                                                        fanart_image = image['attributes']['src']
+                                                        thumb_image = image['attributes']['src']
+                                                    if image['attributes']['kind'] == 'logo':
+                                                        logo_image = image['attributes']['src']
+                                                    if image['attributes']['kind'] == 'poster_with_logo':
+                                                        poster_image = image['attributes']['src']
 
                                     show_art = {
                                         'fanart': fanart_image,
-                                        'thumb': thumb_image
+                                        'thumb': thumb_image,
+                                        'clearlogo': logo_image,
+                                        'poster': poster_image
                                     }
 
                                     if collection['attributes'].get('title'):
@@ -1713,30 +1710,28 @@ def list_collection_items(collection_id, page_path=None):
                                                          'RunPlugin(plugin://' + helper.addon_name + '/?action=delete_favorite&show_id=' + str(
                                                              show['id']) + ')',))
 
+                                        fanart_image = None
+                                        thumb_image = None
+                                        logo_image = None
+                                        poster_image = None
                                         if show['relationships'].get('images'):
                                             for image in images:
-                                                if image['id'] == show['relationships']['images']['data'][0]['id']:
-                                                    if image['attributes'].get('src'):
-                                                        fanart_image = image['attributes']['src']
-                                                    else:
-                                                        fanart_image = None
-                                                if image['id'] == show['relationships']['images']['data'][-1]['id']:
-                                                    if image['attributes'].get('src'):
-                                                        thumb_image = image['attributes']['src']
-                                                    else:
-                                                        thumb_image = None
-                                        else:
-                                            fanart_image = None
-                                            thumb_image = None
+                                                for show_images in show['relationships']['images']['data']:
+                                                    if image['id'] == show_images['id']:
+                                                        if image['attributes']['kind'] == 'default':
+                                                            fanart_image = image['attributes']['src']
+                                                            thumb_image = image['attributes']['src']
+                                                        if image['attributes']['kind'] == 'logo':
+                                                            logo_image = image['attributes']['src']
+                                                        if image['attributes']['kind'] == 'poster_with_logo':
+                                                            poster_image = image['attributes']['src']
 
                                         show_art = {
                                             'fanart': fanart_image,
-                                            'thumb': thumb_image
+                                            'thumb': thumb_image,
+                                            'clearlogo': logo_image,
+                                            'poster': poster_image
                                         }
-
-                                        if show['relationships'].get('images'):
-                                            show_art['clearlogo'] = thumb_image if len(
-                                                show['relationships']['images']['data']) == 2 else None
 
                                         helper.add_item(title, params, info=info, art=show_art, content='tvshows',
                                                         menu=menu, folder_name=collection['attributes'].get('title'),
@@ -1754,17 +1749,19 @@ def list_collection_items(collection_id, page_path=None):
                                         }
 
                                         show_fanart_image = None
+                                        show_logo_image = None
                                         for show in shows:
                                             if show['id'] == video['relationships']['show']['data']['id']:
                                                 show_title = show['attributes']['name']
 
                                                 if show['relationships'].get('images'):
                                                     for image in images:
-                                                        if image['id'] == \
-                                                                show['relationships']['images']['data'][0][
-                                                                    'id']:
-                                                            if image['attributes'].get('src'):
-                                                                show_fanart_image = image['attributes']['src']
+                                                        for show_images in show['relationships']['images']['data']:
+                                                            if image['id'] == show_images['id']:
+                                                                if image['attributes']['kind'] == 'default':
+                                                                    show_fanart_image = image['attributes']['src']
+                                                                if image['attributes']['kind'] == 'logo':
+                                                                    show_logo_image = image['attributes']['src']
 
                                         g = []
                                         if video['relationships'].get('genres'):
@@ -1866,7 +1863,8 @@ def list_collection_items(collection_id, page_path=None):
 
                                         episode_art = {
                                             'fanart': show_fanart_image,
-                                            'thumb': video_thumb_image
+                                            'thumb': video_thumb_image,
+                                            'clearlogo': show_logo_image
                                         }
 
                                         helper.add_item(video['attributes'].get('name').lstrip(), params=params,
@@ -2063,24 +2061,28 @@ def list_search_shows(search_query):
                          'RunPlugin(plugin://' + helper.addon_name + '/?action=delete_favorite&show_id=' + str(
                              show['id']) + ')',))
 
+        fanart_image = None
+        thumb_image = None
+        logo_image = None
+        poster_image = None
         if show['relationships'].get('images'):
             for image in images:
-                if image['id'] == show['relationships']['images']['data'][0]['id']:
-                    fanart_image = image['attributes']['src']
-                if image['id'] == show['relationships']['images']['data'][-1]['id']:
-                    thumb_image = image['attributes']['src']
-        else:
-            fanart_image = None
-            thumb_image = None
+                for show_images in show['relationships']['images']['data']:
+                    if image['id'] == show_images['id']:
+                        if image['attributes']['kind'] == 'default':
+                            fanart_image = image['attributes']['src']
+                            thumb_image = image['attributes']['src']
+                        if image['attributes']['kind'] == 'logo':
+                            logo_image = image['attributes']['src']
+                        if image['attributes']['kind'] == 'poster_with_logo':
+                            poster_image = image['attributes']['src']
 
         show_art = {
             'fanart': fanart_image,
-            'thumb': thumb_image
+            'thumb': thumb_image,
+            'clearlogo': logo_image,
+            'poster': poster_image
         }
-
-        if show['relationships'].get('images'):
-            show_art['clearlogo'] = thumb_image if len(
-                show['relationships']['images']['data']) == 2 else None
 
         folder_name = helper.language(30007) + ' / ' + search_query
 
@@ -2142,24 +2144,28 @@ def list_favorites():
                              'RunPlugin(plugin://' + helper.addon_name + '/?action=delete_favorite&show_id=' + str(
                                  favorite['id']) + ')',))
 
+                fanart_image = None
+                thumb_image = None
+                logo_image = None
+                poster_image = None
                 if show_data['relationships'].get('images'):
                     for image in images:
-                        if image['id'] == show_data['relationships']['images']['data'][0]['id']:
-                            fanart_image = image['attributes']['src']
-                        if image['id'] == show_data['relationships']['images']['data'][-1]['id']:
-                            thumb_image = image['attributes']['src']
-                else:
-                    fanart_image = None
-                    thumb_image = None
+                        for show_images in show_data['relationships']['images']['data']:
+                            if image['id'] == show_images['id']:
+                                if image['attributes']['kind'] == 'default':
+                                    fanart_image = image['attributes']['src']
+                                    thumb_image = image['attributes']['src']
+                                if image['attributes']['kind'] == 'logo':
+                                    logo_image = image['attributes']['src']
+                                if image['attributes']['kind'] == 'poster_with_logo':
+                                    poster_image = image['attributes']['src']
 
                 show_art = {
                     'fanart': fanart_image,
-                    'thumb': thumb_image
+                    'thumb': thumb_image,
+                    'clearlogo': logo_image,
+                    'poster': poster_image
                 }
-
-                if show_data['relationships'].get('images'):
-                    show_art['clearlogo'] = thumb_image if len(
-                        show_data['relationships']['images']['data']) == 2 else None
 
                 helper.add_item(title, params, info=info, art=show_art, content='tvshows', menu=menu,
                                 folder_name=helper.language(30017), sort_method='unsorted')
@@ -2207,24 +2213,28 @@ def list_favorites_in():
                      'RunPlugin(plugin://' + helper.addon_name + '/?action=delete_favorite&show_id=' + str(
                          show['id']) + ')',))
 
+        fanart_image = None
+        thumb_image = None
+        logo_image = None
+        poster_image = None
         if show['relationships'].get('images'):
             for image in images:
-                if image['id'] == show['relationships']['images']['data'][0]['id']:
-                    fanart_image = image['attributes']['src']
-                if image['id'] == show['relationships']['images']['data'][-1]['id']:
-                    thumb_image = image['attributes']['src']
-        else:
-            fanart_image = None
-            thumb_image = None
+                for show_images in show['relationships']['images']['data']:
+                    if image['id'] == show_images['id']:
+                        if image['attributes']['kind'] == 'default':
+                            fanart_image = image['attributes']['src']
+                            thumb_image = image['attributes']['src']
+                        if image['attributes']['kind'] == 'logo':
+                            logo_image = image['attributes']['src']
+                        if image['attributes']['kind'] == 'poster_with_logo':
+                            poster_image = image['attributes']['src']
 
         show_art = {
             'fanart': fanart_image,
-            'thumb': thumb_image
+            'thumb': thumb_image,
+            'clearlogo': logo_image,
+            'poster': poster_image
         }
-
-        if show['relationships'].get('images'):
-            show_art['clearlogo'] = thumb_image if len(
-                show['relationships']['images']['data']) == 2 else None
 
         folder_name = helper.language(30017) + ' / Shows'
 
@@ -2256,17 +2266,19 @@ def list_favorite_watchlist_videos_in(videoType=None, playlist=None):
         }
 
         show_fanart_image = None
+        show_logo_image = None
         for show in shows:
             if show['id'] == video['relationships']['show']['data']['id']:
                 show_title = show['attributes']['name']
 
             if show['relationships'].get('images'):
                 for image in images:
-                    if image['id'] == \
-                            show['relationships']['images']['data'][0][
-                                'id']:
-                        if image['attributes'].get('src'):
-                            show_fanart_image = image['attributes']['src']
+                    for show_images in show['relationships']['images']['data']:
+                        if image['id'] == show_images['id']:
+                            if image['attributes']['kind'] == 'default':
+                                show_fanart_image = image['attributes']['src']
+                            if image['attributes']['kind'] == 'logo':
+                                show_logo_image = image['attributes']['src']
 
         g = []
         if video['relationships'].get('txGenres'):
@@ -2364,7 +2376,8 @@ def list_favorite_watchlist_videos_in(videoType=None, playlist=None):
 
         episode_art = {
             'fanart': show_fanart_image,
-            'thumb': video_thumb_image
+            'thumb': video_thumb_image,
+            'clearlogo': show_logo_image
         }
 
         if videoType:
@@ -2470,30 +2483,28 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                                  'RunPlugin(plugin://' + helper.addon_name + '/?action=delete_favorite&show_id=' + str(
                                                      show['id']) + ')',))
 
+                                fanart_image = None
+                                thumb_image = None
+                                logo_image = None
+                                poster_image = None
                                 if show['relationships'].get('images'):
                                     for image in images:
-                                        if image['id'] == show['relationships']['images']['data'][0]['id']:
-                                            if image['attributes'].get('src'):
-                                                fanart_image = image['attributes']['src']
-                                            else:
-                                                fanart_image = None
-                                        if image['id'] == show['relationships']['images']['data'][-1]['id']:
-                                            if image['attributes'].get('src'):
-                                                thumb_image = image['attributes']['src']
-                                            else:
-                                                thumb_image = None
-                                else:
-                                    fanart_image = None
-                                    thumb_image = None
+                                        for show_images in show['relationships']['images']['data']:
+                                            if image['id'] == show_images['id']:
+                                                if image['attributes']['kind'] == 'default':
+                                                    fanart_image = image['attributes']['src']
+                                                    thumb_image = image['attributes']['src']
+                                                if image['attributes']['kind'] == 'logo':
+                                                    logo_image = image['attributes']['src']
+                                                if image['attributes']['kind'] == 'poster_with_logo':
+                                                    poster_image = image['attributes']['src']
 
                                 show_art = {
                                     'fanart': fanart_image,
-                                    'thumb': thumb_image
+                                    'thumb': thumb_image,
+                                    'clearlogo': logo_image,
+                                    'poster': poster_image
                                 }
-
-                                if show['relationships'].get('images'):
-                                    show_art['clearlogo'] = thumb_image if len(
-                                        show['relationships']['images']['data']) == 2 else None
 
                                 helper.add_item(title, params, info=info, art=show_art, content='tvshows',
                                                 menu=menu, folder_name=page_data['data']['attributes'].get('title'),
@@ -2512,17 +2523,19 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                 }
 
                                 show_fanart_image = None
+                                show_logo_image = None
                                 for show in shows:
                                     if show['id'] == video['relationships']['show']['data']['id']:
                                         show_title = show['attributes']['name']
 
                                         if show['relationships'].get('images'):
                                             for image in images:
-                                                if image['id'] == \
-                                                        show['relationships']['images']['data'][0][
-                                                            'id']:
-                                                    if image['attributes'].get('src'):
-                                                        show_fanart_image = image['attributes']['src']
+                                                for show_images in show['relationships']['images']['data']:
+                                                    if image['id'] == show_images['id']:
+                                                        if image['attributes']['kind'] == 'default':
+                                                            show_fanart_image = image['attributes']['src']
+                                                        if image['attributes']['kind'] == 'logo':
+                                                            show_logo_image = image['attributes']['src']
 
                                 g = []
                                 if video['relationships'].get('genres'):
@@ -2626,7 +2639,8 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
 
                                 episode_art = {
                                     'fanart': show_fanart_image,
-                                    'thumb': video_thumb_image
+                                    'thumb': video_thumb_image,
+                                    'clearlogo': show_logo_image
                                 }
 
                                 # mandatoryParams and no paramerer = list search result videos (Episodes, Specials, Extras)
