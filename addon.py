@@ -1750,6 +1750,7 @@ def list_collection_items(collection_id, page_path=None):
 
                                         show_fanart_image = None
                                         show_logo_image = None
+                                        show_poster_image = None
                                         for show in shows:
                                             if show['id'] == video['relationships']['show']['data']['id']:
                                                 show_title = show['attributes']['name']
@@ -1762,6 +1763,8 @@ def list_collection_items(collection_id, page_path=None):
                                                                     show_fanart_image = image['attributes']['src']
                                                                 if image['attributes']['kind'] == 'logo':
                                                                     show_logo_image = image['attributes']['src']
+                                                                if image['attributes']['kind'] == 'poster_with_logo':
+                                                                    show_poster_image = image['attributes']['src']
 
                                         g = []
                                         if video['relationships'].get('genres'):
@@ -1864,7 +1867,8 @@ def list_collection_items(collection_id, page_path=None):
                                         episode_art = {
                                             'fanart': show_fanart_image,
                                             'thumb': video_thumb_image,
-                                            'clearlogo': show_logo_image
+                                            'clearlogo': show_logo_image,
+                                            'poster': show_poster_image
                                         }
 
                                         helper.add_item(video['attributes'].get('name').lstrip(), params=params,
@@ -2267,6 +2271,7 @@ def list_favorite_watchlist_videos_in(videoType=None, playlist=None):
 
         show_fanart_image = None
         show_logo_image = None
+        show_poster_image = None
         for show in shows:
             if show['id'] == video['relationships']['show']['data']['id']:
                 show_title = show['attributes']['name']
@@ -2279,6 +2284,8 @@ def list_favorite_watchlist_videos_in(videoType=None, playlist=None):
                                 show_fanart_image = image['attributes']['src']
                             if image['attributes']['kind'] == 'logo':
                                 show_logo_image = image['attributes']['src']
+                            if image['attributes']['kind'] == 'poster_with_logo':
+                                show_poster_image = image['attributes']['src']
 
         g = []
         if video['relationships'].get('txGenres'):
@@ -2377,7 +2384,8 @@ def list_favorite_watchlist_videos_in(videoType=None, playlist=None):
         episode_art = {
             'fanart': show_fanart_image,
             'thumb': video_thumb_image,
-            'clearlogo': show_logo_image
+            'clearlogo': show_logo_image,
+            'poster': show_poster_image
         }
 
         if videoType:
@@ -2524,6 +2532,7 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
 
                                 show_fanart_image = None
                                 show_logo_image = None
+                                show_poster_image = None
                                 for show in shows:
                                     if show['id'] == video['relationships']['show']['data']['id']:
                                         show_title = show['attributes']['name']
@@ -2536,6 +2545,8 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                                             show_fanart_image = image['attributes']['src']
                                                         if image['attributes']['kind'] == 'logo':
                                                             show_logo_image = image['attributes']['src']
+                                                        if image['attributes']['kind'] == 'poster_with_logo':
+                                                            show_poster_image = image['attributes']['src']
 
                                 g = []
                                 if video['relationships'].get('genres'):
@@ -2640,7 +2651,8 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                 episode_art = {
                                     'fanart': show_fanart_image,
                                     'thumb': video_thumb_image,
-                                    'clearlogo': show_logo_image
+                                    'clearlogo': show_logo_image,
+                                    'poster': show_poster_image
                                 }
 
                                 # mandatoryParams and no paramerer = list search result videos (Episodes, Specials, Extras)
