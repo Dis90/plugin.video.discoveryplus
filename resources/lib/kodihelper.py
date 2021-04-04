@@ -282,16 +282,30 @@ class KodiHelper(object):
                 images = list(filter(lambda x: x['type'] == 'image', current_episode['included']))
                 shows = list(filter(lambda x: x['type'] == 'show', current_episode['included']))
 
-                for s in shows:
-                    if s['id'] == current_episode['data']['relationships']['show']['data']['id']:
-                        show_title = s['attributes']['name']
+                show_fanart_image = None
+                show_logo_image = None
+                show_poster_image = None
+                for show in shows:
+                    if show['id'] == current_episode['data']['relationships']['show']['data']['id']:
+                        show_title = show['attributes']['name']
+
+                        if show['relationships'].get('images'):
+                            for image in images:
+                                for show_images in show['relationships']['images']['data']:
+                                    if image['id'] == show_images['id']:
+                                        if image['attributes']['kind'] == 'default':
+                                            show_fanart_image = image['attributes']['src']
+                                        if image['attributes']['kind'] == 'logo':
+                                            show_logo_image = image['attributes']['src']
+                                        if image['attributes']['kind'] == 'poster_with_logo':
+                                            show_poster_image = image['attributes']['src']
 
                 if current_episode['data']['relationships'].get('images'):
                     for i in images:
                         if i['id'] == current_episode['data']['relationships']['images']['data'][0]['id']:
-                            fanart_image = i['attributes']['src']
+                            video_thumb_image = i['attributes']['src']
                 else:
-                    fanart_image = None
+                    video_thumb_image = None
 
                 duration = current_episode['data']['attributes']['videoDuration'] / 1000.0 if current_episode['data'][
                     'attributes'].get('videoDuration') else None
@@ -310,8 +324,10 @@ class KodiHelper(object):
                 playitem.setInfo('video', info)
 
                 art = {
-                    'fanart': fanart_image,
-                    'thumb': fanart_image
+                    'fanart': show_fanart_image,
+                    'thumb': video_thumb_image,
+                    'clearlogo': show_logo_image,
+                    'poster': show_poster_image
                 }
 
                 playitem.setArt(art)
@@ -438,16 +454,30 @@ class DplusPlayer(xbmc.Player):
             images = list(filter(lambda x: x['type'] == 'image', next_episode['included']))
             shows = list(filter(lambda x: x['type'] == 'show', next_episode['included']))
 
-            for s in shows:
-                if s['id'] == next_episode['data'][0]['relationships']['show']['data']['id']:
-                    next_episode_show_title = s['attributes']['name']
+            show_fanart_image = None
+            show_logo_image = None
+            show_poster_image = None
+            for show in shows:
+                if show['id'] == next_episode['data'][0]['relationships']['show']['data']['id']:
+                    next_episode_show_title = show['attributes']['name']
+
+                    if show['relationships'].get('images'):
+                        for image in images:
+                            for show_images in show['relationships']['images']['data']:
+                                if image['id'] == show_images['id']:
+                                    if image['attributes']['kind'] == 'default':
+                                        show_fanart_image = image['attributes']['src']
+                                    if image['attributes']['kind'] == 'logo':
+                                        show_logo_image = image['attributes']['src']
+                                    if image['attributes']['kind'] == 'poster_with_logo':
+                                        show_poster_image = image['attributes']['src']
 
             if next_episode['data'][0]['relationships'].get('images'):
                 for i in images:
                     if i['id'] == next_episode['data'][0]['relationships']['images']['data'][0]['id']:
-                        next_episode_fanart_image = i['attributes']['src']
+                        next_episode_thumb_image = i['attributes']['src']
             else:
-                next_episode_fanart_image = None
+                next_episode_thumb_image = None
 
             if self.current_episode_info.get('aired'):
                 current_episode_aired = self.helper.d.parse_datetime(self.current_episode_info['aired']).strftime(
@@ -469,10 +499,10 @@ class DplusPlayer(xbmc.Player):
                     art={
                         'thumb': self.current_episode_art['thumb'],
                         'tvshow.clearart': '',
-                        'tvshow.clearlogo': '',
+                        'tvshow.clearlogo': self.current_episode_art['clearlogo'],
                         'tvshow.fanart': self.current_episode_art['fanart'],
                         'tvshow.landscape': '',
-                        'tvshow.poster': '',
+                        'tvshow.poster': self.current_episode_art['poster'],
                     },
                     season=self.current_episode_info['season'],
                     episode=self.current_episode_info['episode'],
@@ -488,12 +518,12 @@ class DplusPlayer(xbmc.Player):
                     tvshowid=next_episode['data'][0]['relationships']['show']['data']['id'],
                     title=next_episode['data'][0]['attributes'].get('name').lstrip(),
                     art={
-                        'thumb': next_episode_fanart_image,
+                        'thumb': next_episode_thumb_image,
                         'tvshow.clearart': '',
-                        'tvshow.clearlogo': '',
-                        'tvshow.fanart': next_episode_fanart_image,
+                        'tvshow.clearlogo': show_logo_image,
+                        'tvshow.fanart': show_fanart_image,
                         'tvshow.landscape:': '',
-                        'tvshow.poster': '',
+                        'tvshow.poster': show_poster_image,
                     },
                     season=next_episode['data'][0]['attributes'].get('seasonNumber'),
                     episode=next_episode['data'][0]['attributes'].get('episodeNumber'),
