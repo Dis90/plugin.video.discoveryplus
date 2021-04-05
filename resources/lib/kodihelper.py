@@ -142,7 +142,7 @@ class KodiHelper(object):
     def add_item(self, title, params, items=False, folder=True, playable=False, info=None, art=None, content=False,
                  menu=None, resume=None, total=None, folder_name=None, sort_method=None):
         addon = self.get_addon()
-        listitem = xbmcgui.ListItem(label=title)
+        listitem = xbmcgui.ListItem(label=title, offscreen=True)
 
         if playable:
             listitem.setProperty('IsPlayable', 'true')
@@ -246,7 +246,7 @@ class KodiHelper(object):
             if stream['drm_enabled']:
                 is_helper = inputstreamhelper.Helper('mpd', drm='com.widevine.alpha')
                 if is_helper.check_inputstream():
-                    playitem = xbmcgui.ListItem(path=stream['mpd_url'])
+                    playitem = xbmcgui.ListItem(path=stream['mpd_url'], offscreen=True)
 
                     # Kodi 19 Matrix or higher
                     if self.get_kodi_version() >= '19':
@@ -261,7 +261,7 @@ class KodiHelper(object):
                     playitem.setProperty('inputstream.adaptive.license_key',
                                          stream['license_url'] + '|' + header + '|R{SSM}|')
             else:
-                playitem = xbmcgui.ListItem(path=stream['hls_url'])
+                playitem = xbmcgui.ListItem(path=stream['hls_url'], offscreen=True)
 
                 if useIsa:
                     # Kodi 19 Matrix or higher
