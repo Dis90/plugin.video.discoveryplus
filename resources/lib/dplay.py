@@ -123,10 +123,10 @@ class Dplay(object):
             return req.content
 
         except requests.exceptions.ConnectionError as error:
-            self.log('Connection Error: - %s' % error.message)
+            self.log('Connection Error: - %s' % error)
             raise
         except requests.exceptions.RequestException as error:
-            self.log('Error: - %s' % error.value)
+            self.log('Error: - %s' % error)
             raise
 
     def raise_dplay_error(self, response):
