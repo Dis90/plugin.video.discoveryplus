@@ -540,7 +540,7 @@ def list_page_in(page_path):
             home_collections = helper.d.get_config_in()['data']['attributes']['config']['pageCollections']['home']
             for home_collection in home_collections:
                 try:
-                    collection = helper.d.get_collections(collection_id=home_collection)['data']
+                    collection = helper.d.get_collections(collection_id=home_collection, page=1)['data']
                 except:
                     continue
                 if collection['attributes']['component']['id'] == 'carousel':
