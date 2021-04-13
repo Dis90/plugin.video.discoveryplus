@@ -23,6 +23,7 @@ def list_pages():
     if helper.d.locale_suffix == 'in':
         helper.add_item(helper.language(30017), params={'action': 'list_page', 'page_path': '/liked-videos'})
         helper.add_item('Watchlist', params={'action': 'list_page', 'page_path': '/watch-later'})
+        helper.add_item('Kids', params={'action': 'list_page', 'page_path': '/kids/home'})
         page_data = helper.d.get_menu('/bottom-menu-v3')
     else:
         page_data = helper.d.get_menu('/web-menubar')
