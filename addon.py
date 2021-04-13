@@ -2788,6 +2788,50 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                                 art=link_art,
                                                 folder_name=page_data['data']['attributes'].get('title'))
 
+                    # Kids -> Superheroes discoveryplus.in
+                    if collectionItem['relationships'].get('taxonomyNode'):
+                        for taxonomyNode in taxonomyNodes:
+                            if collectionItem['relationships']['taxonomyNode']['data']['id'] == taxonomyNode['id']:
+
+                                # Find page path from routes
+                                for route in routes:
+                                    if route['id'] == taxonomyNode['relationships']['routes']['data'][0]['id']:
+                                        next_page_path = route['attributes']['url']
+
+                                params = {
+                                    'action': 'list_page',
+                                    'page_path': next_page_path
+                                }
+
+                                fanart_image = None
+                                thumb_image = None
+                                logo_image = None
+                                poster_image = None
+                                if taxonomyNode['relationships'].get('images'):
+                                    for image in images:
+                                        for taxonomyNode_images in taxonomyNode['relationships']['images']['data']:
+                                            if image['id'] == taxonomyNode_images['id']:
+                                                if image['attributes']['kind'] == 'default':
+                                                    fanart_image = image['attributes']['src']
+                                                    thumb_image = image['attributes']['src']
+                                                if image['attributes']['kind'] == 'logo':
+                                                    logo_image = image['attributes']['src']
+                                                if image['attributes']['kind'] == 'poster_with_logo':
+                                                    poster_image = image['attributes']['src']
+
+                                art = {
+                                    'fanart': fanart_image,
+                                    'thumb': thumb_image,
+                                    'clearlogo': logo_image,
+                                    'poster': poster_image
+                                }
+
+                                info = {
+                                    'plot': taxonomyNode['attributes'].get('description')
+                                }
+
+                                helper.add_item(taxonomyNode['attributes']['name'], params, info=info, art=art, content='tvshows', sort_method='unsorted')
+
         try:
             if page_data['data']['meta']['itemsCurrentPage'] != page_data['data']['meta']['itemsTotalPages']:
                 nextPage = page_data['data']['meta']['itemsCurrentPage'] + 1
