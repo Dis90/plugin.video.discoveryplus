@@ -1328,7 +1328,6 @@ def list_page(page_path):
                                                         # Promotion grids (grids with background image)
                                                         if collectionItem['relationships'].get('show') or \
                                                                 collectionItem['relationships'].get('video') or \
-                                                                collectionItem['relationships'].get('image') or \
                                                                 collectionItem['relationships'].get('link'):
                                                             if len(collection['relationships']['items'][
                                                                        'data']) > 1:
