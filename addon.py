@@ -1174,7 +1174,7 @@ def list_page(page_path):
 
                                                 # Collection doesn't have title = categories
                                                 else:
-                                                    # List categories (Reality, Comedy etc)
+                                                    # List categories (Reality, Comedy etc) used at least in d+ co.uk
                                                     for c in collection['relationships']['items']['data']:
                                                         for collectionItem in collectionItems:
                                                             if c['id'] == collectionItem['id']:
