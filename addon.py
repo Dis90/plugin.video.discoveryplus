@@ -1155,6 +1155,7 @@ def list_page(page_path):
                                                                             info=channel_info, content='videos')
 
                                         # Homepage, Channel -> subcategories (New videos, Shows).
+                                        # Also Categories -> Adventure -> subcategories (Alle Programma's) in d+ NL 15.4.2021
                                         if collection['attributes']['component']['id'] == 'content-grid' or \
                                                 collection['attributes']['component']['id'] == 'content-rail':
                                             # Hide empty grids (example upcoming events when there is no upcoming events).
@@ -1166,12 +1167,7 @@ def list_page(page_path):
                                                         'collection_id': collection['id']
                                                     }
 
-                                                    if collection['attributes'].get('title'):
-                                                        title = collection['attributes']['title']
-                                                    else:
-                                                        title = collection['attributes']['name']
-
-                                                    helper.add_item(title, params,
+                                                    helper.add_item(collection['attributes']['title'], params,
                                                                     content='videos',
                                                                     folder_name=page['attributes'].get(
                                                                         'pageMetadataTitle'))
