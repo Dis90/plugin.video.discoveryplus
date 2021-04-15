@@ -912,6 +912,7 @@ def list_page(page_path):
 
                                         list_collection_items(collection_id=collection['id'], page_path=page_path)
 
+                                    # Probably not in use anymore 15.4.2021
                                     # Channel pages with only one pageItem
                                     # Content-hero (used in channels page where watch button is visible)
                                     # collection['relationships']['items']['data'][0] = channel name and livestream
