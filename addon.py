@@ -473,7 +473,7 @@ def list_page_us(page_path, search_query=None):
                                                                                         'name'),
                                                                                     'plot': channel['attributes'].get(
                                                                                         'description'),
-                                                                                    'playcount': '0'
+                                                                                    'playcount': 0
                                                                                 }
 
                                                                                 channel_logo = None
@@ -774,7 +774,7 @@ def list_page_in(page_path):
                                                                                  'attributes'].get('name'),
                                                                     'plot': channel['attributes'].get(
                                                                         'description'),
-                                                                    'playcount': '0'
+                                                                    'playcount': 0
                                                                 }
 
                                                                 channel_logo = None
@@ -942,7 +942,7 @@ def list_page(page_path):
                                                                                  'attributes'].get('name'),
                                                                     'plot': channel['attributes'].get(
                                                                         'description'),
-                                                                    'playcount': '0'
+                                                                    'playcount': 0
                                                                 }
 
                                                                 channel_logo = None
@@ -1083,7 +1083,7 @@ def list_page(page_path):
                                                                                      'attributes'].get('name'),
                                                                         'plot': channel['attributes'].get(
                                                                             'description'),
-                                                                        'playcount': '0'
+                                                                        'playcount': 0
                                                                     }
 
                                                                     channel_logo = None
@@ -1846,15 +1846,15 @@ def list_collection_items(collection_id, page_path=None):
                                         if helper.get_setting('sync_playback'):
                                             if video['attributes']['viewingHistory']['viewed']:
                                                 if video['attributes']['viewingHistory'].get('completed'):  # Watched video
-                                                    episode_info['playcount'] = '1'
+                                                    episode_info['playcount'] = 1
                                                     resume = 0
                                                     total = duration
                                                 else:  # Partly watched video
-                                                    episode_info['playcount'] = '0'
+                                                    episode_info['playcount'] = 0
                                                     resume = video['attributes']['viewingHistory']['position'] / 1000.0
                                                     total = duration
                                             else:  # Unwatched video
-                                                episode_info['playcount'] = '0'
+                                                episode_info['playcount'] = 0
                                                 resume = 0
                                                 total = 1
                                         else:  # Kodis resume data used
@@ -1937,7 +1937,7 @@ def list_collection_items(collection_id, page_path=None):
                                                 'title': helper.language(30014) + ' ' + channel['attributes'].get(
                                                     'name'),
                                                 'plot': channel['attributes'].get('description'),
-                                                'playcount': '0'
+                                                'playcount': 0
                                             }
 
                                             channel_logo = None
@@ -2363,15 +2363,15 @@ def list_favorite_watchlist_videos_in(videoType=None, playlist=None):
         if helper.get_setting('sync_playback'):
             if video['attributes']['viewingHistory']['viewed']:
                 if video['attributes']['viewingHistory']['completed']:  # Watched video
-                    episode_info['playcount'] = '1'
+                    episode_info['playcount'] = 1
                     resume = 0
                     total = duration
                 else:  # Partly watched video
-                    episode_info['playcount'] = '0'
+                    episode_info['playcount'] = 0
                     resume = video['attributes']['viewingHistory']['position'] / 1000.0
                     total = duration
             else:  # Unwatched video
-                episode_info['playcount'] = '0'
+                episode_info['playcount'] = 0
                 resume = 0
                 total = 1
         else:  # Kodis resume data used
@@ -2630,17 +2630,17 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                 if helper.get_setting('sync_playback'):
                                     if video['attributes']['viewingHistory']['viewed']:
                                         if video['attributes']['viewingHistory']['completed']:  # Watched video
-                                            episode_info['playcount'] = '1'
+                                            episode_info['playcount'] = 1
                                             resume = 0
                                             total = duration
                                         else:  # Partly watched video
-                                            episode_info['playcount'] = '0'
+                                            episode_info['playcount'] = 0
                                             resume = video['attributes']['viewingHistory']['position'] / 1000.0
                                             total = duration
                                     else:  # Unwatched video
-                                        episode_info['playcount'] = '0'
+                                        episode_info['playcount'] = 0
                                         resume = 0
-                                        total = 1
+                                        total = duration
                                 else:  # Kodis resume data used
                                     resume = None
                                     total = None
