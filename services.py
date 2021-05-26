@@ -10,6 +10,3 @@ psuedo_th = threading.Thread(target=pseudotv.regPseudoTV)
 
 proxy_th.start()
 psuedo_th.start()
-
-#proxy.main()
-#psuedotv.regPseudoTV()
