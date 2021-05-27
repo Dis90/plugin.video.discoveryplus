@@ -26,8 +26,8 @@ class KodiHelper(object):
         addon = self.get_addon()
         self.base_url = base_url
         self.handle = handle
-        self.addon_path = xbmc.translatePath(addon.getAddonInfo('path'))
-        self.addon_profile = xbmc.translatePath(addon.getAddonInfo('profile'))
+        self.addon_path = xbmcvfs.translatePath(addon.getAddonInfo('path'))
+        self.addon_profile = xbmcvfs.translatePath(addon.getAddonInfo('profile'))
         self.addon_name = addon.getAddonInfo('id')
         self.addon_version = addon.getAddonInfo('version')
         self.language = addon.getLocalizedString
