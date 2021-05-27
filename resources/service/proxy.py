@@ -143,10 +143,15 @@ class HLSProxyRequestHandler(BaseHTTPRequestHandler):
                     self.wfile.write(self.make_chunk(data))
                 self.wfile.write(self.make_chunk(b""))
 
+class HelpMonitor(xbmc.Monitor):
+    def __init__(self):
+        super(xbmc.Monitor, self).__init__()
+
 def main():
     host = ("127.0.0.1", 48201)
     hls_proxy = f"http://{host[0]}:{host[1]}/"
     server = HLSProxyServer(host, HLSProxyRequestHandler)
+    monitor = HelpMonitor()
     httpd = threading.Thread(target=server.serve_forever)
     httpd.setDaemon(1)
     httpd.start()
