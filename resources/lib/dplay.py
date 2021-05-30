@@ -14,8 +14,6 @@ import uuid
 import xbmcaddon
 import xbmcgui
 
-from urllib.parse import urlparse, urlencode
-
 try: # Python 3
     import http.cookiejar as cookielib
 except ImportError: # Python 2
@@ -25,7 +23,7 @@ try: # Python 3
     from urllib.parse import urlparse, urljoin, quote
 except ImportError: # Python 2
     from urlparse import urlparse, urljoin
-    from urllib import quote
+    from urllib import quote, urlencode
 
 try:  # Python 2
     unicode
