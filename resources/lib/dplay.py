@@ -23,7 +23,7 @@ try: # Python 3
     from urllib.parse import urlparse, urljoin, quote
 except ImportError: # Python 2
     from urlparse import urlparse, urljoin
-    from urllib import quote
+    from urllib import quote, urlencode
 
 try:  # Python 2
     unicode
@@ -833,14 +833,17 @@ class Dplay(object):
 
         # discoveryplus.com (US)
         if self.locale_suffix == 'us':
-            # discoveryplus.com has frame-rate="30.000" even though videos are 29.970 fps. This downloads the m3u8 and changes 30.000 to 29.970
-            originalm3u8 = requests.get(data_dict['attributes']['streaming'][0]['url']).text
-            updatedm3u8 = originalm3u8.replace("30.000", "29.970")
-            tempm3u8 = open(self.tempdir + "temp.m3u8", "w")
-            tempm3u8.write(updatedm3u8)
-            tempm3u8.close()
-            tempm3u8path = self.tempdir.replace("\\", "/") #replace backslashes in path with frontslashes on windows or ISA fails to load path
-            stream['hls_url'] = tempm3u8path + "temp.m3u8"
+            # use hls proxy to change framerate from 30.000 to 29.970
+            path = "/dplus_proxy.m3u8"
+            hls_params = {}
+            hls_params["hls_origin_url"] = data_dict['attributes']['streaming'][0]['url']
+            hls_params["old_framerate"] = "30.000"
+            hls_params["new_framerate"] = "29.970"
+            hls_proxy = (urlparse("http://127.0.0.1:48201/")._replace(
+                path=path,
+                query=urlencode(hls_params),).geturl()
+            )
+            stream['hls_url'] = hls_proxy
             stream['drm_enabled'] = data_dict['attributes']['streaming'][0]['protection']['drmEnabled']
         else:
             stream['hls_url'] = data_dict['attributes']['streaming']['hls']['url']
