@@ -1,3 +1,5 @@
+# thanks to matthuisman for the example at https://github.com/matthuisman/proxy.plugin.example
+
 import threading
 
 import xbmc
