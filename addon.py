@@ -1315,9 +1315,14 @@ def list_page(page_path):
                                                                         thumb_image = image['attributes']['src']
                                                                     if image['attributes']['kind'] == 'logo':
                                                                         logo_image = image['attributes']['src']
-                                                                    if image['attributes'][
-                                                                        'kind'] == 'poster_with_logo':
-                                                                        poster_image = image['attributes']['src']
+                                                                    # discoveryplus.in has logos in poster
+                                                                    if helper.d.locale_suffix == 'in':
+                                                                        if image['attributes']['kind'] == 'poster':
+                                                                            poster_image = image['attributes']['src']
+                                                                    else:
+                                                                        if image['attributes'][
+                                                                            'kind'] == 'poster_with_logo':
+                                                                            poster_image = image['attributes']['src']
 
                                                     show_art = {
                                                         'fanart': fanart_image,
@@ -1608,8 +1613,14 @@ def list_collection_items(collection_id, page_path=None):
                                                         thumb_image = image['attributes']['src']
                                                     if image['attributes']['kind'] == 'logo':
                                                         logo_image = image['attributes']['src']
-                                                    if image['attributes']['kind'] == 'poster_with_logo':
-                                                        poster_image = image['attributes']['src']
+                                                    # discoveryplus.in has logos in poster
+                                                    if helper.d.locale_suffix == 'in':
+                                                        if image['attributes']['kind'] == 'poster':
+                                                            poster_image = image['attributes']['src']
+                                                    else:
+                                                        if image['attributes'][
+                                                            'kind'] == 'poster_with_logo':
+                                                            poster_image = image['attributes']['src']
 
                                     show_art = {
                                         'fanart': fanart_image,
@@ -1736,8 +1747,14 @@ def list_collection_items(collection_id, page_path=None):
                                                             thumb_image = image['attributes']['src']
                                                         if image['attributes']['kind'] == 'logo':
                                                             logo_image = image['attributes']['src']
-                                                        if image['attributes']['kind'] == 'poster_with_logo':
-                                                            poster_image = image['attributes']['src']
+                                                        # discoveryplus.in has logos in poster
+                                                        if helper.d.locale_suffix == 'in':
+                                                            if image['attributes']['kind'] == 'poster':
+                                                                poster_image = image['attributes']['src']
+                                                        else:
+                                                            if image['attributes'][
+                                                                'kind'] == 'poster_with_logo':
+                                                                poster_image = image['attributes']['src']
 
                                         show_art = {
                                             'fanart': fanart_image,
@@ -1776,8 +1793,14 @@ def list_collection_items(collection_id, page_path=None):
                                                                     show_fanart_image = image['attributes']['src']
                                                                 if image['attributes']['kind'] == 'logo':
                                                                     show_logo_image = image['attributes']['src']
-                                                                if image['attributes']['kind'] == 'poster_with_logo':
-                                                                    show_poster_image = image['attributes']['src']
+                                                                # discoveryplus.in has logos in poster
+                                                                if helper.d.locale_suffix == 'in':
+                                                                    if image['attributes']['kind'] == 'poster':
+                                                                        show_poster_image = image['attributes']['src']
+                                                                else:
+                                                                    if image['attributes'][
+                                                                        'kind'] == 'poster_with_logo':
+                                                                        show_poster_image = image['attributes']['src']
 
                                         g = []
                                         if video['relationships'].get('genres'):
@@ -2063,8 +2086,14 @@ def list_collection_items(collection_id, page_path=None):
                                                             thumb_image = image['attributes']['src']
                                                         if image['attributes']['kind'] == 'logo':
                                                             logo_image = image['attributes']['src']
-                                                        if image['attributes']['kind'] == 'poster_with_logo':
-                                                            poster_image = image['attributes']['src']
+                                                        # discoveryplus.in has logos in poster
+                                                        if helper.d.locale_suffix == 'in':
+                                                            if image['attributes']['kind'] == 'poster':
+                                                                poster_image = image['attributes']['src']
+                                                        else:
+                                                            if image['attributes'][
+                                                                'kind'] == 'poster_with_logo':
+                                                                poster_image = image['attributes']['src']
 
                                         art = {
                                             'fanart': fanart_image,
@@ -2144,8 +2173,14 @@ def list_search_shows(search_query):
                             thumb_image = image['attributes']['src']
                         if image['attributes']['kind'] == 'logo':
                             logo_image = image['attributes']['src']
-                        if image['attributes']['kind'] == 'poster_with_logo':
-                            poster_image = image['attributes']['src']
+                        # discoveryplus.in has logos in poster
+                        if helper.d.locale_suffix == 'in':
+                            if image['attributes']['kind'] == 'poster':
+                                poster_image = image['attributes']['src']
+                        else:
+                            if image['attributes'][
+                                'kind'] == 'poster_with_logo':
+                                poster_image = image['attributes']['src']
 
         show_art = {
             'fanart': fanart_image,
@@ -2227,8 +2262,14 @@ def list_favorites():
                                     thumb_image = image['attributes']['src']
                                 if image['attributes']['kind'] == 'logo':
                                     logo_image = image['attributes']['src']
-                                if image['attributes']['kind'] == 'poster_with_logo':
-                                    poster_image = image['attributes']['src']
+                                # discoveryplus.in has logos in poster
+                                if helper.d.locale_suffix == 'in':
+                                    if image['attributes']['kind'] == 'poster':
+                                        poster_image = image['attributes']['src']
+                                else:
+                                    if image['attributes'][
+                                        'kind'] == 'poster_with_logo':
+                                        poster_image = image['attributes']['src']
 
                 show_art = {
                     'fanart': fanart_image,
@@ -2296,8 +2337,14 @@ def list_favorites_in():
                             thumb_image = image['attributes']['src']
                         if image['attributes']['kind'] == 'logo':
                             logo_image = image['attributes']['src']
-                        if image['attributes']['kind'] == 'poster_with_logo':
-                            poster_image = image['attributes']['src']
+                        # discoveryplus.in has logos in poster
+                        if helper.d.locale_suffix == 'in':
+                            if image['attributes']['kind'] == 'poster':
+                                poster_image = image['attributes']['src']
+                        else:
+                            if image['attributes'][
+                                'kind'] == 'poster_with_logo':
+                                poster_image = image['attributes']['src']
 
         show_art = {
             'fanart': fanart_image,
@@ -2350,8 +2397,14 @@ def list_favorite_watchlist_videos_in(videoType=None, playlist=None):
                                 show_fanart_image = image['attributes']['src']
                             if image['attributes']['kind'] == 'logo':
                                 show_logo_image = image['attributes']['src']
-                            if image['attributes']['kind'] == 'poster_with_logo':
-                                show_poster_image = image['attributes']['src']
+                            # discoveryplus.in has logos in poster
+                            if helper.d.locale_suffix == 'in':
+                                if image['attributes']['kind'] == 'poster':
+                                    show_poster_image = image['attributes']['src']
+                            else:
+                                if image['attributes'][
+                                    'kind'] == 'poster_with_logo':
+                                    show_poster_image = image['attributes']['src']
 
         g = []
         if video['relationships'].get('txGenres'):
@@ -2570,8 +2623,14 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                                     thumb_image = image['attributes']['src']
                                                 if image['attributes']['kind'] == 'logo':
                                                     logo_image = image['attributes']['src']
-                                                if image['attributes']['kind'] == 'poster_with_logo':
-                                                    poster_image = image['attributes']['src']
+                                                # discoveryplus.in has logos in poster
+                                                if helper.d.locale_suffix == 'in':
+                                                    if image['attributes']['kind'] == 'poster':
+                                                        poster_image = image['attributes']['src']
+                                                else:
+                                                    if image['attributes'][
+                                                        'kind'] == 'poster_with_logo':
+                                                        poster_image = image['attributes']['src']
 
                                 show_art = {
                                     'fanart': fanart_image,
@@ -2611,8 +2670,14 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                                             show_fanart_image = image['attributes']['src']
                                                         if image['attributes']['kind'] == 'logo':
                                                             show_logo_image = image['attributes']['src']
-                                                        if image['attributes']['kind'] == 'poster_with_logo':
-                                                            show_poster_image = image['attributes']['src']
+                                                        # discoveryplus.in has logos in poster
+                                                        if helper.d.locale_suffix == 'in':
+                                                            if image['attributes']['kind'] == 'poster':
+                                                                show_poster_image = image['attributes']['src']
+                                                        else:
+                                                            if image['attributes'][
+                                                                'kind'] == 'poster_with_logo':
+                                                                show_poster_image = image['attributes']['src']
 
                                 g = []
                                 if video['relationships'].get('genres'):
@@ -2942,8 +3007,14 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                                     thumb_image = image['attributes']['src']
                                                 if image['attributes']['kind'] == 'logo':
                                                     logo_image = image['attributes']['src']
-                                                if image['attributes']['kind'] == 'poster_with_logo':
-                                                    poster_image = image['attributes']['src']
+                                                # discoveryplus.in has logos in poster
+                                                if helper.d.locale_suffix == 'in':
+                                                    if image['attributes']['kind'] == 'poster':
+                                                        poster_image = image['attributes']['src']
+                                                else:
+                                                    if image['attributes'][
+                                                        'kind'] == 'poster_with_logo':
+                                                        poster_image = image['attributes']['src']
 
                                 art = {
                                     'fanart': fanart_image,
