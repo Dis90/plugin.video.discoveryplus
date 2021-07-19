@@ -2033,7 +2033,7 @@ def list_collection_items(collection_id, page_path=None):
                                                         art=category_art,
                                                         folder_name=collection['attributes'].get('title'))
 
-                            # List Olympics/Sport -> All Sports
+                            # List Olympics/Sport -> All Sports in European countries. Added 19.7.2021
                             if collectionItem['relationships'].get('taxonomyNode'):
                                 for taxonomyNode in taxonomyNodes:
                                     if collectionItem['relationships']['taxonomyNode']['data']['id'] == taxonomyNode[
@@ -2816,7 +2816,7 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                                                     folder_name=collection['attributes'].get(
                                                                         'title'))
 
-                                # Olympics and Sport menu items, used at least in finnish d+
+                                # Olympics and Sport menu items in European countries. Added 19.7.2021
                                 if collection['attributes']['component']['id'] == 'menu-item':
                                     # Don't list empty category
                                     if collection.get('relationships'):
