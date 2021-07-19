@@ -82,8 +82,8 @@ def list_pages():
                 if collectionItem['relationships'].get('collection'):
                     for collection in collections:
                         if collectionItem['relationships']['collection']['data']['id'] == collection['id']:
-                            if collection['attributes']['component']['id'] == 'menu-item':
 
+                            if collection['attributes']['component']['id'] == 'menu-item':
                                 for collectionItem2 in collectionItems:
                                     if collection['relationships']['items']['data'][0]['id'] == collectionItem2['id']:
                                         # Get only links
@@ -130,6 +130,7 @@ def list_pages():
                                                                     content='videos',
                                                                     art=link_art)
 
+                            # Example Olympics and Sport in European countries. Added 19.7.2021
                             if collection['attributes']['component']['id'] == 'sub-menu':
                                 params = {
                                     'action': 'list_collection',
@@ -2823,7 +2824,7 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                         if collection['attributes'].get('title') or collection['attributes'].get(
                                                 'name'):
 
-                                            # content-grid name can be title or name
+                                            # menu-item name can be title or name
                                             if collection['attributes'].get('title'):
                                                 title = collection['attributes']['title']
                                             elif collection['attributes'].get('name'):
