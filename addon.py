@@ -82,51 +82,67 @@ def list_pages():
                 if collectionItem['relationships'].get('collection'):
                     for collection in collections:
                         if collectionItem['relationships']['collection']['data']['id'] == collection['id']:
-                            for collectionItem2 in collectionItems:
-                                if collection['relationships']['items']['data'][0]['id'] == collectionItem2['id']:
-                                    # Get only links
-                                    if collectionItem2['relationships'].get('link'):
-                                        for link in links:
-                                            # Hide unwanted menu links
-                                            if collectionItem2['relationships']['link']['data']['id'] == link[
-                                                'id'] and \
-                                                    link['attributes'][
-                                                        'kind'] == 'Internal Link' and collection['attributes'][
-                                                'title'] not in helper.d.unwanted_menu_items:
+                            if collection['attributes']['component']['id'] == 'menu-item':
 
-                                                # Find page path from routes
-                                                for route in routes:
-                                                    if route['id'] == \
-                                                            link['relationships']['linkedContentRoutes']['data'][0][
-                                                                'id']:
-                                                        next_page_path = route['attributes']['url']
+                                for collectionItem2 in collectionItems:
+                                    if collection['relationships']['items']['data'][0]['id'] == collectionItem2['id']:
+                                        # Get only links
+                                        if collectionItem2['relationships'].get('link'):
+                                            for link in links:
+                                                # Hide unwanted menu links
+                                                if collectionItem2['relationships']['link']['data']['id'] == link[
+                                                    'id'] and \
+                                                        link['attributes'][
+                                                            'kind'] == 'Internal Link' and collection['attributes'][
+                                                    'title'] not in helper.d.unwanted_menu_items:
 
-                                                params = {
-                                                    'action': 'list_page',
-                                                    'page_path': next_page_path
-                                                }
-
-                                                link_info = {
-                                                    'plot': link['attributes'].get('description')
-                                                }
-
-                                                if link['relationships'].get('images'):
-                                                    for image in images:
-                                                        if image['id'] == \
-                                                                link['relationships']['images']['data'][0][
+                                                    # Find page path from routes
+                                                    for route in routes:
+                                                        if route['id'] == \
+                                                                link['relationships']['linkedContentRoutes']['data'][0][
                                                                     'id']:
-                                                            thumb_image = image['attributes']['src']
-                                                else:
-                                                    thumb_image = None
+                                                            next_page_path = route['attributes']['url']
 
-                                                link_art = {
-                                                    'thumb': thumb_image
-                                                }
-                                                # Have to use collection title instead link title because some links doesn't have title
-                                                helper.add_item(collection['attributes']['title'], params,
-                                                                info=link_info,
-                                                                content='videos',
-                                                                art=link_art)
+                                                    params = {
+                                                        'action': 'list_page',
+                                                        'page_path': next_page_path
+                                                    }
+
+                                                    link_info = {
+                                                        'plot': link['attributes'].get('description')
+                                                    }
+
+                                                    if link['relationships'].get('images'):
+                                                        for image in images:
+                                                            if image['id'] == \
+                                                                    link['relationships']['images']['data'][0][
+                                                                        'id']:
+                                                                thumb_image = image['attributes']['src']
+                                                    else:
+                                                        thumb_image = None
+
+                                                    link_art = {
+                                                        'thumb': thumb_image
+                                                    }
+                                                    # Have to use collection title instead link title because some links doesn't have title
+                                                    helper.add_item(collection['attributes']['title'], params,
+                                                                    info=link_info,
+                                                                    content='videos',
+                                                                    art=link_art)
+
+                            if collection['attributes']['component']['id'] == 'sub-menu':
+                                params = {
+                                    'action': 'list_collection',
+                                    'collection_id': collection['id']
+                                }
+
+                                if collection['attributes'].get('title'):
+                                    title = collection['attributes']['title']
+                                else:
+                                    title = collection['attributes']['name']
+
+                                helper.add_item(title, params,
+                                                content='videos')
 
     # Search
     helper.add_item(helper.language(30007), params={'action': 'search'})
@@ -1629,23 +1645,23 @@ def list_collection_items(collection_id, page_path=None):
                                     if collectionItem['relationships']['collection']['data']['id'] == c2['id']:
                                         # Don't list empty category
                                         if c2.get('relationships'):
-                                                params = {
-                                                    'action': 'list_collection_items',
-                                                    'page_path': page_path,
-                                                    'collection_id': c2['id']
-                                                }
+                                            params = {
+                                                'action': 'list_collection_items',
+                                                'page_path': page_path,
+                                                'collection_id': c2['id']
+                                            }
 
-                                                if c2['attributes'].get('name'):
-                                                    if c2['attributes']['name'] == 'blueprint-show-seasons-grid':
-                                                        title = 'Episodes'
-                                                    elif c2['attributes']['name'] == 'blueprint-show-shorts':
-                                                        title = 'Shorts'
-                                                    else:
-                                                        title = c2['attributes']['name']
+                                            if c2['attributes'].get('name'):
+                                                if c2['attributes']['name'] == 'blueprint-show-seasons-grid':
+                                                    title = 'Episodes'
+                                                elif c2['attributes']['name'] == 'blueprint-show-shorts':
+                                                    title = 'Shorts'
                                                 else:
-                                                    title = ''
+                                                    title = c2['attributes']['name']
+                                            else:
+                                                title = ''
 
-                                                helper.add_item(title, params, content='videos', folder_name=pages[0]['attributes'].get('title'))
+                                            helper.add_item(title, params, content='videos', folder_name=pages[0]['attributes'].get('title'))
 
                             # List shows
                             if collectionItem['relationships'].get('show'):
@@ -1829,9 +1845,15 @@ def list_collection_items(collection_id, page_path=None):
                                             else:  # Only one package in packages = Premium
                                                 plot = '[discovery+] ' + plot
 
+                                        # secondaryTitle used in sport events
+                                        if video['attributes'].get('secondaryTitle'):
+                                            video_title = video['attributes'].get('name').lstrip() + ' - ' + video['attributes']['secondaryTitle'].lstrip()
+                                        else:
+                                            video_title = video['attributes'].get('name').lstrip()
+
                                         episode_info = {
                                             'mediatype': 'episode',
-                                            'title': video['attributes'].get('name').lstrip(),
+                                            'title': video_title,
                                             'tvshowtitle': show_title,
                                             'season': video['attributes'].get('seasonNumber'),
                                             'episode': video['attributes'].get('episodeNumber'),
@@ -1868,7 +1890,7 @@ def list_collection_items(collection_id, page_path=None):
                                             'poster': show_poster_image
                                         }
 
-                                        helper.add_item(video['attributes'].get('name').lstrip(), params=params,
+                                        helper.add_item(video_title, params=params,
                                                         info=episode_info, art=episode_art,
                                                         content='episodes', playable=True, resume=resume, total=total,
                                                         folder_name=collection['attributes'].get('title'),
@@ -2010,6 +2032,53 @@ def list_collection_items(collection_id, page_path=None):
                                         helper.add_item(link_title, params, content='videos',
                                                         art=category_art,
                                                         folder_name=collection['attributes'].get('title'))
+
+                            # List Olympics/Sport -> All Sports
+                            if collectionItem['relationships'].get('taxonomyNode'):
+                                for taxonomyNode in taxonomyNodes:
+                                    if collectionItem['relationships']['taxonomyNode']['data']['id'] == taxonomyNode[
+                                        'id']:
+
+                                        # Find page path from routes
+                                        for route in routes:
+                                            if route['id'] == taxonomyNode['relationships']['routes']['data'][0]['id']:
+                                                next_page_path = route['attributes']['url']
+
+                                        params = {
+                                            'action': 'list_page',
+                                            'page_path': next_page_path
+                                        }
+
+                                        fanart_image = None
+                                        thumb_image = None
+                                        logo_image = None
+                                        poster_image = None
+                                        if taxonomyNode['relationships'].get('images'):
+                                            for image in images:
+                                                for taxonomyNode_images in taxonomyNode['relationships']['images'][
+                                                    'data']:
+                                                    if image['id'] == taxonomyNode_images['id']:
+                                                        if image['attributes']['kind'] == 'default':
+                                                            fanart_image = image['attributes']['src']
+                                                            thumb_image = image['attributes']['src']
+                                                        if image['attributes']['kind'] == 'logo':
+                                                            logo_image = image['attributes']['src']
+                                                        if image['attributes']['kind'] == 'poster_with_logo':
+                                                            poster_image = image['attributes']['src']
+
+                                        art = {
+                                            'fanart': fanart_image,
+                                            'thumb': thumb_image,
+                                            'clearlogo': logo_image,
+                                            'poster': poster_image
+                                        }
+
+                                        info = {
+                                            'plot': taxonomyNode['attributes'].get('description')
+                                        }
+
+                                        helper.add_item(taxonomyNode['attributes']['name'], params, info=info, art=art,
+                                                        content='videos', folder_name=collection['attributes'].get('title'))
 
     helper.eod()
 
@@ -2746,6 +2815,66 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                                                     art=category_art,
                                                                     folder_name=collection['attributes'].get(
                                                                         'title'))
+
+                                # Olympics and Sport menu items, used at least in finnish d+
+                                if collection['attributes']['component']['id'] == 'menu-item':
+                                    # Don't list empty category
+                                    if collection.get('relationships'):
+                                        if collection['attributes'].get('title') or collection['attributes'].get(
+                                                'name'):
+
+                                            # content-grid name can be title or name
+                                            if collection['attributes'].get('title'):
+                                                title = collection['attributes']['title']
+                                            elif collection['attributes'].get('name'):
+                                                title = collection['attributes']['name']
+                                            else:
+                                                title = ''
+
+                                            for collectionItem2 in collectionItems:
+                                                if collectionItem2['id'] == collection['relationships']['items']['data'][0]['id']:
+                                                    if collectionItem2['relationships'].get('link'):
+                                                        for link in links:
+                                                            if collectionItem2['relationships']['link']['data']['id'] == \
+                                                                    link['id']:
+                                                                # Find page path from routes
+                                                                for route in routes:
+                                                                    if route['id'] == \
+                                                                            link['relationships'][
+                                                                                'linkedContentRoutes'][
+                                                                                'data'][0]['id']:
+                                                                        next_page_path = route['attributes']['url']
+
+                                                                params = {
+                                                                    'action': 'list_page',
+                                                                    'page_path': next_page_path
+                                                                }
+
+                                                                if link['relationships'].get('images'):
+                                                                    for image in images:
+                                                                        if image['id'] == \
+                                                                                link['relationships']['images']['data'][
+                                                                                    0][
+                                                                                    'id']:
+                                                                            thumb_image = image['attributes']['src']
+                                                                else:
+                                                                    thumb_image = None
+
+                                                                link_info = {
+                                                                    'plot': link['attributes'].get('description')
+                                                                }
+
+                                                                link_art = {
+                                                                    'fanart': thumb_image,
+                                                                    'thumb': thumb_image
+                                                                }
+
+                                                                helper.add_item(title, params,
+                                                                                info=link_info, content='videos',
+                                                                                art=link_art,
+                                                                                folder_name=page_data['data'][
+                                                                                    'attributes'].get('title'))
+
 
                     # discoveryplus.com (US) search result 'collections' folder content
                     if collectionItem['relationships'].get('link'):
