@@ -142,8 +142,7 @@ def list_pages():
                                 else:
                                     title = collection['attributes']['name']
 
-                                helper.add_item(title, params,
-                                                content='videos')
+                                helper.add_item(title, params, content='videos')
 
     # Search
     helper.add_item(helper.language(30007), params={'action': 'search'})
