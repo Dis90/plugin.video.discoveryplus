@@ -926,7 +926,10 @@ def list_page(page_path):
                                     # if content-grid after pageItem -> list content
                                     if collection['attributes']['component']['id'] == 'content-grid':
 
-                                        list_collection_items(collection_id=collection['id'], page_path=page_path)
+                                        if collection['attributes']['kind'] == 'automatic':
+                                            list_collection(collection_id=collection['attributes']['alias'], page=1)
+                                        else: # kind=manual
+                                            list_collection_items(collection_id=collection['id'], page_path=page_path)
 
                                     # Probably not in use anymore 15.4.2021
                                     # Channel pages with only one pageItem
@@ -1179,8 +1182,10 @@ def list_page(page_path):
                                             if collection.get('relationships'):
                                                 if collection['attributes'].get('title'):
                                                     params = {
-                                                        'action': 'list_collection_items',
-                                                        'page_path': page_path,
+                                                        'action': 'list_collection',
+                                                        'mandatoryParams': collection['attributes'][
+                                                            'component'].get(
+                                                            'mandatoryParams'),  # pf[channel.id]=223
                                                         'collection_id': collection['id']
                                                     }
 
