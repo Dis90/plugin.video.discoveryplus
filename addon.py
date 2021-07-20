@@ -180,7 +180,7 @@ def list_page_us(page_path, search_query=None):
                                     # if content-grid after pageItem -> list content (My List)
                                     if collection['attributes']['component']['id'] == 'content-grid':
 
-                                        list_collection_items(collection_id=collection['id'], page_path=page_path)
+                                        list_collection(collection_id=collection['id'], page=1)
 
                                     # discoveryplus.com (US) search result categories (Shows, Episodes, Specials, Collections, Extras)
                                     if collection['attributes']['component']['id'] == 'tabbed-component':
@@ -384,8 +384,7 @@ def list_page_us(page_path, search_query=None):
                                                 if collection.get('relationships'):
                                                     if collection['attributes'].get('title') or collection['attributes']['alias'] == 'networks':
                                                         params = {
-                                                            'action': 'list_collection_items',
-                                                            'page_path': page_path,
+                                                            'action': 'list_collection',
                                                             'collection_id': collection['id']
                                                         }
 
@@ -416,6 +415,7 @@ def list_page_us(page_path, search_query=None):
                                                                                     c2['attributes']['component'][
                                                                                         'filters'][0].get('options'):
 
+                                                                                # Have to use list_collection_items because collection comes empty
                                                                                 params = {
                                                                                     'action': 'list_collection_items',
                                                                                     'page_path': page_path,
@@ -570,8 +570,7 @@ def list_page_in(page_path):
                     else:
                         title = collection['attributes']['name']
 
-                    helper.add_item(title, params,
-                                    content='videos')
+                    helper.add_item(title, params, content='videos')
 
         for page in pages:
             # If only one pageItem in page -> relationships -> items -> data, list content page
@@ -586,7 +585,7 @@ def list_page_in(page_path):
                                     # if content-grid after pageItem -> list content
                                     if collection['attributes']['component']['id'] == 'content-grid':
 
-                                        list_collection_items(collection_id=collection['id'], page_path=page_path)
+                                        list_collection(collection_id=collection['id'], page=1)
 
                                     if collection['attributes']['component']['id'] == 'mindblown-composite' or collection['attributes']['component']['id'] == 'tab-bar':
                                         for collection_relationship in collection['relationships']['items']['data']:
@@ -596,7 +595,7 @@ def list_page_in(page_path):
                                                         if c2['id'] == collectionItem['relationships']['collection']['data']['id']:
 
                                                             if c2['attributes']['component']['id']  == 'mindblown-videos-list':
-                                                                list_collection_items(collection_id=c2['id'], page_path=page_path)
+                                                                list_collection(collection_id=c2['id'], page=1)
 
                                                             # Favorites (Episodes, Shorts, Shows) and Watchlist (Episodes, Shorts)
                                                             if c2['attributes']['component']['id']  == 'tab-bar-item':
@@ -746,8 +745,7 @@ def list_page_in(page_path):
                                             if collection.get('relationships'):
                                                 if collection['attributes'].get('title'):
                                                     params = {
-                                                        'action': 'list_collection_items',
-                                                        'page_path': page_path,
+                                                        'action': 'list_collection',
                                                         'collection_id': collection['id']
                                                     }
 
@@ -762,8 +760,7 @@ def list_page_in(page_path):
                                                                         'pageMetadataTitle'))
                                                 # Explore Shows and Full Episodes -> BBC
                                                 else:
-                                                    list_collection_items(collection_id=collection['id'],
-                                                                          page_path=page_path)
+                                                    list_collection(collection_id=collection['id'], page=1)
 
                                         # Channel livestream
                                         if collection['attributes']['component']['id'] == 'channel-hero-player':
@@ -2369,7 +2366,10 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                                     else:  # Video is not anymore available for free
                                                         plot = '[discovery+] ' + plot
                                     else:  # Only one package in packages = Premium
-                                        plot = '[discovery+] ' + plot
+                                        if plot:
+                                            plot = '[discovery+] ' + plot
+                                        else:
+                                            plot = '[discovery+]'
 
                                 # secondaryTitle used in sport events
                                 if video['attributes'].get('secondaryTitle'):
@@ -2435,6 +2435,7 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                     # List channels
                     # Used when coming from collection (example Eurosport -> Channels)
                     # Also used now on (5.1.2021) listing all channels at least in finnish discovery+
+                    # Also Explore -> Live Channels & On Demand Shows, Explore Shows and Full Episodes content in d+ India
                     if collectionItem['relationships'].get('channel'):
                         for channel in channels:
                             if collectionItem['relationships']['channel']['data']['id'] == channel['id']:
