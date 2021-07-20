@@ -1181,6 +1181,7 @@ def list_page(page_path):
                                             # Hide empty grids (example upcoming events when there is no upcoming events).
                                             if collection.get('relationships'):
                                                 if collection['attributes'].get('title'):
+                                                    # collection['attributes']['alias'] can also be used as collection_id
                                                     params = {
                                                         'action': 'list_collection',
                                                         'mandatoryParams': collection['attributes'][
