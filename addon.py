@@ -1240,7 +1240,9 @@ def list_page(page_path):
                                                                         'pageMetadataTitle'))
 
                                                 # Collection doesn't have title = list content
-                                                else:
+                                                # Some collections have empty title. Most likely promotion category
+                                                # don't list them example Homepage -> manual-marketing-grid in .es 21.7.2021.
+                                                elif collection['attributes'].get('title') is not '':
                                                     list_collection(collection_id=collection['attributes']['alias'], page=1)
 
                                         # List series season grid
