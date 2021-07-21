@@ -924,7 +924,7 @@ def list_page(page_path):
                                     if collection['attributes']['component']['id'] == 'content-grid':
                                         list_collection(collection_id=collection['attributes']['alias'], page=1)
 
-                                    # Only in use .co.uk 20.7.2021
+                                    # Only in use .co.uk 20.7.2021 (example Eurosport)
                                     # Channel pages with only one pageItem
                                     # Content-hero (used in channels page where watch button is visible)
                                     # collection['relationships']['items']['data'][0] = channel name and livestream
@@ -934,28 +934,11 @@ def list_page(page_path):
                                             for collectionItem in collectionItems:
                                                 if c['id'] == collectionItem['id']:
                                                     if collectionItem['relationships'].get('channel'):
-
-                                                        # Channel livestream
                                                         for channel in channels:
                                                             if \
                                                                     collectionItem['relationships']['channel'][
                                                                         'data'][
                                                                         'id'] == channel['id']:
-                                                                params = {
-                                                                    'action': 'play',
-                                                                    'video_id': channel['id'],
-                                                                    'video_type': 'channel'
-                                                                }
-
-                                                                channel_info = {
-                                                                    'mediatype': 'video',
-                                                                    'title': helper.language(30014) + ' ' +
-                                                                             channel[
-                                                                                 'attributes'].get('name'),
-                                                                    'plot': channel['attributes'].get(
-                                                                        'description'),
-                                                                    'playcount': '0'
-                                                                }
 
                                                                 channel_logo = None
                                                                 fanart_image = None
@@ -985,15 +968,33 @@ def list_page(page_path):
                                                                     'thumb': thumb_image
                                                                 }
 
-                                                                helper.add_item(
-                                                                    helper.language(30014) + ' ' + channel[
-                                                                        'attributes'].get('name'),
-                                                                    params=params,
-                                                                    art=channel_art, info=channel_info,
-                                                                    content='videos',
-                                                                    playable=True)
+                                                                # Show channel livestream if available
+                                                                if channel['attributes']['hasLiveStream']:
+                                                                    params = {
+                                                                        'action': 'play',
+                                                                        'video_id': channel['id'],
+                                                                        'video_type': 'channel'
+                                                                    }
 
-                                                                # List channel category
+                                                                    channel_info = {
+                                                                        'mediatype': 'video',
+                                                                        'title': helper.language(30014) + ' ' +
+                                                                                 channel[
+                                                                                     'attributes'].get('name'),
+                                                                        'plot': channel['attributes'].get(
+                                                                            'description'),
+                                                                        'playcount': '0'
+                                                                    }
+
+                                                                    helper.add_item(
+                                                                        helper.language(30014) + ' ' + channel[
+                                                                            'attributes'].get('name'),
+                                                                        params=params,
+                                                                        art=channel_art, info=channel_info,
+                                                                        content='videos',
+                                                                        playable=True)
+
+                                                                # List channel category if available
                                                                 if len(collection['relationships']['items'][
                                                                            'data']) > 1:
                                                                     for collectionItem2 in collectionItems:
@@ -1003,10 +1004,16 @@ def list_page(page_path):
                                                                                     'items']['data'][1][
                                                                                     'id'] == collectionItem2[
                                                                                     'id']:
-                                                                            collection_id = \
-                                                                                collectionItem2[
+                                                                            for c2 in collections:
+                                                                                if collectionItem2[
                                                                                     'relationships'][
-                                                                                    'collection']['data']['id']
+                                                                                    'collection']['data']['id'] == c2[
+                                                                                    'id']:
+                                                                                    collection_id = c2['attributes'][
+                                                                                        'alias']
+                                                                                    mandatory_params = c2['attributes'][
+                                                                                        'component'].get(
+                                                                                        'mandatoryParams')
 
                                                                     channel_info = {
                                                                         'title': channel['attributes'].get(
@@ -1016,9 +1023,10 @@ def list_page(page_path):
                                                                     }
 
                                                                     params = {
-                                                                        'action': 'list_collection_items',
-                                                                        'page_path': page_path,
-                                                                        'collection_id': collection_id
+                                                                        'action': 'list_collection',
+                                                                        'collection_id': collection_id,
+                                                                        'mandatoryParams': mandatory_params,
+                                                                        # pf[channel.id]=223
                                                                     }
 
                                                                     helper.add_item(
@@ -1069,35 +1077,20 @@ def list_page(page_path):
                                     if pageItem['relationships']['collection']['data']['id'] == collection['id']:
 
                                         # Content-hero (used in channels page where watch button is visible)
+                                        # Generic-hero (used in channels page which doesn't have livestream)
                                         # collection['relationships']['items']['data'][0] = channel name and livestream
                                         # collection['relationships']['items']['data'][1] = channel category items
-                                        if collection['attributes']['component']['id'] == 'content-hero':
+                                        if collection['attributes']['component']['id'] == 'content-hero' or \
+                                                collection['attributes']['component']['id'] == 'generic-hero':
                                             for c in collection['relationships']['items']['data']:
                                                 for collectionItem in collectionItems:
                                                     if c['id'] == collectionItem['id']:
                                                         if collectionItem['relationships'].get('channel'):
-
-                                                            # Channel livestream
                                                             for channel in channels:
                                                                 if \
                                                                         collectionItem['relationships']['channel'][
                                                                             'data'][
                                                                             'id'] == channel['id']:
-                                                                    params = {
-                                                                        'action': 'play',
-                                                                        'video_id': channel['id'],
-                                                                        'video_type': 'channel'
-                                                                    }
-
-                                                                    channel_info = {
-                                                                        'mediatype': 'video',
-                                                                        'title': helper.language(30014) + ' ' +
-                                                                                 channel[
-                                                                                     'attributes'].get('name'),
-                                                                        'plot': channel['attributes'].get(
-                                                                            'description'),
-                                                                        'playcount': '0'
-                                                                    }
 
                                                                     channel_logo = None
                                                                     fanart_image = None
@@ -1127,15 +1120,33 @@ def list_page(page_path):
                                                                         'thumb': thumb_image
                                                                     }
 
-                                                                    helper.add_item(
-                                                                        helper.language(30014) + ' ' + channel[
-                                                                            'attributes'].get('name'),
-                                                                        params=params,
-                                                                        art=channel_art, info=channel_info,
-                                                                        content='videos',
-                                                                        playable=True)
+                                                                    # Show channel livestream if available
+                                                                    if channel['attributes']['hasLiveStream']:
+                                                                        params = {
+                                                                            'action': 'play',
+                                                                            'video_id': channel['id'],
+                                                                            'video_type': 'channel'
+                                                                        }
 
-                                                                    # List channel category
+                                                                        channel_info = {
+                                                                            'mediatype': 'video',
+                                                                            'title': helper.language(30014) + ' ' +
+                                                                                     channel[
+                                                                                         'attributes'].get('name'),
+                                                                            'plot': channel['attributes'].get(
+                                                                                'description'),
+                                                                            'playcount': '0'
+                                                                        }
+
+                                                                        helper.add_item(
+                                                                            helper.language(30014) + ' ' + channel[
+                                                                                'attributes'].get('name'),
+                                                                            params=params,
+                                                                            art=channel_art, info=channel_info,
+                                                                            content='videos',
+                                                                            playable=True)
+
+                                                                    # List channel category if available
                                                                     if len(collection['relationships']['items'][
                                                                                'data']) > 1:
                                                                         for collectionItem2 in collectionItems:
@@ -1145,10 +1156,12 @@ def list_page(page_path):
                                                                                         'items']['data'][1][
                                                                                         'id'] == collectionItem2[
                                                                                         'id']:
-                                                                                collection_id = \
-                                                                                    collectionItem2[
+                                                                                for c2 in collections:
+                                                                                    if collectionItem2[
                                                                                         'relationships'][
-                                                                                        'collection']['data']['id']
+                                                                                        'collection']['data']['id'] == c2['id']:
+                                                                                        collection_id = c2['attributes']['alias']
+                                                                                        mandatory_params = c2['attributes']['component'].get('mandatoryParams')
 
                                                                         channel_info = {
                                                                             'title': channel['attributes'].get(
@@ -1157,11 +1170,11 @@ def list_page(page_path):
                                                                                 'description')
                                                                         }
 
-                                                                        # Have to use list_collection_items because collection_id is generic for all content-hero
                                                                         params = {
-                                                                            'action': 'list_collection_items',
-                                                                            'page_path': page_path,
-                                                                            'collection_id': collection_id
+                                                                            'action': 'list_collection',
+                                                                            'collection_id': collection_id,
+                                                                            'mandatoryParams': mandatory_params,
+                                                                            # pf[channel.id]=223
                                                                         }
 
                                                                         helper.add_item(
@@ -1170,19 +1183,18 @@ def list_page(page_path):
                                                                             info=channel_info, content='videos')
 
                                         # Homepage, Channel -> subcategories (New videos, Shows).
-                                        # Also Categories -> Adventure -> subcategories (Alle Programma's) in d+ NL 15.4.2021
+                                        # Also Categories -> Adventure -> subcategories (Popular, All)
                                         if collection['attributes']['component']['id'] == 'content-grid' or \
                                                 collection['attributes']['component']['id'] == 'content-rail':
                                             # Hide empty grids (example upcoming events when there is no upcoming events).
                                             if collection.get('relationships'):
                                                 if collection['attributes'].get('title'):
-                                                    # collection['attributes']['alias'] can also be used as collection_id
                                                     params = {
                                                         'action': 'list_collection',
+                                                        'collection_id': collection['attributes']['alias'],
                                                         'mandatoryParams': collection['attributes'][
                                                             'component'].get(
-                                                            'mandatoryParams'),  # pf[channel.id]=223
-                                                        'collection_id': collection['id']
+                                                            'mandatoryParams')  # pf[channel.id]=223
                                                     }
 
                                                     helper.add_item(collection['attributes']['title'], params,
