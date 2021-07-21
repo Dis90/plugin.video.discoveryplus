@@ -376,6 +376,9 @@ class Dplay(object):
         return data
 
     def get_collections(self, collection_id, page, mandatoryParams=None, parameter=None):
+        mandatoryParams = None if mandatoryParams == 'None' else mandatoryParams
+        parameter = None if parameter == 'None' else parameter
+
         if mandatoryParams and parameter:
             url = '{api_url}/cms/collections/{collection_id}?{mandatoryParams}&{parameter}'.format(api_url=self.api_url, collection_id=collection_id, mandatoryParams=mandatoryParams, parameter=parameter)
         elif mandatoryParams is None and parameter:
