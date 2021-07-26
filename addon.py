@@ -1267,54 +1267,67 @@ def list_page(page_path):
                                                     }
 
                                                     # Show metadata
-                                                    show = shows[0]
-
-                                                    info['tvshowtitle'] = show['attributes'].get('name')
-                                                    info['plot'] = show['attributes'].get('description')
-                                                    info['season'] = len(show['attributes']['seasonNumbers'])
-                                                    info['episode'] = show['attributes']['episodeCount']
-
-                                                    g = []
-                                                    if show['relationships'].get('genres'):
-                                                        for genre in genres:
-                                                            for show_genre in show['relationships']['genres'][
-                                                                'data']:
-                                                                if genre['id'] == show_genre['id']:
-                                                                    g.append(genre['attributes']['name'])
-
-                                                    if show['relationships'].get('primaryChannel'):
-                                                        for channel in channels:
-                                                            if channel['id'] == \
-                                                                    show['relationships']['primaryChannel']['data'][
-                                                                        'id']:
-                                                                primaryChannel = channel['attributes']['name']
-                                                    else:
-                                                        primaryChannel = None
-
-                                                    info['genre'] = g
-                                                    info['studio'] = primaryChannel
-
                                                     fanart_image = None
                                                     thumb_image = None
                                                     logo_image = None
                                                     poster_image = None
-                                                    if show['relationships'].get('images'):
-                                                        for image in images:
-                                                            for show_images in show['relationships']['images']['data']:
-                                                                if image['id'] == show_images['id']:
-                                                                    if image['attributes']['kind'] == 'default':
-                                                                        fanart_image = image['attributes']['src']
-                                                                        thumb_image = image['attributes']['src']
-                                                                    if image['attributes']['kind'] == 'logo':
-                                                                        logo_image = image['attributes']['src']
-                                                                    # discoveryplus.in has logos in poster
-                                                                    if helper.d.locale_suffix == 'in':
-                                                                        if image['attributes']['kind'] == 'poster':
-                                                                            poster_image = image['attributes']['src']
-                                                                    else:
-                                                                        if image['attributes'][
-                                                                            'kind'] == 'poster_with_logo':
-                                                                            poster_image = image['attributes']['src']
+
+                                                    # Sometimes show's page contains info from multiple different shows
+                                                    # We only want info from selected show
+                                                    # Get show's alternate id from page_path
+                                                    alternate_id = page_path.split('/')[-1]
+
+                                                    for show in shows:
+                                                        if show['attributes']['alternateId'] == alternate_id:
+
+                                                            info['tvshowtitle'] = show['attributes'].get('name')
+                                                            info['plot'] = show['attributes'].get('description')
+                                                            info['season'] = len(show['attributes']['seasonNumbers'])
+                                                            info['episode'] = show['attributes']['episodeCount']
+
+                                                            g = []
+                                                            if show['relationships'].get('genres'):
+                                                                for genre in genres:
+                                                                    for show_genre in show['relationships']['genres'][
+                                                                        'data']:
+                                                                        if genre['id'] == show_genre['id']:
+                                                                            g.append(genre['attributes']['name'])
+
+                                                            if show['relationships'].get('primaryChannel'):
+                                                                for channel in channels:
+                                                                    if channel['id'] == \
+                                                                            show['relationships']['primaryChannel'][
+                                                                                'data'][
+                                                                                'id']:
+                                                                        primaryChannel = channel['attributes']['name']
+                                                            else:
+                                                                primaryChannel = None
+
+                                                            info['genre'] = g
+                                                            info['studio'] = primaryChannel
+
+                                                            if show['relationships'].get('images'):
+                                                                for image in images:
+                                                                    for show_images in show['relationships']['images'][
+                                                                        'data']:
+                                                                        if image['id'] == show_images['id']:
+                                                                            if image['attributes']['kind'] == 'default':
+                                                                                fanart_image = image['attributes'][
+                                                                                    'src']
+                                                                                thumb_image = image['attributes']['src']
+                                                                            if image['attributes']['kind'] == 'logo':
+                                                                                logo_image = image['attributes']['src']
+                                                                            # discoveryplus.in has logos in poster
+                                                                            if helper.d.locale_suffix == 'in':
+                                                                                if image['attributes'][
+                                                                                    'kind'] == 'poster':
+                                                                                    poster_image = image['attributes'][
+                                                                                        'src']
+                                                                            else:
+                                                                                if image['attributes'][
+                                                                                    'kind'] == 'poster_with_logo':
+                                                                                    poster_image = image['attributes'][
+                                                                                        'src']
 
                                                     show_art = {
                                                         'fanart': fanart_image,
