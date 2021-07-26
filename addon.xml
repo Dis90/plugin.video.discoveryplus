@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="plugin.video.discoveryplus" version="1.5.20+matrix.1" name="discovery+" provider-name="Dis90">
+<addon id="plugin.video.discoveryplus" version="1.5.21+matrix.1" name="discovery+" provider-name="Dis90">
 <requires>
   <import addon="xbmc.python" version="3.0.0"/>
   <import addon="script.module.requests" version="2.9.1"/>
@@ -18,6 +18,9 @@
     <icon>resources/icon.png</icon> 
     <fanart>resources/fanart.png</fanart>
   </assets>
-  <news></news>
+  <news>
+    v1.5.21+matrix.1 (26.7.2021)
+    - Fixed season list displaying wrong metadata in some European countries 
+  </news>
 </extension>
 </addon>
