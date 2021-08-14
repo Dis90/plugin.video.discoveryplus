@@ -132,3 +132,7 @@ msgstr "Käytä InputStream Adaptive"
 msgctxt "#30029"
 msgid "Enable UHD (experimental)"
 msgstr "Ota käyttöön UHD (kokeellinen)"
+
+msgctxt "#30030"
+msgid "Promotion"
+msgstr "Esittelyssä"

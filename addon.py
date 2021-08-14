@@ -1108,6 +1108,7 @@ def list_page(page_path):
                                         # Generic-hero (used in channels page which doesn't have livestream)
                                         # collection['relationships']['items']['data'][0] = channel name and livestream
                                         # collection['relationships']['items']['data'][1] = channel category items
+                                        # Also used now on to display promotion grids (14.8.2021)
                                         if collection['attributes']['component']['id'] == 'content-hero' or \
                                                 collection['attributes']['component']['id'] == 'generic-hero':
                                             for c in collection['relationships']['items']['data']:
@@ -1217,6 +1218,71 @@ def list_page(page_path):
                                                                                             art=channel_art,
                                                                                             info=channel_info,
                                                                                             content='videos')
+
+                                                        # Promotion grids (grids with background image)
+                                                        if collectionItem['relationships'].get('show') or \
+                                                                collectionItem['relationships'].get('video') or \
+                                                                collectionItem['relationships'].get('link'):
+                                                            if len(collection['relationships']['items'][
+                                                                       'data']) > 1:
+                                                                # 0 = Promotion name (New, Crime etc) mostly used in homepage
+                                                                if collection['relationships']['items']['data'][0][
+                                                                    'id'] == collectionItem['id']:
+                                                                    if collectionItem['attributes'].get('title'):
+                                                                        title = collectionItem['attributes'][
+                                                                            'title']
+                                                                    # No title = use "Promotion"
+                                                                    else:
+                                                                        title = helper.language(30030)
+
+                                                                    # Fanart
+                                                                    if collectionItem['relationships'].get('image'):
+                                                                        fanart_id = \
+                                                                            collectionItem['relationships'][
+                                                                                'image'][
+                                                                                'data']['id']
+                                                                    elif collectionItem['relationships'].get(
+                                                                            'images'):
+                                                                        fanart_id = \
+                                                                            collectionItem['relationships'][
+                                                                                'images'][
+                                                                                'data'][0]['id']
+                                                                    else:
+                                                                        fanart_id = None
+
+                                                                    if fanart_id:
+                                                                        for image in images:
+                                                                            if image['id'] == fanart_id:
+                                                                                fanart_image = image['attributes'][
+                                                                                    'src']
+                                                                    else:
+                                                                        fanart_image = ''
+
+                                                                    art = {
+                                                                        'fanart': fanart_image,
+                                                                        'thumb': fanart_image
+                                                                    }
+
+                                                                    for collectionItem2 in collectionItems:
+                                                                        # 1 = Promotion items
+                                                                        if \
+                                                                                collection['relationships'][
+                                                                                    'items']['data'][1][
+                                                                                    'id'] == collectionItem2['id']:
+                                                                            collection_id = \
+                                                                                collectionItem2['relationships'][
+                                                                                    'collection']['data']['id']
+
+                                                                    params = {
+                                                                        'action': 'list_collection',
+                                                                        'collection_id': collection_id
+                                                                    }
+
+                                                                    helper.add_item(title, params, art=art,
+                                                                                    content='videos',
+                                                                                    folder_name=page[
+                                                                                        'attributes'].get(
+                                                                                        'pageMetadataTitle'))
 
                                         # Homepage, Channel -> subcategories (New videos, Shows).
                                         # Also Categories -> Adventure -> subcategories (Popular, All)
@@ -2728,7 +2794,7 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                 }
 
                                 # Category titles have stored in different places
-                                if collectionItem['attributes'].get('title'):
+                                if collectionItem.get('attributes') and collectionItem['attributes'].get('title'):
                                     link_title = collectionItem['attributes']['title']
                                 elif link['attributes'].get('title'):
                                     link_title = link['attributes']['title']

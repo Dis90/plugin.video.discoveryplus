@@ -132,3 +132,7 @@ msgstr ""
 msgctxt "#30029"
 msgid "Enable UHD (experimental)"
 msgstr ""
+
+msgctxt "#30030"
+msgid "Promotion"
+msgstr ""
