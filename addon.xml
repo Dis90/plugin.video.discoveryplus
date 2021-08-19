@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="plugin.video.discoveryplus" version="1.5.22+matrix.1" name="discovery+" provider-name="Dis90">
+<addon id="plugin.video.discoveryplus" version="1.5.23+matrix.1" name="discovery+" provider-name="Dis90">
 <requires>
   <import addon="xbmc.python" version="3.0.0"/>
   <import addon="script.module.requests" version="2.9.1"/>
@@ -19,6 +19,9 @@
     <fanart>resources/fanart.png</fanart>
   </assets>
   <news>
+    v1.5.23+matrix.1 (19.8.2021)
+    - New setting for only listing seasons in season listing (EU countries)
+    - If setting for hiding non season categories from seasons page is enabled, you can enable setting for flatten TV show seasons if only one season (EU countries)
     v1.5.22+matrix.1 (14.8.2021)
     - Promoted items are now displayed (rows with large banner but no title) - European countries
     v1.5.21+matrix.1 (26.7.2021)
