@@ -136,3 +136,15 @@ msgstr ""
 msgctxt "#30030"
 msgid "Promotion"
 msgstr ""
+
+msgctxt "#30031"
+msgid "Views"
+msgstr ""
+
+msgctxt "#30032"
+msgid "Hide non season categories from seasons page (European countries)"
+msgstr ""
+
+msgctxt "#30033"
+msgid "Flatten TV show seasons if only one season (European countries)"
+msgstr ""
