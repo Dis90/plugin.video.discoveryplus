@@ -1572,8 +1572,15 @@ def list_collection_items(collection_id, page_path=None):
                                             if route['id'] == show['relationships']['routes']['data'][0]['id']:
                                                 next_page_path = route['attributes']['url']
 
+                                        # User setting for listing only seasons in shows page
+                                        if (helper.d.locale_suffix != 'us' or helper.d.locale_suffix != 'in') \
+                                                and helper.get_setting('seasonsonly'):
+                                            action = "list_seasons_eu"
+                                        else:
+                                            action = "list_page"
+
                                         params = {
-                                            'action': 'list_page',
+                                            'action': action,
                                             'page_path': next_page_path
                                         }
 
@@ -1829,8 +1836,14 @@ def list_search_shows(search_query):
             if route['id'] == show['relationships']['routes']['data'][0]['id']:
                 next_page_path = route['attributes']['url']
 
+        # User setting for listing only seasons in shows page
+        if (helper.d.locale_suffix != 'us' or helper.d.locale_suffix != 'in') and helper.get_setting('seasonsonly'):
+            action = "list_seasons_eu"
+        else:
+            action = "list_page"
+
         params = {
-            'action': 'list_page',
+            'action': action,
             'page_path': next_page_path
         }
 
@@ -1918,8 +1931,14 @@ def list_favorites():
                     if route['id'] == show_data['relationships']['routes']['data'][0]['id']:
                         next_page_path = route['attributes']['url']
 
+                # User setting for listing only seasons in shows page
+                if (helper.d.locale_suffix != 'us' or helper.d.locale_suffix != 'in') and helper.get_setting('seasonsonly'):
+                    action = "list_seasons_eu"
+                else:
+                    action = "list_page"
+
                 params = {
-                    'action': 'list_page',
+                    'action': action,
                     'page_path': next_page_path
                 }
 
@@ -2264,8 +2283,15 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                     if route['id'] == show['relationships']['routes']['data'][0]['id']:
                                         next_page_path = route['attributes']['url']
 
+                                # User setting for listing only seasons in shows page
+                                if (helper.d.locale_suffix != 'us' or helper.d.locale_suffix != 'in') \
+                                        and helper.get_setting('seasonsonly'):
+                                    action = "list_seasons_eu"
+                                else:
+                                    action = "list_page"
+
                                 params = {
-                                    'action': 'list_page',
+                                    'action': action,
                                     'page_path': next_page_path
                                 }
 
@@ -2875,6 +2901,128 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
 
     helper.eod()
 
+def list_seasons_eu(page_path):
+    page_data = helper.d.get_page(page_path)
+
+    pages = list(filter(lambda x: x['type'] == 'page', page_data['included']))
+    pageItems = list(filter(lambda x: x['type'] == 'pageItem', page_data['included']))
+    collections = list(filter(lambda x: x['type'] == 'collection', page_data['included']))
+    images = list(filter(lambda x: x['type'] == 'image', page_data['included']))
+    shows = list(filter(lambda x: x['type'] == 'show', page_data['included']))
+    channels = list(filter(lambda x: x['type'] == 'channel', page_data['included']))
+    genres = list(filter(lambda x: x['type'] == 'genre', page_data['included']))
+
+    if page_data['data']['type'] == 'route':
+        for page in pages:
+            for page_relationship in page['relationships']['items']['data']:
+                for pageItem in pageItems:
+                    if page_relationship['id'] == pageItem['id']:
+                        for collection in collections:
+                            # Some collections doesn't have component
+                            if collection['attributes'].get('component'):
+
+                                # PageItems have only one collection
+                                if pageItem['relationships']['collection']['data']['id'] == collection['id']:
+
+                                    # List series season grid
+                                    if collection['attributes']['component']['id'] == 'tabbed-content':
+                                        # Check if there's any seasons of show or sport event
+                                        if collection['attributes']['component'].get('filters'):
+                                            # If there's only one season and setting flattentvshows is true -> list videos
+                                            if helper.get_setting('flattentvshows') and \
+                                                    len(collection['attributes']['component']['filters'][0]['options']) == 1:
+                                                list_collection(collection_id=collection['id'],
+                                                                page=1,
+                                                                mandatoryParams=collection['attributes']['component'].get('mandatoryParams'),
+                                                                parameter=collection['attributes']['component']['filters'][0]['options'][0]['id'])
+                                            else:
+                                                for option in collection['attributes']['component']['filters'][0][
+                                                    'options']:
+                                                    title = helper.language(30011) + ' ' + str(option['id'])
+                                                    params = {
+                                                        'action': 'list_collection',
+                                                        'collection_id': collection['id'],
+                                                        # 66290614510668341673562607828298581172
+                                                        'mandatoryParams': collection['attributes'][
+                                                            'component'].get(
+                                                            'mandatoryParams'),  # pf[show.id]=12423
+                                                        'parameter': option['parameter']  # pf[seasonNumber]=1
+                                                    }
+
+                                                    info = {
+                                                        'mediatype': 'season'
+                                                    }
+
+                                                    # Show metadata
+                                                    fanart_image = None
+                                                    thumb_image = None
+                                                    logo_image = None
+                                                    poster_image = None
+
+                                                    # Sometimes show's page contains info from multiple different shows
+                                                    # We only want info from selected show
+                                                    # Get show's alternate id from page_path
+                                                    alternate_id = page_path.split('/')[-1]
+
+                                                    for show in shows:
+                                                        if show['attributes']['alternateId'] == alternate_id:
+
+                                                            info['tvshowtitle'] = show['attributes'].get('name')
+                                                            info['plot'] = show['attributes'].get('description')
+                                                            info['season'] = len(show['attributes']['seasonNumbers'])
+                                                            info['episode'] = show['attributes']['episodeCount']
+
+                                                            g = []
+                                                            if show['relationships'].get('genres'):
+                                                                for genre in genres:
+                                                                    for show_genre in show['relationships']['genres'][
+                                                                        'data']:
+                                                                        if genre['id'] == show_genre['id']:
+                                                                            g.append(genre['attributes']['name'])
+
+                                                            if show['relationships'].get('primaryChannel'):
+                                                                for channel in channels:
+                                                                    if channel['id'] == \
+                                                                            show['relationships']['primaryChannel'][
+                                                                                'data'][
+                                                                                'id']:
+                                                                        primaryChannel = channel['attributes']['name']
+                                                            else:
+                                                                primaryChannel = None
+
+                                                            info['genre'] = g
+                                                            info['studio'] = primaryChannel
+
+                                                            if show['relationships'].get('images'):
+                                                                for image in images:
+                                                                    for show_images in show['relationships']['images'][
+                                                                        'data']:
+                                                                        if image['id'] == show_images['id']:
+                                                                            if image['attributes']['kind'] == 'default':
+                                                                                fanart_image = image['attributes'][
+                                                                                    'src']
+                                                                                thumb_image = image['attributes']['src']
+                                                                            if image['attributes']['kind'] == 'logo':
+                                                                                logo_image = image['attributes']['src']
+                                                                            if image['attributes'][
+                                                                                    'kind'] == 'poster_with_logo':
+                                                                                    poster_image = image['attributes'][
+                                                                                        'src']
+
+                                                    show_art = {
+                                                        'fanart': fanart_image,
+                                                        'thumb': thumb_image,
+                                                        'clearlogo': logo_image,
+                                                        'poster': poster_image
+                                                    }
+
+                                                    helper.add_item(title, params, info=info, art=show_art,
+                                                                    content='seasons',
+                                                                    folder_name=page['attributes'].get(
+                                                                        'pageMetadataTitle'),
+                                                                    sort_method='sort_label')
+
+    helper.eod()
 
 def search():
     search_query = helper.get_user_input(helper.language(30007))
@@ -2946,6 +3094,8 @@ def router(paramstring):
                                 mandatoryParams=params.get('mandatoryParams'), parameter=params.get('parameter'))
         elif params['action'] == 'list_collection_items':
             list_collection_items(collection_id=params['collection_id'], page_path=params['page_path'])
+        elif params['action'] == 'list_seasons_eu':
+            list_seasons_eu(page_path=params['page_path'])
         elif params['action'] == 'play':
             # Play a video from a provided URL.
             helper.play_item(params['video_id'], params['video_type'])

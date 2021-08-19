@@ -136,3 +136,15 @@ msgstr "Ota käyttöön UHD (kokeellinen)"
 msgctxt "#30030"
 msgid "Promotion"
 msgstr "Esittelyssä"
+
+msgctxt "#30031"
+msgid "Views"
+msgstr "Näkymät"
+
+msgctxt "#30032"
+msgid "Hide non season categories from seasons page (European countries)"
+msgstr "Näytä vain kaudet kausinäkymässä (EU maat)"
+
+msgctxt "#30033"
+msgid "Flatten TV show seasons if only one season (European countries)"
+msgstr "Piilota kausinäkymä, jos samalta kaudelta (EU maat)"
