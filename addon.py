@@ -1290,7 +1290,7 @@ def list_page(page_path):
                                         if collection['attributes']['component']['id'] == 'content-grid' or \
                                                 collection['attributes']['component']['id'] == 'content-rail':
                                             # Hide empty grids (example upcoming events when there is no upcoming events).
-                                            if collection.get('relationships'):
+                                            if collection.get('relationships') and collection['relationships']['items'].get('data'):
                                                 if collection['attributes'].get('title'):
                                                     params = {
                                                         'action': 'list_collection',
