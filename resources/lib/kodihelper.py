@@ -34,8 +34,8 @@ class KodiHelper(object):
         self.logging_prefix = '[%s-%s]' % (self.addon_name, self.addon_version)
         if not xbmcvfs.exists(self.addon_profile):
             xbmcvfs.mkdir(self.addon_profile)
-        self.d = Dplay(self.addon_profile, self.get_setting('site'), self.get_setting('locale'), self.logging_prefix,
-                       self.get_setting('numresults'), self.get_setting('cookiestxt'), self.get_setting('cookiestxt_file'), self.get_setting('us_uhd'))
+        self.d = Dplay(self.addon_profile, self.get_setting('country'), self.logging_prefix,
+                       self.get_setting('numresults'), self.get_setting('cookiestxt_file'), self.get_setting('us_uhd'))
 
     def get_addon(self):
         """Returns a fresh addon instance."""
@@ -89,55 +89,27 @@ class KodiHelper(object):
         else:
             return None
 
-    def check_for_prerequisites(self):
-        return self.set_login_credentials() and self.check_for_credentials()
-
-    def set_login_credentials(self):
-        username = self.get_setting('username')
-        password = self.get_setting('password')
-        cookiestxt = self.get_setting('cookiestxt')
-
-        if cookiestxt:
-            return True
-        elif not username or not password:
-            self.dialog('ok', self.language(30003), self.language(30004))
-            self.get_addon().openSettings()
-            return False
-        else:
-            return True
-
     def check_for_credentials(self):
         self.d.get_token()  # Get new token before checking credentials
         if self.d.get_user_data()['attributes']['anonymous'] == True:
-            # If user is using own cookies file and user_data returns anonymous
-            if self.get_setting('cookiestxt'):
-                raise self.d.DplayError(self.language(30022))
-            else:
-                self.login_process()
+            raise self.d.DplayError(self.language(30022))
         return True
 
-    def set_locale(self, locale=None):
-        countries = ['fi_FI', 'sv_SE', 'da_DK', 'nb_NO', 'nl_NL', 'es_ES', 'it_IT', 'en_GB', 'en_US', 'in_IN']
-        if not locale:
-            options = ['discoveryplus.fi', 'discoveryplus.se', 'discoveryplus.dk', 'discoveryplus.no',
-                       'discoveryplus.nl', 'discoveryplus.es', 'discoveryplus.it', 'discoveryplus.co.uk',
-                       'discoveryplus.com', 'discoveryplus.in']
-            selected_site = self.dialog('select', self.language(30013), options=options)
-            if selected_site is None:
-                selected_site = 0  # default to .fi
-            self.set_setting('site', options[selected_site])
-            self.set_setting('locale', countries[selected_site])
+    def set_country(self):
+        # Only set current country if it isn't already set
+        if self.get_setting('country') == '':
+            return self.set_setting('country', self.d.get_country())
 
-        return self.get_addon().openSettings()
-
-    def login_process(self):
-        username = self.get_setting('username')
-        password = self.get_setting('password')
-        self.d.login(username, password)
-
-    def reset_credentials(self):
-        self.set_setting('username', '')
-        self.set_setting('password', '')
+    def reset_settings(self):
+        self.set_setting('country', '')
+        self.set_setting('numresults', '100')
+        self.set_setting('cookiestxt_file', '')
+        self.set_setting('sync_playback', 'true')
+        self.set_setting('us_uhd', 'false')
+        self.set_setting('use_isa', 'true')
+        self.set_setting('seasonsonly', 'false')
+        self.set_setting('flattentvshows', 'false')
+        self.set_setting('iptv.enabled', 'false')
 
     def add_item(self, title, params, items=False, folder=True, playable=False, info=None, art=None, content=False,
                  menu=None, resume=None, total=None, folder_name=None, sort_method=None):
@@ -146,6 +118,7 @@ class KodiHelper(object):
 
         if playable:
             listitem.setProperty('IsPlayable', 'true')
+            listitem.setProperty('get_stream_details_from_player', 'true')
             folder = False
         if resume:
             listitem.setProperty("ResumeTime", str(resume))
@@ -236,13 +209,12 @@ class KodiHelper(object):
         useIsa = self.get_setting('use_isa')
         try:
             stream = self.d.get_stream(video_id, video_type)
+            playitem = xbmcgui.ListItem(path=stream['url'], offscreen=True)
 
-            # DRM enabled = use Widevine (Live TV, live sport and aired sport events)
+            # DRM enabled = use Widevine
             if stream['drm_enabled']:
                 is_helper = inputstreamhelper.Helper('mpd', drm='com.widevine.alpha')
                 if is_helper.check_inputstream():
-                    playitem = xbmcgui.ListItem(path=stream['mpd_url'], offscreen=True)
-
                     # Kodi 19 Matrix or higher
                     if self.get_kodi_version() >= '19':
                         playitem.setProperty('inputstream', 'inputstream.adaptive')
@@ -256,7 +228,6 @@ class KodiHelper(object):
                     playitem.setProperty('inputstream.adaptive.license_key',
                                          stream['license_url'] + '|' + header + '|R{SSM}|')
             else:
-                playitem = xbmcgui.ListItem(path=stream['hls_url'], offscreen=True)
 
                 if useIsa:
                     # Kodi 19 Matrix or higher
@@ -266,7 +237,6 @@ class KodiHelper(object):
                     else:
                         playitem.setProperty('inputstreamaddon', 'inputstream.adaptive')
 
-                    # Have to use hls for shows because mpd encryption type 'clearkey' is not supported by inputstream.adaptive
                     playitem.setProperty('inputstream.adaptive.manifest_type', 'hls')
 
             # Get metadata to use for Up next only in episodes and clips (can also be aired sport events)

@@ -142,9 +142,13 @@ msgid "Views"
 msgstr ""
 
 msgctxt "#30032"
-msgid "Hide non season categories from seasons page (European countries)"
+msgid "Hide non season categories from seasons page"
 msgstr ""
 
 msgctxt "#30033"
-msgid "Flatten TV show seasons if only one season (European countries)"
+msgid "Flatten TV show seasons if only one season"
+msgstr ""
+
+msgctxt "#30034"
+msgid "[Subscription needed]"
 msgstr ""
