@@ -142,9 +142,13 @@ msgid "Views"
 msgstr "Näkymät"
 
 msgctxt "#30032"
-msgid "Hide non season categories from seasons page (European countries)"
-msgstr "Näytä vain kaudet kausinäkymässä (EU maat)"
+msgid "Hide non season categories from seasons page"
+msgstr "Näytä vain kaudet kausinäkymässä"
 
 msgctxt "#30033"
-msgid "Flatten TV show seasons if only one season (European countries)"
-msgstr "Piilota kausinäkymä, jos samalta kaudelta (EU maat)"
+msgid "Flatten TV show seasons if only one season"
+msgstr "Piilota kausinäkymä, jos samalta kaudelta"
+
+msgctxt "#30034"
+msgid "[Subscription needed]"
+msgstr "[Tilaus vaaditaan]"
