@@ -152,3 +152,7 @@ msgstr ""
 msgctxt "#30034"
 msgid "[Subscription needed]"
 msgstr ""
+
+msgctxt "#30035"
+msgid "Reset settings"
+msgstr ""
