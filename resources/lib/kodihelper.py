@@ -229,9 +229,12 @@ class KodiHelper(object):
                     is_helper = inputstreamhelper.Helper('mpd', drm='com.widevine.alpha')
                     if is_helper.check_inputstream():
                         playitem.setProperty('inputstream.adaptive.license_type', 'com.widevine.alpha')
-                        header = 'PreAuthorization=' + stream['drm_token']
-                        playitem.setProperty('inputstream.adaptive.license_key',
-                                            stream['license_url'] + '|' + header + '|R{SSM}|')
+                        if stream['drm_token']:
+                            header = 'PreAuthorization=' + stream['drm_token']
+                            playitem.setProperty('inputstream.adaptive.license_key',
+                                                stream['license_url'] + '|' + header + '|R{SSM}|')
+                        else:
+                            playitem.setProperty('inputstream.adaptive.license_key', stream['license_url'] + '||R{SSM}|')
             else:
 
                 if useIsa:

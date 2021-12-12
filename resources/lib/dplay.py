@@ -684,9 +684,8 @@ class Dplay(object):
 
         if data_dict['attributes']['streaming'][0]['protection']['drmEnabled']:
             stream['license_url'] = data_dict['attributes']['streaming'][0]['protection']['schemes']['widevine']['licenseUrl']
-            stream['drm_token'] = data_dict['attributes']['streaming'][0]['protection']['drmToken']
+            stream['drm_token'] = data_dict['attributes']['streaming'][0]['protection'].get('drmToken')
         stream['drm_enabled'] = data_dict['attributes']['streaming'][0]['protection']['drmEnabled']
-
 
         return stream
 
