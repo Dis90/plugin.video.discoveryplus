@@ -20,10 +20,9 @@ except ImportError: # Python 2
     import cookielib
 
 try: # Python 3
-    from urllib.parse import urlparse, urljoin, urlencode
+    from urllib.parse import urlparse, urljoin
 except ImportError: # Python 2
     from urlparse import urlparse, urljoin
-    from urllib import urlencode
 
 def slugify(text):
     non_url_safe = [' ','"', '#', '$', '%', '&', '+',',', '/', ':', ';', '=', '?','@', '[', '\\', ']', '^', '`','{', '|', '}', '~', "'"]
