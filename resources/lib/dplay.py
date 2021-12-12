@@ -20,15 +20,9 @@ except ImportError: # Python 2
     import cookielib
 
 try: # Python 3
-    from urllib.parse import urlparse, urljoin, urlencode
+    from urllib.parse import urlparse, urljoin
 except ImportError: # Python 2
     from urlparse import urlparse, urljoin
-    from urllib import urlencode
-
-try:  # Python 2
-    unicode
-except NameError:  # Python 3
-    unicode = str  # pylint: disable=redefined-builtin,invalid-name
 
 def slugify(text):
     non_url_safe = [' ','"', '#', '$', '%', '&', '+',',', '/', ':', ';', '=', '?','@', '[', '\\', ']', '^', '`','{', '|', '}', '~', "'"]
@@ -57,14 +51,14 @@ class Dplay(object):
             self.api_url = 'https://us1-prod-direct.discoveryplus.com'
             self.realm = 'go'
             self.site_headers = {
-                'x-disco-params': 'realm=go,siteLookupKey=dplus_us',
-                'x-disco-client': 'WEB:UNKNOWN:dplus_us:0.0.1'
+                'x-disco-params': 'realm=go,siteLookupKey=dplus_us,bid=dplus,hn=www.discoveryplus.com,features=ar',
+                'x-disco-client': 'WEB:UNKNOWN:dplus_us:1.25.0'
             }
         elif self.locale_suffix == 'in':
             self.api_url = 'https://ap2-prod-direct.discoveryplus.in'
             self.realm = 'dplusindia'
             self.site_headers = {
-                'x-disco-params': 'realm=dplusindia',
+                'x-disco-params': 'realm=dplusindia,hn=www.discoveryplus.in',
                 'x-disco-client': 'WEB:UNKNOWN:dplus-india:prod'
             }
         else:
@@ -635,112 +629,62 @@ class Dplay(object):
         else:
             product = 'dplus_emea'
 
-        if video_type == 'channel':
-            jsonPayload = {
-                'deviceInfo': {
-                    'adBlocker': 'true'
+        # All videos doesn't work without drm/mpd stream. That is why drm is enabled.
+        # Also subtitles seems to be broken in HLS or Kodi doesn't like them.
+        # Remove drmSupported:true if you want to play videos without drm.
+        jsonPayload = {
+            'deviceInfo': {
+                'adBlocker': 'true',
+                'drmSupported': 'true',
+                'hwDecodingCapabilities': hwDecoding,
+                'screen':{
+                    'width':screenWidth,
+                    'height':screenHeight
                 },
-                'channelId': video_id,
-                            'wisteriaProperties': {
-                                'advertiser': {
-                                    'firstPlay': 0,
-                                    'fwIsLat': 0
-                                },
-                                'device': {
-                                    'type': 'desktop'
-                                },
-                                'platform': 'desktop',
-                                'product': product,
-                                'sessionId': self.client_id,
-                                'streamProvider': {
-                                    'suspendBeaconing': 0,
-                                    'hlsVersion': 7,
-                                    'pingConfig': 1
-                                }
-                            }
+                'player':{
+                    'width':screenWidth,
+                    'height':screenHeight
+                }
+            },
+            'wisteriaProperties':{
+                'advertiser': {
+                    'firstPlay': 0,
+                    'fwIsLat': 0
+                },
+                'device':{
+                    'browser':{
+                        'name': 'chrome',
+                        'version': '96.0.4664.55'
+                    },
+                    'type': platform
+                },
+                'platform': platform,
+                'product': product,
+                'sessionId': self.client_id,
+                'streamProvider': {
+                    'suspendBeaconing': 0,
+                    'hlsVersion': 7,
+                    'pingConfig': 1
+                }
             }
+        }
 
+        if video_type == 'channel':
+            jsonPayload['channelId'] = video_id
             url = '{api_url}/playback/v3/channelPlaybackInfo'.format(api_url=self.api_url)
-
         else:
-            if self.locale_suffix == 'us':
-                jsonPayload = {
-                    'deviceInfo': {
-                        'adBlocker': 'true',
-                        'hwDecodingCapabilities': hwDecoding,
-                        'screen':{
-                            'width':screenWidth,
-                            'height':screenHeight
-                        },
-                        'player':{
-                            'width':screenWidth,
-                            'height':screenHeight
-                        }
-                    },
-                    'videoId': video_id,
-                    'wisteriaProperties':{
-                        'platform': platform,
-                        'product': product
-                    }
-                }
-            else:
-                # All videos doesn't work without drm. That is why drm is enabled
-                # Remove drmSupported:true if you want to play videos without drm
-                jsonPayload = {
-                    'deviceInfo': {
-                        'adBlocker': 'true',
-                        'drmSupported': 'true',
-                        'hwDecodingCapabilities': hwDecoding,
-                        'screen':{
-                            'width':screenWidth,
-                            'height':screenHeight
-                        },
-                        'player':{
-                            'width':screenWidth,
-                            'height':screenHeight
-                        }
-                    },
-                    'videoId': video_id,
-                    'wisteriaProperties':{
-                        'device':{
-                            'browser':{
-                                'name': 'chrome',
-                                'version': '96.0.4664.55'
-                            },
-                            'type': platform
-                        },
-                        'platform': platform,
-                        'product': product
-                    }
-                }
-
+            jsonPayload['videoId'] = video_id
             url = '{api_url}/playback/v3/videoPlaybackInfo'.format(api_url=self.api_url)
 
         data_dict = json.loads(self.make_request(url, 'post', headers=self.site_headers, payload=json.dumps(jsonPayload)))['data']
 
-        # discoveryplus.com (US)
-        if self.locale_suffix == 'us':
-            # use hls proxy to change framerate from 30.000 to 29.970
-            path = "/dplus_proxy.m3u8"
-            hls_params = {}
-            hls_params["hls_origin_url"] = data_dict['attributes']['streaming'][0]['url']
-            hls_params["old_framerate"] = "30.000"
-            hls_params["new_framerate"] = "29.970"
-            hls_proxy = (urlparse("http://127.0.0.1:48201/")._replace(
-                path=path,
-                query=urlencode(hls_params),).geturl()
-            )
-            stream['url'] = hls_proxy
-            stream['drm_enabled'] = data_dict['attributes']['streaming'][0]['protection']['drmEnabled']
-        else:
-            stream['url'] = data_dict['attributes']['streaming'][0]['url']
+        stream['url'] = data_dict['attributes']['streaming'][0]['url']
+        stream['type'] = data_dict['attributes']['streaming'][0]['type']
 
-            if data_dict['attributes']['streaming'][0]['protection']['drmEnabled']:
-                stream['license_url'] = data_dict['attributes']['streaming'][0]['protection']['schemes']['widevine'][
-                    'licenseUrl']
-                stream['drm_token'] = data_dict['attributes']['streaming'][0]['protection']['drmToken']
-            stream['drm_enabled'] = data_dict['attributes']['streaming'][0]['protection']['drmEnabled']
-
+        if data_dict['attributes']['streaming'][0]['protection']['drmEnabled']:
+            stream['license_url'] = data_dict['attributes']['streaming'][0]['protection']['schemes']['widevine']['licenseUrl']
+            stream['drm_token'] = data_dict['attributes']['streaming'][0]['protection'].get('drmToken')
+        stream['drm_enabled'] = data_dict['attributes']['streaming'][0]['protection']['drmEnabled']
 
         return stream
 
