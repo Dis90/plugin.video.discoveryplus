@@ -211,22 +211,27 @@ class KodiHelper(object):
             stream = self.d.get_stream(video_id, video_type)
             playitem = xbmcgui.ListItem(path=stream['url'], offscreen=True)
 
-            # DRM enabled = use Widevine
-            if stream['drm_enabled']:
-                is_helper = inputstreamhelper.Helper('mpd', drm='com.widevine.alpha')
-                if is_helper.check_inputstream():
-                    # Kodi 19 Matrix or higher
-                    if self.get_kodi_version() >= '19':
-                        playitem.setProperty('inputstream', 'inputstream.adaptive')
-                    # Kodi 18 Leia
-                    else:
-                        playitem.setProperty('inputstreamaddon', 'inputstream.adaptive')
+            # at least d+ India has dash streams that are not drm protected
+            # website uses hls stream for those videos but we are using first stream in PlaybackInfo and that can be dash
+            # this is tested to work
+            if stream['type'] == 'dash':
+                # Kodi 19 Matrix or higher
+                if self.get_kodi_version() >= '19':
+                    playitem.setProperty('inputstream', 'inputstream.adaptive')
+                # Kodi 18 Leia
+                else:
+                    playitem.setProperty('inputstreamaddon', 'inputstream.adaptive')
 
-                    playitem.setProperty('inputstream.adaptive.manifest_type', 'mpd')
-                    playitem.setProperty('inputstream.adaptive.license_type', 'com.widevine.alpha')
-                    header = 'PreAuthorization=' + stream['drm_token']
-                    playitem.setProperty('inputstream.adaptive.license_key',
-                                         stream['license_url'] + '|' + header + '|R{SSM}|')
+                playitem.setProperty('inputstream.adaptive.manifest_type', 'mpd')
+
+                # DRM enabled = use Widevine
+                if stream['drm_enabled']:
+                    is_helper = inputstreamhelper.Helper('mpd', drm='com.widevine.alpha')
+                    if is_helper.check_inputstream():
+                        playitem.setProperty('inputstream.adaptive.license_type', 'com.widevine.alpha')
+                        header = 'PreAuthorization=' + stream['drm_token']
+                        playitem.setProperty('inputstream.adaptive.license_key',
+                                            stream['license_url'] + '|' + header + '|R{SSM}|')
             else:
 
                 if useIsa:
