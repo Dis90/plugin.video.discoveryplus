@@ -6,7 +6,7 @@
     <setting id="sync_playback" label="30027" type="bool" default="true"/>
     <setting id="us_uhd" label="30029" type="bool" default="false" visible="eq(-3,us)"/>
     <setting id="use_isa" label="30028" type="bool" default="true"  visible="eq(-4,us)" enable="eq(-1,true)"/>
-    <setting id="reset_settings" type="action" label="Nollaa asetukset" action="RunPlugin(plugin://plugin.video.discoveryplus/?setting=reset_settings)"/>
+    <setting id="reset_settings" type="action" label="30035" action="RunPlugin(plugin://plugin.video.discoveryplus/?setting=reset_settings)"/>
   </category>
   <category label="30031">
     <setting id="seasonsonly" label="30032" type="bool" default="false"/>
