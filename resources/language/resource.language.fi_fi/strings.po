@@ -156,3 +156,16 @@ msgstr "[Tilaus vaaditaan]"
 msgctxt "#30035"
 msgid "Reset settings"
 msgstr "Nollaa asetukset"
+
+
+msgctxt "#30036"
+msgid "Profiles"
+msgstr "Profiilit"
+
+msgctxt "#30037"
+msgid "[PIN-Code required]"
+msgstr "[PIN-koodi vaaditaan]"
+
+msgctxt "#30038"
+msgid "Enter the PIN for the profile"
+msgstr "Anna PIN-koodi profiilille"

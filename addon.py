@@ -131,6 +131,10 @@ def list_pages():
     if helper.d.locale_suffix == 'in':
         helper.add_item(helper.language(30007), params={'action': 'search'})
 
+    # Profiles
+    if helper.d.locale_suffix != 'in':
+        helper.add_item(helper.language(30036), params={'action': 'list_profiles'})
+
     helper.eod()
 
 # discoveryplus.com (US and EU)
@@ -2243,6 +2247,39 @@ def search():
         helper.log('No search query provided.')
         return False
 
+def list_profiles():
+    profiles = helper.d.get_profiles()
+    avatars = helper.d.get_avatars()
+    user_data = helper.d.get_user_data()
+
+    for profile in profiles:
+
+        image_url = None
+        for avatar in avatars:
+            if avatar['id'] == profile['attributes']['avatarName'].lower():
+                image_url = avatar['attributes']['imageUrl']
+
+        art = {
+            'icon': image_url
+        }
+
+        params = {
+            'action': 'switch_profile',
+            'profileId': profile['id']
+        }
+
+        if profile['id'] == user_data['attributes']['selectedProfileId']:
+            profile_name = profile['attributes']['profileName'] + ' *'
+        elif profile['attributes'].get('pinRestricted'):
+            profile_name = profile['attributes']['profileName'] + ' ' + helper.language(30037)
+            params['pinRestricted'] = profile['attributes']['pinRestricted']
+            params['profileName'] = profile['attributes']['profileName']
+        else:
+            profile_name = profile['attributes']['profileName']
+
+        helper.add_item(profile_name, params, art=art)
+
+    helper.eod()
 
 def router(paramstring):
     """
@@ -2304,6 +2341,20 @@ def router(paramstring):
             helper.refresh_list()
         elif params['action'] == 'delete_favorite':
             helper.d.add_or_delete_favorite(method='delete', show_id=params['show_id'])
+            helper.refresh_list()
+        elif params['action'] == 'list_profiles':
+            list_profiles()
+        elif params['action'] == 'switch_profile':
+            if params.get('pinRestricted'):
+                pin = helper.dialog('numeric', helper.language(30006) + ' {}'.format(params['profileName']))
+                if pin:
+                    try:
+                        helper.d.switch_profile(params['profileId'], pin)
+                    # Invalid pin
+                    except helper.d.DplayError as error:
+                        helper.dialog('ok', helper.language(30006), error.value)
+            else:
+                helper.d.switch_profile(params['profileId'])
             helper.refresh_list()
 
     else:

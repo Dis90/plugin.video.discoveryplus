@@ -74,6 +74,12 @@ class KodiHelper(object):
                 return ret
             else:
                 return None
+        elif dialog_type == 'numeric':
+            ret = dialog.numeric(0, heading, '', 1)
+            if ret:
+                return ret
+            else:
+                return None
 
     def get_user_input(self, heading, hidden=False):
         keyboard = xbmc.Keyboard('', heading, hidden)

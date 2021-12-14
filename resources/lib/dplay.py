@@ -109,6 +109,8 @@ class Dplay(object):
                 req = self.http_session.put(url, params=params, data=payload, headers=headers)
             elif method == 'delete':
                 req = self.http_session.delete(url, params=params, data=payload, headers=headers)
+            elif method == 'patch':
+                req = self.http_session.patch(url, params=params, data=payload, headers=headers)
             else:  # post
                 req = self.http_session.post(url, params=params, data=payload, headers=headers)
             self.log('Response code: %s' % req.status_code)
@@ -176,6 +178,37 @@ class Dplay(object):
 
         data = self.make_request(url, 'get')
         return json.loads(data)['data']
+
+    def get_avatars(self):
+        url = '{api_url}/avatars'.format(api_url=self.api_url)
+
+        data = self.make_request(url, 'get', headers=self.site_headers)
+        return json.loads(data)['data']
+
+    def get_profiles(self):
+        url = '{api_url}/users/me/profiles'.format(api_url=self.api_url)
+
+        data = self.make_request(url, 'get', headers=self.site_headers)
+        return json.loads(data)['data']
+
+    def switch_profile(self, profileId, pin=None):
+        jsonPayload = {
+                'data': {
+                    'attributes': {
+                        'selectedProfileId': profileId
+                    },
+                    'id': self.get_user_data()['id'],
+                    'type': 'user'
+                }
+        }
+
+        if pin:
+            url = '{api_url}/users/me/profiles/switchProfile'.format(api_url=self.api_url)
+            jsonPayload['data']['attributes']['profilePin'] = pin
+            return self.make_request(url, 'post', payload=json.dumps(jsonPayload), headers=self.site_headers)
+        else:
+            url = '{api_url}/users/me'.format(api_url=self.api_url)
+            return self.make_request(url, 'patch', payload=json.dumps(jsonPayload), headers=self.site_headers)
 
     def get_menu(self, menu):
         url = '{api_url}/cms/collections{menu}'.format(api_url=self.api_url, menu=menu)
