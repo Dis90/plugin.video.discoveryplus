@@ -1469,8 +1469,6 @@ def list_favorite_watchlist_videos_in(videoType=None, playlist=None):
     else:
         page_data = helper.d.get_watchlist_in(playlist)
 
-    user_packages = ",".join([str(x) for x in helper.d.get_user_data()['attributes']['packages']])
-
     images = list(filter(lambda x: x['type'] == 'image', page_data['included']))
     shows = list(filter(lambda x: x['type'] == 'show', page_data['included']))
     channels = list(filter(lambda x: x['type'] == 'channel', page_data['included']))
