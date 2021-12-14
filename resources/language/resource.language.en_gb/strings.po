@@ -156,3 +156,15 @@ msgstr ""
 msgctxt "#30035"
 msgid "Reset settings"
 msgstr ""
+
+msgctxt "#30036"
+msgid "Profiles"
+msgstr ""
+
+msgctxt "#30037"
+msgid "[PIN-Code required]"
+msgstr ""
+
+msgctxt "#30038"
+msgid "Enter the PIN for the profile"
+msgstr ""
