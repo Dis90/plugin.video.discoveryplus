@@ -257,7 +257,15 @@ def list_page_us(page_path, search_query=None):
 
                                             # Hide sports -> Schedule link
                                             if link['attributes']['alias'] != 'sports-schedule-link':
-                                                helper.add_item(link['attributes']['title'], params,
+
+                                                if link['attributes'].get('title'):
+                                                    link_title = link['attributes']['title']
+                                                elif link['attributes'].get('name'):
+                                                    link_title = link['attributes']['name']
+                                                else:
+                                                    link_title = None
+
+                                                helper.add_item(link_title, params,
                                                                 content='videos', art=link_art,
                                                                 folder_name=page['attributes'].get('title'))
 
