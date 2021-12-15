@@ -32,7 +32,7 @@ def slugify(text):
     return text
 
 class Dplay(object):
-    def __init__(self, settings_folder, country, logging_prefix, numresults, cookiestxt_file, us_uhd):
+    def __init__(self, settings_folder, country, logging_prefix, numresults, cookiestxt, cookiestxt_file, cookie, us_uhd):
         self.logging_prefix = logging_prefix
         self.numResults = numresults
         self.locale_suffix = country
@@ -71,12 +71,20 @@ class Dplay(object):
 
         self.http_session = requests.Session()
         self.settings_folder = settings_folder
-        self.tempdir = os.path.join(settings_folder, 'tmp')
         self.unwanted_menu_items = ('epg')
-        if not os.path.exists(self.tempdir):
-            os.makedirs(self.tempdir)
 
-        self.cookie_jar = cookielib.MozillaCookieJar(cookiestxt_file)
+        # Use exported cookies.txt
+        if cookiestxt:
+            self.cookie_jar = cookielib.MozillaCookieJar(cookiestxt_file)
+        # Else try to use user defined cookie from add-on settings
+        else:
+            self.cookie_jar = cookielib.LWPCookieJar(os.path.join(self.settings_folder, 'cookie_file'))
+
+            ck = cookielib.Cookie(version=0, name='st', value=cookie, port=None, port_specified=False,
+                                domain=self.api_url.replace('https://', ''), domain_specified=False, domain_initial_dot=False, path='/',
+                                path_specified=True, secure=False, expires=None, discard=True, comment=None,
+                                comment_url=None, rest={'HttpOnly': None}, rfc2109=False)
+            self.cookie_jar.set_cookie(ck)
 
         try:
             self.cookie_jar.load(ignore_discard=True, ignore_expires=True)

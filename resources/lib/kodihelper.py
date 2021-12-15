@@ -35,7 +35,8 @@ class KodiHelper(object):
         if not xbmcvfs.exists(self.addon_profile):
             xbmcvfs.mkdir(self.addon_profile)
         self.d = Dplay(self.addon_profile, self.get_setting('country'), self.logging_prefix,
-                       self.get_setting('numresults'), self.get_setting('cookiestxt_file'), self.get_setting('us_uhd'))
+                       self.get_setting('numresults'), self.get_setting('cookiestxt'),
+                       self.get_setting('cookiestxt_file'), self.get_setting('cookie'), self.get_setting('us_uhd'))
 
     def get_addon(self):
         """Returns a fresh addon instance."""
@@ -109,13 +110,20 @@ class KodiHelper(object):
     def reset_settings(self):
         self.set_setting('country', '')
         self.set_setting('numresults', '100')
+        self.set_setting('cookiestxt', 'true')
         self.set_setting('cookiestxt_file', '')
+        self.set_setting('cookie', '')
         self.set_setting('sync_playback', 'true')
         self.set_setting('us_uhd', 'false')
         self.set_setting('use_isa', 'true')
         self.set_setting('seasonsonly', 'false')
         self.set_setting('flattentvshows', 'false')
         self.set_setting('iptv.enabled', 'false')
+
+        # Remove cookies file
+        cookie_file = os.path.join(self.addon_profile, 'cookie_file')
+        if os.path.exists(cookie_file):
+            os.remove(cookie_file)
 
     def add_item(self, title, params, items=False, folder=True, playable=False, info=None, art=None, content=False,
                  menu=None, resume=None, total=None, folder_name=None, sort_method=None):

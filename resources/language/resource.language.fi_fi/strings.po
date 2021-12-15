@@ -94,16 +94,16 @@ msgid "Next Page"
 msgstr "Seuraava sivu"
 
 msgctxt "#30020"
-msgid "I use my own cookies.txt"
-msgstr "Käytän omaa cookies.txt"
+msgid "Use cookies.txt file"
+msgstr "Käytä cookies.txt tiedostoa"
 
 msgctxt "#30021"
 msgid "Cookies.txt location"
 msgstr "Cookies.txt sijainti"
 
 msgctxt "#30022"
-msgid "It looks like you are not logged in to discovery+. Please login using Chrome and export cookies to file."
-msgstr "Näyttää siltä, että et ole kirjautunut sisään discovery+:aan. Kirjaudu sisään käyttäen Chromea ja vie evästeet tiedostoon."
+msgid "It looks like you are not logged in to discovery+. Please login using Chrome and export cookies to file or set cookie in add-on settings."
+msgstr "Näyttää siltä, että et ole kirjautunut sisään discovery+:aan. Kirjaudu sisään käyttäen Chromea ja vie evästeet tiedostoon tai aseta eväste lisäosan asetuksissa."
 
 msgctxt "#30023"
 msgid "Integration"
@@ -169,3 +169,7 @@ msgstr "[PIN-koodi vaaditaan]"
 msgctxt "#30038"
 msgid "Enter the PIN for the profile"
 msgstr "Anna PIN-koodi profiilille"
+
+msgctxt "#30039"
+msgid "Cookie"
+msgstr "Eväste"
