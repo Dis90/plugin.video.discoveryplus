@@ -94,7 +94,7 @@ msgid "Next Page"
 msgstr ""
 
 msgctxt "#30020"
-msgid "I use my own cookies.txt"
+msgid "Use cookies.txt file"
 msgstr ""
 
 msgctxt "#30021"
@@ -102,7 +102,7 @@ msgid "Cookies.txt location"
 msgstr ""
 
 msgctxt "#30022"
-msgid "It looks like you are not logged in to discovery+. Please login using Chrome and export cookies to file."
+msgid "It looks like you are not logged in to discovery+. Please login using Chrome and export cookies to file or set cookie in add-on settings."
 msgstr ""
 
 msgctxt "#30023"
@@ -167,4 +167,8 @@ msgstr ""
 
 msgctxt "#30038"
 msgid "Enter the PIN for the profile"
+msgstr ""
+
+msgctxt "#30039"
+msgid "Cookie"
 msgstr ""
