@@ -43,6 +43,7 @@ class Dplay(object):
         if self.locale_suffix == 'gb':
             self.api_url = 'https://eu1-prod-direct.discoveryplus.com'
             self.realm = 'dplay'
+            self.contentRatingSystem = 'Ofcom'
             self.site_headers = {
                 'x-disco-params': 'realm=dplay,siteLookupKey=dplus_uk,bid=dplus,hn=www.discoveryplus.com,hth=gb,features=ar',
                 'x-disco-client': 'WEB:UNKNOWN:dplus_us:1.25.0'
@@ -50,6 +51,7 @@ class Dplay(object):
         elif self.locale_suffix == 'us':
             self.api_url = 'https://us1-prod-direct.discoveryplus.com'
             self.realm = 'go'
+            self.contentRatingSystem = 'BLM'
             self.site_headers = {
                 'x-disco-params': 'realm=go,siteLookupKey=dplus_us,bid=dplus,hn=www.discoveryplus.com,features=ar',
                 'x-disco-client': 'WEB:UNKNOWN:dplus_us:1.25.0'
@@ -57,6 +59,7 @@ class Dplay(object):
         elif self.locale_suffix == 'in':
             self.api_url = 'https://ap2-prod-direct.discoveryplus.in'
             self.realm = 'dplusindia'
+            self.contentRatingSystem = 'DMEC'
             self.site_headers = {
                 'x-disco-params': 'realm=dplusindia,hn=www.discoveryplus.in',
                 'x-disco-client': 'WEB:UNKNOWN:dplus-india:prod'
@@ -64,6 +67,7 @@ class Dplay(object):
         else:
             self.api_url = 'https://eu1-prod-direct.discoveryplus.com'
             self.realm = 'dplay'
+            self.contentRatingSystem = 'NICAM'
             self.site_headers = {
                 'x-disco-params': 'realm=dplay,siteLookupKey=dplus_{locale},bid=dplus,hn=www.discoveryplus.com,hth={locale},features=ar'.format(locale=self.locale_suffix),
                 'x-disco-client': 'WEB:UNKNOWN:dplus_us:1.25.0'

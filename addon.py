@@ -1004,7 +1004,7 @@ def list_collection_items(collection_id, page_path=None):
                                         mpaa = None
                                         if show['attributes'].get('contentRatings'):
                                             for contentRating in show['attributes']['contentRatings']:
-                                                if contentRating['system'] == 'NICAM':
+                                                if contentRating['system'] == helper.d.contentRatingSystem:
                                                     mpaa = contentRating['code']
 
                                         if show['relationships'].get('primaryChannel'):
@@ -1124,7 +1124,7 @@ def list_collection_items(collection_id, page_path=None):
                                         mpaa = None
                                         if show['attributes'].get('contentRatings'):
                                             for contentRating in show['attributes']['contentRatings']:
-                                                if contentRating['system'] == 'NICAM':
+                                                if contentRating['system'] == helper.d.contentRatingSystem:
                                                     mpaa = contentRating['code']
 
                                         if show['relationships'].get('primaryChannel'):
@@ -1237,7 +1237,7 @@ def list_collection_items(collection_id, page_path=None):
                                         mpaa = None
                                         if video['attributes'].get('contentRatings'):
                                             for contentRating in video['attributes']['contentRatings']:
-                                                if contentRating['system'] == 'NICAM':
+                                                if contentRating['system'] == helper.d.contentRatingSystem:
                                                     mpaa = contentRating['code']
 
                                         if video['relationships'].get('primaryChannel'):
@@ -1399,7 +1399,7 @@ def list_search_shows_in(search_query):
         mpaa = None
         if show['attributes'].get('contentRatings'):
             for contentRating in show['attributes']['contentRatings']:
-                if contentRating['system'] == 'NICAM':
+                if contentRating['system'] == helper.d.contentRatingSystem:
                     mpaa = contentRating['code']
 
         info = {
@@ -1490,7 +1490,7 @@ def list_favorites_in():
         mpaa = None
         if show['attributes'].get('contentRatings'):
             for contentRating in show['attributes']['contentRatings']:
-                if contentRating['system'] == 'NICAM':
+                if contentRating['system'] == helper.d.contentRatingSystem:
                     mpaa = contentRating['code']
 
         info = {
@@ -1598,7 +1598,7 @@ def list_favorite_watchlist_videos_in(videoType=None, playlist=None):
         mpaa = None
         if video['attributes'].get('contentRatings'):
             for contentRating in video['attributes']['contentRatings']:
-                if contentRating['system'] == 'NICAM':
+                if contentRating['system'] == helper.d.contentRatingSystem:
                     mpaa = contentRating['code']
 
         if video['relationships'].get('primaryChannel'):
@@ -1772,7 +1772,7 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                 mpaa = None
                                 if show['attributes'].get('contentRatings'):
                                     for contentRating in show['attributes']['contentRatings']:
-                                        if contentRating['system'] == 'NICAM':
+                                        if contentRating['system'] == helper.d.contentRatingSystem:
                                             mpaa = contentRating['code']
 
                                 if show['relationships'].get('primaryChannel'):
@@ -1885,7 +1885,7 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                 mpaa = None
                                 if video['attributes'].get('contentRatings'):
                                     for contentRating in video['attributes']['contentRatings']:
-                                        if contentRating['system'] == 'NICAM':
+                                        if contentRating['system'] == helper.d.contentRatingSystem:
                                             mpaa = contentRating['code']
 
                                 # Sport example Tennis
