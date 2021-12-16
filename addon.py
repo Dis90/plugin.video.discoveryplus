@@ -208,6 +208,81 @@ def list_page_us(page_path, search_query=None):
                                                                                         content='videos',
                                                                                         folder_name=folder_name)
 
+                                        # Channel livestream when it is only item in page
+                                        # discoveryplus.com (US) -> Introducing discovery+ Channels -> channel page live stream
+                                        # discoveryplus.com (EU) Network Rail -> Channel -> livestream
+                                        if collection['attributes']['component']['id'] == 'player':
+                                            if collection.get('relationships'):
+                                                for c in collection['relationships']['items']['data']:
+                                                    for collectionItem in collectionItems:
+                                                        if c['id'] == collectionItem['id']:
+                                                            if collectionItem['relationships'].get('channel'):
+                                                                for channel in channels:
+                                                                    if collectionItem['relationships']['channel'][
+                                                                        'data']['id'] == channel['id']:
+
+                                                                        if channel['attributes'].get(
+                                                                                'hasLiveStream'):
+                                                                            params = {
+                                                                                'action': 'play',
+                                                                                'video_id': channel['id'],
+                                                                                'video_type': 'channel'
+                                                                            }
+
+                                                                            channel_info = {
+                                                                                'mediatype': 'video',
+                                                                                'title': channel['attributes'].get(
+                                                                                    'name'),
+                                                                                'plot': channel['attributes'].get(
+                                                                                    'description'),
+                                                                                'playcount': '0'
+                                                                            }
+
+                                                                            channel_logo = None
+                                                                            fanart_image = None
+                                                                            if channel['relationships'].get(
+                                                                                    'images'):
+                                                                                for image in images:
+                                                                                    for channel_images in \
+                                                                                            channel[
+                                                                                                'relationships'][
+                                                                                                'images']['data']:
+                                                                                        if image['id'] == \
+                                                                                                channel_images[
+                                                                                                    'id']:
+                                                                                            if image['attributes'][
+                                                                                                'kind'] == 'logo':
+                                                                                                channel_logo = \
+                                                                                                    image[
+                                                                                                        'attributes'][
+                                                                                                        'src']
+                                                                                            if image['attributes'][
+                                                                                                'kind'] == 'default':
+                                                                                                fanart_image = \
+                                                                                                    image[
+                                                                                                        'attributes'][
+                                                                                                        'src']
+
+                                                                            if channel_logo:
+                                                                                thumb_image = channel_logo
+                                                                            else:
+                                                                                thumb_image = fanart_image
+
+                                                                            channel_art = {
+                                                                                'fanart': fanart_image,
+                                                                                'thumb': thumb_image
+                                                                            }
+
+                                                                            helper.add_item(
+                                                                                helper.language(30014) + ' ' +
+                                                                                channel['attributes'].get('name'),
+                                                                                params=params,
+                                                                                info=channel_info, content='videos',
+                                                                                art=channel_art,
+                                                                                playable=True,
+                                                                                folder_name=collection[
+                                                                                    'attributes'].get('title'))
+
             # More than one pageItem (homepage, browse, channels...)
             else:
                 for page_relationship in page['relationships']['items']['data']:
