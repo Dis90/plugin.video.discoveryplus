@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import os
-import re
 import sys
 import json
 
@@ -34,8 +33,7 @@ class KodiHelper(object):
         self.logging_prefix = '[%s-%s]' % (self.addon_name, self.addon_version)
         if not xbmcvfs.exists(self.addon_profile):
             xbmcvfs.mkdir(self.addon_profile)
-        self.d = Dplay(self.addon_profile, self.get_setting('country'), self.logging_prefix,
-                       self.get_setting('numresults'), self.get_setting('cookiestxt'),
+        self.d = Dplay(self.addon_profile, self.logging_prefix, self.get_setting('numresults'), self.get_setting('cookiestxt'),
                        self.get_setting('cookiestxt_file'), self.get_setting('cookie'), self.get_setting('us_uhd'))
 
     def get_addon(self):
@@ -102,13 +100,7 @@ class KodiHelper(object):
             raise self.d.DplayError(self.language(30022))
         return True
 
-    def set_country(self):
-        # Only set current country if it isn't already set
-        if self.get_setting('country') == '':
-            return self.set_setting('country', self.d.get_country())
-
     def reset_settings(self):
-        self.set_setting('country', '')
         self.set_setting('numresults', '100')
         self.set_setting('cookiestxt', 'true')
         self.set_setting('cookiestxt_file', '')

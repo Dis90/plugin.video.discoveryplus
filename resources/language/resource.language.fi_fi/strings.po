@@ -130,8 +130,8 @@ msgid "Use InputStream Adaptive"
 msgstr "Käytä InputStream Adaptive"
 
 msgctxt "#30029"
-msgid "Enable UHD (experimental)"
-msgstr "Ota käyttöön UHD (kokeellinen)"
+msgid "Enable UHD (experimental) / USA only"
+msgstr "Ota käyttöön UHD (kokeellinen) / vain USA"
 
 msgctxt "#30030"
 msgid "Promotion"

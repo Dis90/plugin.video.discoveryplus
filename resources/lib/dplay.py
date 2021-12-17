@@ -20,9 +20,10 @@ except ImportError: # Python 2
     import cookielib
 
 try: # Python 3
-    from urllib.parse import urlparse, urljoin
+    from urllib.parse import urlparse, urljoin, quote_plus
 except ImportError: # Python 2
     from urlparse import urlparse, urljoin
+    from urllib import quote_plus
 
 def slugify(text):
     non_url_safe = [' ','"', '#', '$', '%', '&', '+',',', '/', ':', ';', '=', '?','@', '[', '\\', ']', '^', '`','{', '|', '}', '~', "'"]
@@ -32,50 +33,56 @@ def slugify(text):
     return text
 
 class Dplay(object):
-    def __init__(self, settings_folder, country, logging_prefix, numresults, cookiestxt, cookiestxt_file, cookie, us_uhd):
+    def __init__(self, settings_folder, logging_prefix, numresults, cookiestxt, cookiestxt_file, cookie, us_uhd):
         self.logging_prefix = logging_prefix
         self.numResults = numresults
-        self.locale_suffix = country
         self.client_id = str(uuid.uuid1())
         self.device_id = self.client_id.replace("-", "")
         self.us_uhd = us_uhd
 
-        if self.locale_suffix == 'gb':
-            self.api_url = 'https://eu1-prod-direct.discoveryplus.com'
-            self.realm = 'dplay'
-            self.contentRatingSystem = 'Ofcom'
-            self.site_headers = {
-                'x-disco-params': 'realm=dplay,siteLookupKey=dplus_uk,bid=dplus,hn=www.discoveryplus.com,hth=gb,features=ar',
-                'x-disco-client': 'WEB:UNKNOWN:dplus_us:1.25.0'
-            }
-        elif self.locale_suffix == 'us':
-            self.api_url = 'https://us1-prod-direct.discoveryplus.com'
-            self.realm = 'go'
-            self.contentRatingSystem = 'BLM'
-            self.site_headers = {
-                'x-disco-params': 'realm=go,siteLookupKey=dplus_us,bid=dplus,hn=www.discoveryplus.com,features=ar',
-                'x-disco-client': 'WEB:UNKNOWN:dplus_us:1.25.0'
-            }
-        elif self.locale_suffix == 'in':
-            self.api_url = 'https://ap2-prod-direct.discoveryplus.in'
-            self.realm = 'dplusindia'
-            self.contentRatingSystem = 'DMEC'
-            self.site_headers = {
-                'x-disco-params': 'realm=dplusindia,hn=www.discoveryplus.in',
-                'x-disco-client': 'WEB:UNKNOWN:dplus-india:prod'
-            }
-        else:
-            self.api_url = 'https://eu1-prod-direct.discoveryplus.com'
-            self.realm = 'dplay'
-            self.contentRatingSystem = 'NICAM'
-            self.site_headers = {
-                'x-disco-params': 'realm=dplay,siteLookupKey=dplus_{locale},bid=dplus,hn=www.discoveryplus.com,hth={locale},features=ar'.format(locale=self.locale_suffix),
-                'x-disco-client': 'WEB:UNKNOWN:dplus_us:1.25.0'
-            }
-
         self.http_session = requests.Session()
         self.settings_folder = settings_folder
         self.unwanted_menu_items = ('epg')
+
+        # Realm config
+        realm_config    = self.load_realm_config()
+        realm2          = 'realm=' + realm_config['realm']
+        siteLookupKey   = ',siteLookupKey=' + realm_config['siteLookupKey'] if realm_config.get('siteLookupKey') else ''
+        bid             = ',bid=' + realm_config['brandId'] if realm_config.get('brandId') else ''
+        hn              = ',hn=www.discoveryplus.com'
+        hth             = ',hth=' + realm_config['mainTerritoryCode'] if realm_config.get('mainTerritoryCode') else ''
+
+        if realm_config['realm'] == 'dplusindia':
+            disco_params = realm2 + siteLookupKey + bid + ',hn=www.discoveryplus.in' + hth
+            disco_client = 'WEB:UNKNOWN:dplus-india:prod'
+            self.contentRatingSystem = 'DMEC'
+        else:
+            disco_params = realm2 + siteLookupKey + bid + hn + hth + ',features=ar'
+            disco_client = 'WEB:UNKNOWN:dplus_us:1.25.0'
+            if realm_config.get('mainTerritoryCode'):
+
+                # Content rating systems
+                # Great Britain = Ofcom
+                if realm_config['mainTerritoryCode'] == 'gb':
+                    self.contentRatingSystem = 'Ofcom'
+                # Canada = BLM ?
+                elif realm_config['mainTerritoryCode'] == 'ca':
+                    self.contentRatingSystem = 'BLM'
+                # EU = NICAM
+                else:
+                    self.contentRatingSystem = 'NICAM'
+
+            # Only US and India doesn't have mainTerritoryCode
+            else:
+                self.contentRatingSystem = 'BLM'
+
+        self.api_url = 'https://' + realm_config['domain']
+        self.realm = realm_config['realm']
+
+        self.site_headers = {
+            'x-disco-params': disco_params,
+            'x-disco-client': disco_client
+        }
 
         # Use exported cookies.txt
         if cookiestxt:
@@ -160,20 +167,6 @@ class Dplay(object):
         except ValueError:  # when response is not in json
             pass
 
-    # Return users country
-    def get_country(self):
-        r = requests.get('https://www.discoveryplus.com')
-        path = urlparse(r.url).path
-        country = path.replace('/', '')
-
-        if country is '':
-            if r.url == 'https://www.discoveryplus.in/':
-                country = 'in'
-            elif r.url == 'https://www.discoveryplus.com/':
-                country = 'us'
-
-        return country
-
     def get_token(self):
         url = '{api_url}/token'.format(api_url=self.api_url)
 
@@ -190,6 +183,11 @@ class Dplay(object):
 
         data = self.make_request(url, 'get')
         return json.loads(data)['data']
+
+    def load_realm_config(self):
+        config_file = os.path.join(self.settings_folder, 'realm_config')
+        f = open(config_file, "r")
+        return json.loads(f.read())
 
     def get_avatars(self):
         url = '{api_url}/avatars'.format(api_url=self.api_url)
@@ -245,8 +243,8 @@ class Dplay(object):
             'include': 'default'
         }
 
-        # discoveryplus.com (US) and discoveryplus.in
-        if self.locale_suffix == 'us' or self.locale_suffix == 'in':
+        # discoveryplus.com (go=US and Canada) and discoveryplus.in
+        if self.realm in ['go', 'dplusindia']:
             params['decorators'] = 'viewingHistory,isFavorite'
         else:
             params['decorators'] = 'viewingHistory,isFavorite,playbackAllowed'
@@ -277,7 +275,8 @@ class Dplay(object):
             'page[items.size]': self.numResults
         }
 
-        if self.locale_suffix == 'us' or self.locale_suffix == 'in':
+        # discoveryplus.com (go=US and Canada) and discoveryplus.in
+        if self.realm in ['go', 'dplusindia']:
             params['decorators'] = 'viewingHistory,isFavorite'
         else:
             params['decorators'] = 'viewingHistory,isFavorite,playbackAllowed'
@@ -727,9 +726,10 @@ class Dplay(object):
             platform = 'desktop'
             drmSupported = 'true'
 
-        if self.locale_suffix == 'us':
+        # discoveryplus.com (go=US and Canada)
+        if self.realm == 'go':
             product = 'dplus_us'
-        elif self.locale_suffix == 'in':
+        elif self.realm == 'dplusindia':
             # this is maybe wrong or not needed
             product = 'dplusindia'
         else:
