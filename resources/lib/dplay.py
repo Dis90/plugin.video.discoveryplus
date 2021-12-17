@@ -48,7 +48,7 @@ class Dplay(object):
                 'x-disco-params': 'realm=dplay,siteLookupKey=dplus_uk,bid=dplus,hn=www.discoveryplus.com,hth=gb,features=ar',
                 'x-disco-client': 'WEB:UNKNOWN:dplus_us:1.25.0'
             }
-        elif self.locale_suffix == 'us':
+        elif self.locale_suffix in ['us', 'ca']:
             self.api_url = 'https://us1-prod-direct.discoveryplus.com'
             self.realm = 'go'
             self.contentRatingSystem = 'BLM'
