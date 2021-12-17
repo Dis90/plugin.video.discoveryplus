@@ -50,11 +50,11 @@ msgid "No results found for"
 msgstr ""
 
 msgctxt "#30009"
-msgid "Add to favorites (discovery+)"
+msgid "Add to My List (discovery+)"
 msgstr ""
 
 msgctxt "#30010"
-msgid "Delete from favorites (discovery+)"
+msgid "Delete from My List (discovery+)"
 msgstr ""
 
 msgctxt "#30011"
