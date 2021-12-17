@@ -1,11 +1,12 @@
 <settings>
   <category label="30000">
     <setting id="numresults" type="slider" label="30018" default="100" range="1,100" option="int"/>
-    <setting id="country" type="text" visible="false" default="" />
-    <setting id="cookiestxt_file" label="30021" type="file" default=""/>
+    <setting id="cookiestxt" label="30020" type="bool" default="true"/>
+    <setting id="cookiestxt_file" label="30021" type="file" default="" visible="eq(-1,true)" subsetting="true"/>
+    <setting id="cookie" label="30039" type="text" default="" visible="eq(-2,false)" />
     <setting id="sync_playback" label="30027" type="bool" default="true"/>
-    <setting id="us_uhd" label="30029" type="bool" default="false" visible="eq(-3,us)"/>
-    <setting id="use_isa" label="30028" type="bool" default="true"  visible="eq(-4,us)" enable="eq(-1,true)"/>
+    <setting id="us_uhd" label="30029" type="bool" default="false"/>
+    <setting id="use_isa" label="30028" type="bool" default="true"  visible="eq(-1,true)"/>
     <setting id="reset_settings" type="action" label="30035" action="RunPlugin(plugin://plugin.video.discoveryplus/?setting=reset_settings)"/>
   </category>
   <category label="30031">

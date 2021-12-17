@@ -15,7 +15,7 @@ helper = KodiHelper(base_url, handle)
 
 def list_pages():
     # List menu items (Shows, Categories)
-    if helper.d.locale_suffix == 'in':
+    if helper.d.realm == 'dplusindia':
         helper.add_item(helper.language(30017), params={'action': 'list_page', 'page_path': '/liked-videos'})
         helper.add_item('Watchlist', params={'action': 'list_page', 'page_path': '/watch-later'})
         helper.add_item('Kids', params={'action': 'list_page', 'page_path': '/kids/home'})
@@ -128,11 +128,11 @@ def list_pages():
                                                                     art=link_art)
 
     # Search discoveryplus.in
-    if helper.d.locale_suffix == 'in':
+    if helper.d.realm == 'dplusindia':
         helper.add_item(helper.language(30007), params={'action': 'search'})
 
     # Profiles
-    if helper.d.locale_suffix != 'in':
+    if helper.d.realm != 'dplusindia':
         helper.add_item(helper.language(30036), params={'action': 'list_profiles'})
 
     helper.eod()
@@ -1034,7 +1034,7 @@ def list_collection_items(collection_id, page_path=None):
                                                         if image['attributes']['kind'] == 'logo':
                                                             logo_image = image['attributes']['src']
                                                         # discoveryplus.in has logos in poster
-                                                        if helper.d.locale_suffix == 'in':
+                                                        if helper.d.realm == 'dplusindia':
                                                             if image['attributes']['kind'] == 'poster':
                                                                 poster_image = image['attributes']['src']
                                                         else:
@@ -1172,7 +1172,7 @@ def list_collection_items(collection_id, page_path=None):
                                                         if image['attributes']['kind'] == 'logo':
                                                             logo_image = image['attributes']['src']
                                                         # discoveryplus.in has logos in poster
-                                                        if helper.d.locale_suffix == 'in':
+                                                        if helper.d.realm== 'dplusindia':
                                                             if image['attributes']['kind'] == 'poster':
                                                                 poster_image = image['attributes']['src']
                                                         else:
@@ -1219,7 +1219,7 @@ def list_collection_items(collection_id, page_path=None):
                                                                 if image['attributes']['kind'] == 'logo':
                                                                     show_logo_image = image['attributes']['src']
                                                                 # discoveryplus.in has logos in poster
-                                                                if helper.d.locale_suffix == 'in':
+                                                                if helper.d.realm == 'dplusindia':
                                                                     if image['attributes']['kind'] == 'poster':
                                                                         show_poster_image = image['attributes']['src']
                                                                 else:
@@ -1437,7 +1437,7 @@ def list_search_shows_in(search_query):
                         if image['attributes']['kind'] == 'logo':
                             logo_image = image['attributes']['src']
                         # discoveryplus.in has logos in poster
-                        if helper.d.locale_suffix == 'in':
+                        if helper.d.realm == 'dplusindia':
                             if image['attributes']['kind'] == 'poster':
                                 poster_image = image['attributes']['src']
                         else:
@@ -1521,7 +1521,7 @@ def list_favorites_in():
                         if image['attributes']['kind'] == 'logo':
                             logo_image = image['attributes']['src']
                         # discoveryplus.in has logos in poster
-                        if helper.d.locale_suffix == 'in':
+                        if helper.d.realm == 'dplusindia':
                             if image['attributes']['kind'] == 'poster':
                                 poster_image = image['attributes']['src']
                         else:
@@ -1580,7 +1580,7 @@ def list_favorite_watchlist_videos_in(videoType=None, playlist=None):
                             if image['attributes']['kind'] == 'logo':
                                 show_logo_image = image['attributes']['src']
                             # discoveryplus.in has logos in poster
-                            if helper.d.locale_suffix == 'in':
+                            if helper.d.realm == 'dplusindia':
                                 if image['attributes']['kind'] == 'poster':
                                     show_poster_image = image['attributes']['src']
                             else:
@@ -1820,7 +1820,7 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                                 if image['attributes']['kind'] == 'logo':
                                                     logo_image = image['attributes']['src']
                                                 # discoveryplus.in has logos in poster
-                                                if helper.d.locale_suffix == 'in':
+                                                if helper.d.realm == 'dplusindia':
                                                     if image['attributes']['kind'] == 'poster':
                                                         poster_image = image['attributes']['src']
                                                 else:
@@ -1867,7 +1867,7 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                                         if image['attributes']['kind'] == 'logo':
                                                             show_logo_image = image['attributes']['src']
                                                         # discoveryplus.in has logos in poster
-                                                        if helper.d.locale_suffix == 'in':
+                                                        if helper.d.realm == 'dplusindia':
                                                             if image['attributes']['kind'] == 'poster':
                                                                 show_poster_image = image['attributes']['src']
                                                         else:
@@ -2278,7 +2278,7 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                                 if image['attributes']['kind'] == 'logo':
                                                     logo_image = image['attributes']['src']
                                                 # discoveryplus.in has logos in poster
-                                                if helper.d.locale_suffix == 'in':
+                                                if helper.d.realm == 'dplusindia':
                                                     if image['attributes']['kind'] == 'poster':
                                                         poster_image = image['attributes']['src']
                                                 else:
@@ -2319,7 +2319,7 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
 def search():
     search_query = helper.get_user_input(helper.language(30007))
     if search_query:
-        if helper.d.locale_suffix == 'in':
+        if helper.d.realm == 'dplusindia':
             list_search_shows_in(search_query)
         # discoveryplus.com (US and EU)
         else:
@@ -2395,7 +2395,7 @@ def router(paramstring):
         helper.d.get_token()
 
         if params['action'] == 'list_page':
-            if helper.d.locale_suffix == 'in':
+            if helper.d.realm == 'dplusindia':
                 list_page_in(page_path=params['page_path'])
             else:
                 list_page_us(page_path=params['page_path'])
@@ -2439,7 +2439,6 @@ def router(paramstring):
             helper.refresh_list()
 
     else:
-        helper.set_country()
         try:
             if helper.check_for_credentials():
                 list_pages()
