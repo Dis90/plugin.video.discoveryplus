@@ -50,12 +50,12 @@ msgid "No results found for"
 msgstr "Ei tuloksia haulle"
 
 msgctxt "#30009"
-msgid "Add to favorites (discovery+)"
-msgstr "Lisää suosikkeihin (discovery+)"
+msgid "Add to My List (discovery+)"
+msgstr "Lisää omalle listalle (discovery+)"
 
 msgctxt "#30010"
-msgid "Delete from favorites (discovery+)"
-msgstr "Poista suosikeista (discovery+)"
+msgid "Delete from My List (discovery+)"
+msgstr "Poista omalta listalta (discovery+)"
 
 msgctxt "#30011"
 msgid "Season"
