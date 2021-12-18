@@ -10,7 +10,7 @@ This add-on is unofficial and it is not supported by Discovery Networks and beca
 - Windows
 - Android (not tested)
 
-# Supported countries
+# Tested countries
 - Denmark
 - Finland
 - India
@@ -21,13 +21,15 @@ This add-on is unofficial and it is not supported by Discovery Networks and beca
 - Sweden
 - United Kingdom
 - United States
+- Canada
 
 # Features
 - Supports: <a href="https://forum.kodi.tv/showthread.php?tid=336747">Up Next</a>, <a href="https://github.com/add-ons/service.iptv.manager">IPTV Manager</a> and <a href="https://forum.kodi.tv/forumdisplay.php?fid=231">PseudoTV Live</a> (Kodi 19)
 - Playback progress is same in discovery+ site and on Kodi add-on (you can start video on site and continue it on Kodi or other way round)
 - Live TV channels
 - Videos
-- Favorites
+- Favorites/My List
+- Profiles
 
 # How do I login?
 Add-on doesn't support direct login. There are two ways to set cookies.
