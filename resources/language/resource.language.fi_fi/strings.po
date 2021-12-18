@@ -173,3 +173,7 @@ msgstr "Anna PIN-koodi profiilille"
 msgctxt "#30039"
 msgid "Cookie"
 msgstr "Eväste"
+
+msgctxt "#30040"
+msgid "Channels"
+msgstr "Kanavat"
