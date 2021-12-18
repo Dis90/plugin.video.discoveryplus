@@ -436,8 +436,22 @@ def list_page_us(page_path, search_query=None):
                                                                             'id'] == c2['id']:
 
                                                                     # User setting for listing only seasons in shows page
-                                                                    if helper.get_setting('seasonsonly'):
+                                                                    # seasononly and seasons listed in shows details
+                                                                    if helper.get_setting('seasonsonly') and \
+                                                                            c2['attributes']['component'].get('filters') and \
+                                                                                        len(c2['attributes']['component']['filters'][0].get('options')) > 0:
                                                                         list_collection_items(collection_id=c2['id'], page_path=page_path)
+                                                                        
+                                                                    # seasonsonly and no seasons listed in shows details
+                                                                    elif helper.get_setting('seasonsonly') and \
+                                                                            c2['attributes']['component'].get('filters') and \
+                                                                            len(c2['attributes']['component']['filters'][0].get('options')) == 0:
+
+
+                                                                        list_collection(collection_id=c2['id'],
+                                                                                        mandatoryParams=c2['attributes']['component'].get('mandatoryParams'),
+                                                                                        page=1)
+
                                                                     else:
                                                                         # Episodes and Extras
                                                                         if c2['attributes']['component'][
