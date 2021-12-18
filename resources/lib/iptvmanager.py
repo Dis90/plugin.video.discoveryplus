@@ -48,9 +48,10 @@ class IPTVManager:
     @via_socket
     def send_epg(self):
         """Return JSON-EPG formatted python data structure to IPTV Manager"""
-        if helper.d.locale_suffix == 'us':
+        # go = US and Canada
+        if helper.d.realm == 'go':
             epg = helper.d.get_epg_us()
-        elif helper.d.locale_suffix == 'in':
+        elif helper.d.realm == 'dplusindia':
             epg = helper.d.get_epg_in()
         else:
             epg = helper.d.get_epg()
