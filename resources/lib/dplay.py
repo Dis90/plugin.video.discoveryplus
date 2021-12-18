@@ -92,7 +92,7 @@ class Dplay(object):
             self.cookie_jar = cookielib.LWPCookieJar(os.path.join(self.settings_folder, 'cookie_file'))
 
             ck = cookielib.Cookie(version=0, name='st', value=cookie, port=None, port_specified=False,
-                                domain=self.api_url.replace('https://', ''), domain_specified=False, domain_initial_dot=False, path='/',
+                                domain=realm_config['domain'], domain_specified=False, domain_initial_dot=False, path='/',
                                 path_specified=True, secure=False, expires=None, discard=True, comment=None,
                                 comment_url=None, rest={'HttpOnly': None}, rfc2109=False)
             self.cookie_jar.set_cookie(ck)
