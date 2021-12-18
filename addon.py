@@ -393,9 +393,7 @@ def list_page_us(page_path, search_query=None):
                                             if collection['attributes']['component']['id'] == 'content-grid':
                                                 # Hide empty grids
                                                 if collection.get('relationships'):
-                                                    if collection['attributes'].get('title') or \
-                                                            collection['attributes']['alias'] == 'networks' or \
-                                                            collection['attributes']['alias'] == 'network-logo-rail':
+                                                    if collection['attributes'].get('title'):
                                                         params = {
                                                             'action': 'list_collection',
                                                             'collection_id': collection['id'],
@@ -406,15 +404,25 @@ def list_page_us(page_path, search_query=None):
                                                             # pf[channel.id]=292&pf[recs.id]=292&pf[recs.type]=channel
                                                         }
 
-                                                        if collection['attributes'].get('title'):
-                                                            title = collection['attributes']['title']
-                                                        else:
-                                                            title = collection['attributes']['name']
-
-                                                        helper.add_item(title, params,
+                                                        helper.add_item(collection['attributes']['title'], params,
                                                                         content='videos',
                                                                         folder_name=page['attributes'].get(
                                                                             'pageMetadataTitle'))
+
+                                                    # Home -> For You -> Network logo rail category link
+                                                    if collection['attributes']['component'].get('templateId') == 'circle' and \
+                                                            collection['attributes']['component'].get('customAttributes'):
+                                                        if collection['attributes']['component']['customAttributes'].get('isBroadcastTile') is True:
+
+                                                            params = {
+                                                                'action': 'list_collection',
+                                                                'collection_id': collection['id']
+                                                            }
+
+                                                            helper.add_item(helper.language(30040), params,
+                                                                            content='videos',
+                                                                            folder_name=page['attributes'].get(
+                                                                                'pageMetadataTitle'))
 
                                             # Episodes, Extras, About the Show, You May Also Like
                                             if collection['attributes']['component']['id'] == 'tabbed-component':
@@ -2035,6 +2043,7 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                                 folder_name=folder_name, sort_method='sort_episodes')
 
                     # Explore -> Live Channels & On Demand Shows, Explore Shows and Full Episodes content in d+ India
+                    # Home -> For You -> Network logo rail content in discoveryplus.com (US and EU)
                     if collectionItem['relationships'].get('channel'):
                         for channel in channels:
                             if collectionItem['relationships']['channel']['data']['id'] == channel['id']:

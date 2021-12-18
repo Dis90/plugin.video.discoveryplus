@@ -172,3 +172,7 @@ msgstr ""
 msgctxt "#30039"
 msgid "Cookie"
 msgstr ""
+
+msgctxt "#30040"
+msgid "Channels"
+msgstr ""
