@@ -46,18 +46,18 @@ class Dplay(object):
 
         # Realm config
         realm_config    = self.load_realm_config()
-        realm2          = 'realm=' + realm_config['realm']
+        realm          = 'realm=' + realm_config['realm']
         siteLookupKey   = ',siteLookupKey=' + realm_config['siteLookupKey'] if realm_config.get('siteLookupKey') else ''
         bid             = ',bid=' + realm_config['brandId'] if realm_config.get('brandId') else ''
         hn              = ',hn=www.discoveryplus.com'
         hth             = ',hth=' + realm_config['mainTerritoryCode'] if realm_config.get('mainTerritoryCode') else ''
 
         if realm_config['realm'] == 'dplusindia':
-            disco_params = realm2 + siteLookupKey + bid + ',hn=www.discoveryplus.in' + hth
+            disco_params = realm + siteLookupKey + bid + ',hn=www.discoveryplus.in' + hth
             disco_client = 'WEB:UNKNOWN:dplus-india:prod'
             self.contentRatingSystem = 'DMEC'
         else:
-            disco_params = realm2 + siteLookupKey + bid + hn + hth + ',features=ar'
+            disco_params = realm + siteLookupKey + bid + hn + hth + ',features=ar'
             disco_client = 'WEB:UNKNOWN:dplus_us:1.25.0'
             if realm_config.get('mainTerritoryCode'):
 
