@@ -1,4 +1,5 @@
 import xbmc, xbmcaddon
+import xbmcvfs
 import os
 import json
 import requests
@@ -23,6 +24,10 @@ def get_realm_config():
     return data
 
 def write_realm_config(config):
+    # Create settings folder if it doesn't exists
+    if not xbmcvfs.exists(settings_folder):
+        xbmcvfs.mkdir(settings_folder)
+
     config_file = os.path.join(settings_folder, 'realm_config')
     f = open(config_file, "w")
     f.write(config)

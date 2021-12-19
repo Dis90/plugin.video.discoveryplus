@@ -13,6 +13,7 @@ import requests
 import uuid
 import xbmcaddon
 import xbmcgui
+import xbmcvfs
 
 try: # Python 3
     import http.cookiejar as cookielib
@@ -185,6 +186,11 @@ class Dplay(object):
         return json.loads(data)['data']
 
     def load_realm_config(self):
+        # Download realm config if it doesn't exists
+        if not xbmcvfs.exists(os.path.join(self.settings_folder, 'realm_config')):
+            import resources.services.realmservice as realmservice
+            realmservice.main()
+
         config_file = os.path.join(self.settings_folder, 'realm_config')
         f = open(config_file, "r")
         return json.loads(f.read())
