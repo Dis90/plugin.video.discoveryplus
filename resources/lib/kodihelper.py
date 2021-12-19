@@ -253,8 +253,11 @@ class KodiHelper(object):
 
                     playitem.setProperty('inputstream.adaptive.manifest_type', 'hls')
 
-            # Get metadata to use for Up next only in episodes and clips (can also be aired sport events)
-            if video_type == 'EPISODE' or video_type == 'CLIP':
+            # Live TV
+            if video_type == 'channel':
+                xbmcplugin.setResolvedUrl(self.handle, True, listitem=playitem)
+            # Get metadata to use for Up next
+            else:
                 # Get current episode info
                 current_episode = self.d.get_current_episode_info(video_id=video_id)
 
@@ -326,10 +329,6 @@ class KodiHelper(object):
                         player.video_lastpos = player.getTime()
 
                     xbmc.sleep(1000)
-
-            # Live TV
-            else:
-                xbmcplugin.setResolvedUrl(self.handle, True, listitem=playitem)
 
         except self.d.DplayError as error:
             self.dialog('ok', self.language(30006), error.value)
