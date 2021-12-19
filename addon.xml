@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="plugin.video.discoveryplus" version="1.6.6+matrix.1" name="discovery+" provider-name="Dis90">
+<addon id="plugin.video.discoveryplus" version="1.6.7+matrix.1" name="discovery+" provider-name="Dis90">
 <requires>
   <import addon="xbmc.python" version="3.0.0"/>
   <import addon="script.module.requests" version="2.9.1"/>
@@ -19,6 +19,9 @@
     <fanart>resources/fanart.png</fanart>
   </assets>
   <news>
+    v1.6.7+matrix.1 (19.12.2021)
+    - Playback progress updating is now blocked only for Live TV
+    - Fix realmservice on Kodi 18
     v1.6.6+matrix.1 (19.12.2021)
     - Fixes to realmservice in case folder or file is missing
     v1.6.5+matrix.1 (18.12.2021)
