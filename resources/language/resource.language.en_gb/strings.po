@@ -176,3 +176,8 @@ msgstr ""
 msgctxt "#30040"
 msgid "Channels"
 msgstr ""
+
+msgctxt "#30041"
+msgid "Use DRM"
+msgstr ""
+

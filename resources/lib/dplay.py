@@ -34,12 +34,13 @@ def slugify(text):
     return text
 
 class Dplay(object):
-    def __init__(self, settings_folder, logging_prefix, numresults, cookiestxt, cookiestxt_file, cookie, us_uhd):
+    def __init__(self, settings_folder, logging_prefix, numresults, cookiestxt, cookiestxt_file, cookie, us_uhd, drm_supported):
         self.logging_prefix = logging_prefix
         self.numResults = numresults
         self.client_id = str(uuid.uuid1())
         self.device_id = self.client_id.replace("-", "")
         self.us_uhd = us_uhd
+        self.drm_supported = drm_supported
 
         self.http_session = requests.Session()
         self.settings_folder = settings_folder
@@ -730,7 +731,10 @@ class Dplay(object):
         else:
             hwDecoding = []
             platform = 'desktop'
-            drmSupported = 'true'
+            if self.drm_supported:
+                drmSupported = 'true'
+            else:
+                drmSupported = 'false'
 
         # discoveryplus.com (go=US and Canada)
         if self.realm == 'go':
