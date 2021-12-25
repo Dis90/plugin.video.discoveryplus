@@ -177,3 +177,8 @@ msgstr "Eväste"
 msgctxt "#30040"
 msgid "Channels"
 msgstr "Kanavat"
+
+msgctxt "#30041"
+msgid "Use DRM"
+msgstr "Käytä DRM"
+
