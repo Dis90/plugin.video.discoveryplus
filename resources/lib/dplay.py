@@ -400,33 +400,37 @@ class Dplay(object):
                             epg_page_data = self.get_collections(
                                 collection_id=collectionItem['relationships']['collection']['data']['id'], page=1,
                                 parameter='pf[day]={current_day}'.format(current_day=current_day))
-                            channels = list(filter(lambda x: x['type'] == 'channel', epg_page_data['included']))
-                            images = list(filter(lambda x: x['type'] == 'image', epg_page_data['included']))
 
-                            for channel in channels:
-                                if channel['attributes']['hasLiveStream']:
-                                    url = 'plugin://plugin.video.discoveryplus/?action=play&video_id={channel_id}&video_type=channel'.format(
-                                        channel_id=channel['id'])
+                            # It is possible that there's empty channel
+                            if epg_page_data.get('included'):
 
-                                    channel_logo = None
-                                    fanart_image = None
-                                    if channel['relationships'].get('images'):
-                                        for image in images:
-                                            for channel_images in channel['relationships']['images']['data']:
-                                                if image['id'] == channel_images['id']:
-                                                    if image['attributes']['kind'] == 'logo':
-                                                        channel_logo = image['attributes']['src']
-                                                    if image['attributes']['kind'] == 'default':
-                                                        fanart_image = image['attributes']['src']
+                                channels = list(filter(lambda x: x['type'] == 'channel', epg_page_data['included']))
+                                images = list(filter(lambda x: x['type'] == 'image', epg_page_data['included']))
 
-                                    channels_list.append(dict(
-                                        id='%s@%s' % (channel['id'], slugify(
-                                            xbmcaddon.Addon(id='plugin.video.discoveryplus').getAddonInfo(
-                                                'name'))),
-                                        name=channel['attributes']['name'],
-                                        logo=channel_logo if channel_logo else fanart_image,
-                                        stream=url
-                                    ))
+                                for channel in channels:
+                                    if channel['attributes']['hasLiveStream']:
+                                        url = 'plugin://plugin.video.discoveryplus/?action=play&video_id={channel_id}&video_type=channel'.format(
+                                            channel_id=channel['id'])
+
+                                        channel_logo = None
+                                        fanart_image = None
+                                        if channel['relationships'].get('images'):
+                                            for image in images:
+                                                for channel_images in channel['relationships']['images']['data']:
+                                                    if image['id'] == channel_images['id']:
+                                                        if image['attributes']['kind'] == 'logo':
+                                                            channel_logo = image['attributes']['src']
+                                                        if image['attributes']['kind'] == 'default':
+                                                            fanart_image = image['attributes']['src']
+
+                                        channels_list.append(dict(
+                                            id='%s@%s' % (channel['id'], slugify(
+                                                xbmcaddon.Addon(id='plugin.video.discoveryplus').getAddonInfo(
+                                                    'name'))),
+                                            name=channel['attributes']['name'],
+                                            logo=channel_logo if channel_logo else fanart_image,
+                                            stream=url
+                                        ))
 
 
         return channels_list
