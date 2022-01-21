@@ -441,7 +441,7 @@ def list_page_us(page_path, search_query=None):
                                                                             c2['attributes']['component'].get('filters') and \
                                                                                         len(c2['attributes']['component']['filters'][0].get('options')) > 0:
                                                                         list_collection_items(collection_id=c2['id'], page_path=page_path)
-                                                                        
+
                                                                     # seasonsonly and no seasons listed in shows details
                                                                     elif helper.get_setting('seasonsonly') and \
                                                                             c2['attributes']['component'].get('filters') and \
@@ -2017,14 +2017,15 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                 # Watched status from discovery+
                                 if helper.get_setting('sync_playback'):
                                     if video['attributes']['viewingHistory']['viewed']:
-                                        if video['attributes']['viewingHistory']['completed']:  # Watched video
-                                            episode_info['playcount'] = '1'
-                                            resume = 0
-                                            total = duration
-                                        else:  # Partly watched video
-                                            episode_info['playcount'] = '0'
-                                            resume = video['attributes']['viewingHistory']['position'] / 1000.0
-                                            total = duration
+                                        if video['attributes']['viewingHistory'].get('completed'):
+                                            if video['attributes']['viewingHistory']['completed']:  # Watched video
+                                                episode_info['playcount'] = '1'
+                                                resume = 0
+                                                total = duration
+                                            else:  # Partly watched video
+                                                episode_info['playcount'] = '0'
+                                                resume = video['attributes']['viewingHistory']['position'] / 1000.0
+                                                total = duration
                                     else:  # Unwatched video
                                         episode_info['playcount'] = '0'
                                         resume = 0
