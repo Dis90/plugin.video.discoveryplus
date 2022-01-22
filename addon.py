@@ -2026,6 +2026,10 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                                 episode_info['playcount'] = '0'
                                                 resume = video['attributes']['viewingHistory']['position'] / 1000.0
                                                 total = duration
+                                        else: # Sometimes 'viewed' is True but 'completed' is missing. Example some Live sports
+                                            episode_info['playcount'] = '0'
+                                            resume = 0
+                                            total = 1
                                     else:  # Unwatched video
                                         episode_info['playcount'] = '0'
                                         resume = 0
