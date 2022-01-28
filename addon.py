@@ -2279,8 +2279,8 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                                 folder_name=page_data['data']['attributes'].get('title'))
 
                     # Kids -> Superheroes/Heroes We Love discoveryplus.in
-                    # Sports -> All Sports discoverylus.com (EU)
-                    # Olympics -> All Sports discoverylus.com (EU)
+                    # Sports -> All Sports discoveryplus.com (EU)
+                    # Olympics -> All Sports discoveryplus.com (EU)
                     if collectionItem['relationships'].get('taxonomyNode'):
                         for taxonomyNode in taxonomyNodes:
                             if collectionItem['relationships']['taxonomyNode']['data']['id'] == taxonomyNode['id']:
