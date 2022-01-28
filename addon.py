@@ -330,8 +330,9 @@ def list_page_us(page_path, search_query=None):
                                                     'thumb': thumb_image
                                                 }
 
-                                            # Hide sports -> Schedule link
-                                            if link['attributes']['alias'] != 'sports-schedule-link':
+                                            # Hide Sports -> Schedule link (sports-schedule-link) and
+                                            # Olympics -> Schedule link (olympics-schedule-page-link)
+                                            if '-schedule-' not in link['attributes']['alias']:
 
                                                 if link['attributes'].get('title'):
                                                     link_title = link['attributes']['title']
@@ -2277,7 +2278,9 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                                 art=link_art,
                                                 folder_name=page_data['data']['attributes'].get('title'))
 
-                    # Kids -> Superheroes discoveryplus.in
+                    # Kids -> Superheroes/Heroes We Love discoveryplus.in
+                    # Sports -> All Sports discoverylus.com (US and EU)
+                    # Olympics -> All Sports discoverylus.com (US and EU)
                     if collectionItem['relationships'].get('taxonomyNode'):
                         for taxonomyNode in taxonomyNodes:
                             if collectionItem['relationships']['taxonomyNode']['data']['id'] == taxonomyNode['id']:
@@ -2293,7 +2296,6 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                 }
 
                                 fanart_image = None
-                                thumb_image = None
                                 logo_image = None
                                 poster_image = None
                                 if taxonomyNode['relationships'].get('images'):
@@ -2302,7 +2304,6 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                             if image['id'] == taxonomyNode_images['id']:
                                                 if image['attributes']['kind'] == 'default':
                                                     fanart_image = image['attributes']['src']
-                                                    thumb_image = image['attributes']['src']
                                                 if image['attributes']['kind'] == 'logo':
                                                     logo_image = image['attributes']['src']
                                                 # discoveryplus.in has logos in poster
@@ -2316,8 +2317,7 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
 
                                 art = {
                                     'fanart': fanart_image,
-                                    'thumb': thumb_image,
-                                    'clearlogo': logo_image,
+                                    'thumb': logo_image if logo_image else fanart_image,
                                     'poster': poster_image
                                 }
 
