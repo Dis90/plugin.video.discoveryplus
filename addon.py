@@ -392,8 +392,9 @@ def list_page_us(page_path, search_query=None):
                                             # Home -> For You -> categories
                                             # TV Channel -> categories
                                             if collection['attributes']['component']['id'] == 'content-grid':
-                                                # Hide empty grids
-                                                if collection.get('relationships'):
+                                                # Hide empty grids but allow empty grids with shouldRefresh true (continue watching)
+                                                if collection.get('relationships') or \
+                                                        collection['attributes']['component']['customAttributes']['shouldRefresh'] == True:
                                                     if collection['attributes'].get('title'):
                                                         params = {
                                                             'action': 'list_collection',
