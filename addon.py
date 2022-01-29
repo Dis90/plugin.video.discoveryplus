@@ -412,7 +412,8 @@ def list_page_us(page_path, search_query=None):
 
                                                     # Home -> For You -> Network logo rail category link
                                                     if collection['attributes']['component'].get('templateId') == 'circle' and \
-                                                            collection['attributes']['component'].get('customAttributes'):
+                                                            collection['attributes']['component'].get('customAttributes') and \
+                                                            collection['attributes'].get('title') is None:
                                                         if collection['attributes']['component']['customAttributes'].get('isBroadcastTile') is True:
 
                                                             params = {
