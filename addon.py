@@ -387,11 +387,10 @@ def list_page_us(page_path, search_query=None):
                                             # Home -> For You -> categories
                                             # TV Channel -> categories
                                             if collection['attributes']['component']['id'] == 'content-grid':
-                                                # Hide empty grids but allow empty grids with shouldRefresh true (continue watching)
+                                                # Hide empty grids but allow continue watching.
+                                                # For unknown reason d+ returns it empty when add-on loads homepage.
                                                 if collection.get('relationships') or \
-                                                        (collection['attributes']['component'].get('customAttributes') and
-                                                         collection['attributes']['component']['customAttributes'].get('shouldRefresh') and
-                                                         collection['attributes']['component']['customAttributes']['shouldRefresh'] == True):
+                                                        collection['attributes']['alias'] == 'continue-watching':
 
                                                     if collection['attributes'].get('title'):
                                                         params = {
