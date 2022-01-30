@@ -263,14 +263,9 @@ def list_page_us(page_path, search_query=None):
                                                                                                         'attributes'][
                                                                                                         'src']
 
-                                                                            if channel_logo:
-                                                                                thumb_image = channel_logo
-                                                                            else:
-                                                                                thumb_image = fanart_image
-
                                                                             channel_art = {
                                                                                 'fanart': fanart_image,
-                                                                                'thumb': thumb_image
+                                                                                'thumb': channel_logo if channel_logo else fanart_image
                                                                             }
 
                                                                             helper.add_item(
@@ -394,7 +389,10 @@ def list_page_us(page_path, search_query=None):
                                             if collection['attributes']['component']['id'] == 'content-grid':
                                                 # Hide empty grids but allow empty grids with shouldRefresh true (continue watching)
                                                 if collection.get('relationships') or \
-                                                        collection['attributes']['component']['customAttributes']['shouldRefresh'] == True:
+                                                        (collection['attributes']['component'].get('customAttributes') and
+                                                         collection['attributes']['component']['customAttributes'].get('shouldRefresh') and
+                                                         collection['attributes']['component']['customAttributes']['shouldRefresh'] == True):
+
                                                     if collection['attributes'].get('title'):
                                                         params = {
                                                             'action': 'list_collection',
@@ -433,60 +431,34 @@ def list_page_us(page_path, search_query=None):
                                                     for collectionItem in collectionItems:
                                                         if c['id'] == collectionItem['id']:
                                                             for c2 in collections:
-                                                                if \
-                                                                        collectionItem['relationships']['collection'][
-                                                                            'data'][
-                                                                            'id'] == c2['id']:
+                                                                if collectionItem['relationships']['collection']['data']['id'] == c2['id']:
 
                                                                     # User setting for listing only seasons in shows page
-                                                                    # seasononly and seasons listed in shows details
                                                                     if helper.get_setting('seasonsonly') and \
                                                                             c2['attributes']['component'].get('filters') and \
-                                                                                        len(c2['attributes']['component']['filters'][0].get('options')) > 0:
-                                                                        list_collection_items(collection_id=c2['id'], page_path=page_path)
-
-                                                                    # seasonsonly and no seasons listed in shows details
-                                                                    elif helper.get_setting('seasonsonly') and \
-                                                                            c2['attributes']['component'].get('filters') and \
-                                                                            len(c2['attributes']['component']['filters'][0].get('options')) == 0:
-
-
+                                                                                        len(c2['attributes']['component']['filters'][0].get('options')) >= 0:
                                                                         list_collection(collection_id=c2['id'],
                                                                                         mandatoryParams=c2['attributes']['component'].get('mandatoryParams'),
                                                                                         page=1)
 
                                                                     else:
-                                                                        # Episodes and Extras
-                                                                        if c2['attributes']['component'][
-                                                                            'id'] == 'tabbed-content':
-                                                                            # Hide empty Episodes and Extras folders
+                                                                        # Episodes and Extras (tabbed-content)
+                                                                        # You May Also Like (content-grid)
+                                                                        # Channel category (d+ US) and Extras on shows that doesn't have episodes (content-grid)
+                                                                        if c2['attributes']['component']['id'] == 'tabbed-content' or \
+                                                                                c2['attributes']['component']['id'] == 'content-grid':
+                                                                            # Hide empty folders
                                                                             if c2.get('relationships'):
-                                                                                # Check if component is season list and check if there's season listing
-                                                                                if c2['attributes']['component'].get(
-                                                                                        'filters') and \
-                                                                                        c2['attributes']['component'][
-                                                                                            'filters'][0].get(
-                                                                                            'options'):
-
-                                                                                    # Have to use list_collection_items because collection comes empty
-                                                                                    params = {
-                                                                                        'action': 'list_collection_items',
-                                                                                        'page_path': page_path,
-                                                                                        'collection_id': c2['id']
-                                                                                    }
-
-                                                                                # Extras and Episodes list when there's no season listing (movies)
-                                                                                else:
-                                                                                    params = {
-                                                                                        'action': 'list_collection',
-                                                                                        'collection_id': c2['id'],
-                                                                                        # 66290614510668341673562607828298581172
-                                                                                        'mandatoryParams':
-                                                                                            c2['attributes'][
-                                                                                                'component'].get(
-                                                                                                'mandatoryParams')
-                                                                                        # pf[show.id]=12423
-                                                                                    }
+                                                                                params = {
+                                                                                    'action': 'list_collection',
+                                                                                    'collection_id': c2['id'],
+                                                                                    # 66290614510668341673562607828298581172
+                                                                                    'mandatoryParams':
+                                                                                        c2['attributes'][
+                                                                                            'component'].get(
+                                                                                            'mandatoryParams')
+                                                                                    # pf[show.id]=12423
+                                                                                }
 
                                                                                 helper.add_item(
                                                                                     c2['attributes']['title'],
@@ -495,25 +467,6 @@ def list_page_us(page_path, search_query=None):
                                                                                     folder_name=page[
                                                                                         'attributes'].get(
                                                                                         'pageMetadataTitle'))
-
-                                                                        # You May Also Like
-                                                                        # Channel category and Extras on shows that doesn't have episodes
-                                                                        # Have to use list_collection_items instead list_collection
-                                                                        # because of generic collection_id
-                                                                        if c2['attributes']['component'][
-                                                                            'id'] == 'content-grid':
-                                                                            params = {
-                                                                                'action': 'list_collection_items',
-                                                                                'page_path': page_path,
-                                                                                'collection_id': c2['id']
-                                                                            }
-
-                                                                            helper.add_item(c2['attributes']['title'],
-                                                                                            params,
-                                                                                            content='videos',
-                                                                                            folder_name=page[
-                                                                                                'attributes'].get(
-                                                                                                'pageMetadataTitle'))
 
                                             # discoveryplus.com (US) -> search -> collections -> list content of collection
                                             if collection['attributes']['component']['id'] == 'playlist':
@@ -573,14 +526,9 @@ def list_page_us(page_path, search_query=None):
                                                                                                             'attributes'][
                                                                                                             'src']
 
-                                                                                if channel_logo:
-                                                                                    thumb_image = channel_logo
-                                                                                else:
-                                                                                    thumb_image = fanart_image
-
                                                                                 channel_art = {
                                                                                     'fanart': fanart_image,
-                                                                                    'thumb': thumb_image
+                                                                                    'thumb': channel_logo if channel_logo else fanart_image
                                                                                 }
 
                                                                                 helper.add_item(
@@ -803,7 +751,42 @@ def list_page_in(page_path):
 
                                         # Shows page in discoveryplus.in (Episodes, Shorts)
                                         if collection['attributes']['component']['id'] == 'show-container':
-                                            list_collection_items(collection_id=collection['id'], page_path=page_path)
+                                            for collection_relationship in collection['relationships']['items']['data']:
+                                                for collectionItem in collectionItems:
+                                                    if collection_relationship['id'] == collectionItem['id']:
+                                                        for c2 in collections:
+                                                            if collectionItem['relationships']['collection']['data']['id'] == c2['id']:
+
+                                                                # Don't list empty category
+                                                                if c2.get('relationships'):
+
+                                                                    if c2['attributes'].get('name'):
+                                                                        if c2['attributes']['name'] == 'blueprint-show-seasons-grid':
+                                                                            params = {
+                                                                                'action': 'list_collection',
+                                                                                'collection_id': c2['id'],
+                                                                                'mandatoryParams':
+                                                                                    c2['attributes']['component'].get('mandatoryParams')
+                                                                                    # pf[show.id]=6613
+                                                                            }
+
+                                                                            helper.add_item('Episodes', params, content='videos',
+                                                                                    folder_name=pages[0][
+                                                                                        'attributes'].get(
+                                                                                        'title'))
+
+                                                                        if c2['attributes']['name'] == 'blueprint-show-shorts':
+                                                                            params = {
+                                                                                'action': 'list_collection_items',
+                                                                                'page_path': page_path,
+                                                                                'collection_id': c2['id']
+                                                                            }
+
+                                                                            helper.add_item('Shorts', params,
+                                                                                            content='videos',
+                                                                                            folder_name=pages[0][
+                                                                                                'attributes'].get(
+                                                                                                'title'))
 
                                         # Channels page category links (example Discovery -> Discovery Shows) and 'Explore Shows and Full Episodes' -> BBC
                                         if collection['attributes']['component']['id'] == 'content-grid':
@@ -870,14 +853,9 @@ def list_page_in(page_path):
                                                                                     fanart_image = \
                                                                                         image['attributes']['src']
 
-                                                                if channel_logo:
-                                                                    thumb_image = channel_logo
-                                                                else:
-                                                                    thumb_image = fanart_image
-
                                                                 channel_art = {
                                                                     'fanart': fanart_image,
-                                                                    'thumb': thumb_image
+                                                                    'thumb': channel_logo if channel_logo else fanart_image
                                                                 }
 
                                                                 helper.add_item(
@@ -962,435 +940,194 @@ def list_page_in(page_path):
 def list_collection_items(collection_id, page_path=None):
     page_data = helper.d.get_page(page_path)
 
-    pages = list(filter(lambda x: x['type'] == 'page', page_data['included']))
     collections = list(filter(lambda x: x['type'] == 'collection', page_data['included']))
     collectionItems = list(filter(lambda x: x['type'] == 'collectionItem', page_data['included']))
     images = list(filter(lambda x: x['type'] == 'image', page_data['included']))
     shows = list(filter(lambda x: x['type'] == 'show', page_data['included']))
     videos = list(filter(lambda x: x['type'] == 'video', page_data['included']))
     channels = list(filter(lambda x: x['type'] == 'channel', page_data['included']))
-    routes = list(filter(lambda x: x['type'] == 'route', page_data['included']))
     taxonomyNodes = list(filter(lambda x: x['type'] == 'taxonomyNode', page_data['included']))
 
     for collection in collections:
         if collection['id'] == collection_id:
-            # dicoveryplus.com (US and EU) and discoveryplus.in list series season grid
-            if collection['attributes'].get('component') and collection['attributes']['component'][
-                'id'] == 'tabbed-content':
-                # Check if there's any seasons of show or sport event
-                if collection['attributes']['component'].get('filters'):
+            for collection_relationship in collection['relationships']['items']['data']:
+                for collectionItem in collectionItems:
+                    if collection_relationship['id'] == collectionItem['id']:
 
-                    # If there's only one season and setting flattentvshows is true -> list videos
-                    if helper.get_setting('flattentvshows') and \
-                            len(collection['attributes']['component']['filters'][0]['options']) == 1:
-                        list_collection(collection_id=collection['id'],
-                                        page=1,
-                                        mandatoryParams=collection['attributes']['component'].get('mandatoryParams'),
-                                        parameter=collection['attributes']['component']['filters'][0]['options'][0][
-                                            'id'])
-                    else:
-                        for option in collection['attributes']['component']['filters'][0][
-                            'options']:
-                            title = helper.language(30011) + ' ' + str(option['id'])
-                            params = {
-                                'action': 'list_collection',
-                                'collection_id': collection['id'],
-                                # 66290614510668341673562607828298581172
-                                'mandatoryParams': collection['attributes'][
-                                    'component'].get(
-                                    'mandatoryParams'),  # pf[show.id]=12423
-                                'parameter': option['parameter']  # pf[seasonNumber]=1
-                            }
+                        # List videos (Show -> Shorts in d+ India) can't use list_collection because of missing mandatoryParams
+                        if collectionItem['relationships'].get('video'):
+                            for video in videos:
+                                if collectionItem['relationships']['video']['data']['id'] == video['id']:
 
-                            info = {
-                                'mediatype': 'season'
-                            }
+                                    params = {
+                                        'action': 'play',
+                                        'video_id': video['id'],
+                                        'video_type': video['attributes']['videoType']
+                                    }
 
-                            # Show metadata
-                            # Some show pages doesn't have primaryContent = show id and also doesn't have metadata of show
-                            if pages[0]['relationships'].get('primaryContent'):
-                                for show in shows:
-                                    if show['id'] == pages[0]['relationships']['primaryContent']['data']['id']:
+                                    show_fanart_image = None
+                                    show_logo_image = None
+                                    show_poster_image = None
+                                    for show in shows:
+                                        if show['id'] == video['relationships']['show']['data']['id']:
+                                            show_title = show['attributes']['name']
 
-                                        info['tvshowtitle'] = show['attributes'].get('name')
-                                        info['plotoutline'] = show['attributes'].get('description')
-                                        info['plot'] = show['attributes'].get('longDescription')
-                                        info['season'] = len(show['attributes']['seasonNumbers'])
-                                        info['episode'] = show['attributes']['episodeCount']
+                                            if show['relationships'].get('images'):
+                                                for image in images:
+                                                    for show_images in show['relationships']['images']['data']:
+                                                        if image['id'] == show_images['id']:
+                                                            if image['attributes']['kind'] == 'default':
+                                                                show_fanart_image = image['attributes']['src']
+                                                            if image['attributes']['kind'] == 'logo':
+                                                                show_logo_image = image['attributes']['src']
+                                                            # discoveryplus.in has logos in poster
+                                                            if helper.d.realm == 'dplusindia':
+                                                                if image['attributes']['kind'] == 'poster':
+                                                                    show_poster_image = image['attributes']['src']
+                                                            else:
+                                                                if image['attributes'][
+                                                                    'kind'] == 'poster_with_logo':
+                                                                    show_poster_image = image['attributes']['src']
 
-                                        g = []
-                                        # Show genres
-                                        if show['relationships'].get('txGenres'):
-                                            for taxonomyNode in taxonomyNodes:
-                                                for show_genre in show['relationships']['txGenres']['data']:
-                                                    if taxonomyNode['id'] == show_genre['id']:
-                                                        g.append(taxonomyNode['attributes']['name'])
+                                    g = []
+                                    if video['relationships'].get('txGenres'):
+                                        for taxonomyNode in taxonomyNodes:
+                                            for video_genre in video['relationships']['txGenres']['data']:
+                                                if taxonomyNode['id'] == video_genre['id']:
+                                                    g.append(taxonomyNode['attributes']['name'])
 
-                                        mpaa = None
-                                        if show['attributes'].get('contentRatings'):
-                                            for contentRating in show['attributes']['contentRatings']:
-                                                if contentRating['system'] == helper.d.contentRatingSystem:
-                                                    mpaa = contentRating['code']
+                                    mpaa = None
+                                    if video['attributes'].get('contentRatings'):
+                                        for contentRating in video['attributes']['contentRatings']:
+                                            if contentRating['system'] == helper.d.contentRatingSystem:
+                                                mpaa = contentRating['code']
 
-                                        if show['relationships'].get('primaryChannel'):
-                                            for channel in channels:
-                                                if channel['id'] == \
-                                                        show['relationships']['primaryChannel']['data'][
-                                                            'id']:
-                                                    primaryChannel = channel['attributes']['name']
-                                        else:
-                                            primaryChannel = None
+                                    if video['relationships'].get('primaryChannel'):
+                                        for channel in channels:
+                                            if channel['id'] == video['relationships']['primaryChannel']['data'][
+                                                'id']:
+                                                primaryChannel = channel['attributes']['name']
+                                    else:
+                                        primaryChannel = None
 
-                                        info['genre'] = g
-                                        info['studio'] = primaryChannel
-                                        info['mpaa'] = mpaa
+                                    if video['relationships'].get('images'):
+                                        for image in images:
+                                            if image['id'] == video['relationships']['images']['data'][0]['id']:
+                                                video_thumb_image = image['attributes']['src']
+                                    else:
+                                        video_thumb_image = None
 
-                                        fanart_image = None
-                                        thumb_image = None
-                                        logo_image = None
-                                        poster_image = None
-                                        if show['relationships'].get('images'):
-                                            for image in images:
-                                                for show_images in show['relationships']['images']['data']:
-                                                    if image['id'] == show_images['id']:
-                                                        if image['attributes']['kind'] == 'default':
-                                                            fanart_image = image['attributes']['src']
-                                                            thumb_image = image['attributes']['src']
-                                                        if image['attributes']['kind'] == 'logo':
-                                                            logo_image = image['attributes']['src']
-                                                        # discoveryplus.in has logos in poster
-                                                        if helper.d.realm == 'dplusindia':
-                                                            if image['attributes']['kind'] == 'poster':
-                                                                poster_image = image['attributes']['src']
-                                                        else:
-                                                            if image['attributes'][
-                                                                'kind'] == 'poster_with_logo':
-                                                                poster_image = image['attributes']['src']
+                                    duration = video['attributes']['videoDuration'] / 1000.0 if video[
+                                        'attributes'].get(
+                                        'videoDuration') else None
 
-                                        show_art = {
-                                            'fanart': fanart_image,
-                                            'thumb': thumb_image,
-                                            'clearlogo': logo_image,
-                                            'poster': poster_image
-                                        }
-
-                                        if collection['attributes'].get('title'):
-                                            folder_name = show['attributes'].get('name') + ' / ' + collection[
-                                                'attributes'].get(
-                                                'title')
-                                        else:
-                                            folder_name = show['attributes'].get('name')
-                            else:
-                                info = {}
-                                show_art = {}
-                                folder_name = pages[0]['attributes'].get('title') + ' / ' + collection['attributes'].get(
-                                    'title')
-
-                            helper.add_item(title, params, info=info, art=show_art,
-                                            content='seasons', folder_name=folder_name,
-                                            sort_method='sort_label')
-
-            # content-grid, content-hero etc
-            else:
-                for collection_relationship in collection['relationships']['items']['data']:
-                    for collectionItem in collectionItems:
-                        if collection_relationship['id'] == collectionItem['id']:
-
-                            # discoveryplus.in (Episodes, Shorts)
-                            if collectionItem['relationships'].get('collection'):
-                                for c2 in collections:
-                                    if collectionItem['relationships']['collection']['data']['id'] == c2['id']:
-                                        # Don't list empty category
-                                        if c2.get('relationships'):
-                                            params = {
-                                                'action': 'list_collection_items',
-                                                'page_path': page_path,
-                                                'collection_id': c2['id']
-                                            }
-
-                                            if c2['attributes'].get('name'):
-                                                if c2['attributes']['name'] == 'blueprint-show-seasons-grid':
-                                                    title = 'Episodes'
-                                                elif c2['attributes']['name'] == 'blueprint-show-shorts':
-                                                    title = 'Shorts'
-                                                else:
-                                                    title = c2['attributes']['name']
+                                    # If episode is not yet playable, show playable time in plot
+                                    if video['attributes'].get('earliestPlayableStart'):
+                                        if helper.d.parse_datetime(
+                                                video['attributes'][
+                                                    'earliestPlayableStart']) > helper.d.get_current_time():
+                                            playable = str(
+                                                helper.d.parse_datetime(
+                                                    video['attributes']['earliestPlayableStart']).strftime(
+                                                    '%d.%m.%Y %H:%M'))
+                                            if video['attributes'].get('description'):
+                                                plot = helper.language(30002) + playable + ' ' + video[
+                                                    'attributes'].get(
+                                                    'description')
                                             else:
-                                                title = ''
-
-                                            helper.add_item(title, params, content='videos',
-                                                            folder_name=pages[0]['attributes'].get('title'))
-
-                            # List shows
-                            if collectionItem['relationships'].get('show'):
-                                for show in shows:
-                                    if collectionItem['relationships']['show']['data']['id'] == show['id']:
-
-                                        title = show['attributes']['name'].encode('utf-8')
-
-                                        # Find page path from routes
-                                        for route in routes:
-                                            if route['id'] == show['relationships']['routes']['data'][0]['id']:
-                                                next_page_path = route['attributes']['url']
-
-                                        params = {
-                                            'action': 'list_page',
-                                            'page_path': next_page_path
-                                        }
-
-                                        g = []
-                                        # Show genres
-                                        if show['relationships'].get('txGenres'):
-                                            for taxonomyNode in taxonomyNodes:
-                                                for show_genre in show['relationships']['txGenres']['data']:
-                                                    if taxonomyNode['id'] == show_genre['id']:
-                                                        g.append(taxonomyNode['attributes']['name'])
-
-                                        mpaa = None
-                                        if show['attributes'].get('contentRatings'):
-                                            for contentRating in show['attributes']['contentRatings']:
-                                                if contentRating['system'] == helper.d.contentRatingSystem:
-                                                    mpaa = contentRating['code']
-
-                                        if show['relationships'].get('primaryChannel'):
-                                            for channel in channels:
-                                                if channel['id'] == show['relationships']['primaryChannel']['data'][
-                                                    'id']:
-                                                    primaryChannel = channel['attributes']['name']
-                                        else:
-                                            primaryChannel = None
-
-                                        info = {
-                                            'mediatype': 'tvshow',
-                                            'plotoutline': show['attributes'].get('description'),
-                                            'plot': show['attributes'].get('longDescription'),
-                                            'genre': g,
-                                            'studio': primaryChannel,
-                                            'season': len(show['attributes'].get('seasonNumbers')),
-                                            'episode': show['attributes'].get('episodeCount'),
-                                            'mpaa': mpaa
-                                        }
-
-                                        # Add or delete favorite context menu
-                                        if show['attributes']['isFavorite']:
-                                            menu = []
-                                            menu.append((helper.language(30010),
-                                                         'RunPlugin(plugin://' + helper.addon_name + '/?action=delete_favorite&show_id=' + str(
-                                                             show['id']) + ')',))
-                                        else:
-                                            menu = []
-                                            menu.append((helper.language(30009),
-                                                         'RunPlugin(plugin://' + helper.addon_name + '/?action=add_favorite&show_id=' + str(
-                                                             show['id']) + ')',))
-
-                                        fanart_image = None
-                                        thumb_image = None
-                                        logo_image = None
-                                        poster_image = None
-                                        if show['relationships'].get('images'):
-                                            for image in images:
-                                                for show_images in show['relationships']['images']['data']:
-                                                    if image['id'] == show_images['id']:
-                                                        if image['attributes']['kind'] == 'default':
-                                                            fanart_image = image['attributes']['src']
-                                                            thumb_image = image['attributes']['src']
-                                                        if image['attributes']['kind'] == 'logo':
-                                                            logo_image = image['attributes']['src']
-                                                        # discoveryplus.in has logos in poster
-                                                        if helper.d.realm== 'dplusindia':
-                                                            if image['attributes']['kind'] == 'poster':
-                                                                poster_image = image['attributes']['src']
-                                                        else:
-                                                            if image['attributes'][
-                                                                'kind'] == 'poster_with_logo':
-                                                                poster_image = image['attributes']['src']
-
-                                        show_art = {
-                                            'fanart': fanart_image,
-                                            'thumb': thumb_image,
-                                            'clearlogo': logo_image,
-                                            'poster': poster_image
-                                        }
-
-                                        helper.add_item(title, params, info=info, art=show_art, content='tvshows',
-                                                        menu=menu, folder_name=collection['attributes'].get('title'),
-                                                        sort_method='unsorted')
-
-                            # List videos (Show -> Shorts in d+ India) can't use list_collection because of
-                            # missing mandatoryParams
-                            if collectionItem['relationships'].get('video'):
-                                for video in videos:
-                                    if collectionItem['relationships']['video']['data']['id'] == video['id']:
-
-                                        params = {
-                                            'action': 'play',
-                                            'video_id': video['id'],
-                                            'video_type': video['attributes']['videoType']
-                                        }
-
-                                        show_fanart_image = None
-                                        show_logo_image = None
-                                        show_poster_image = None
-                                        for show in shows:
-                                            if show['id'] == video['relationships']['show']['data']['id']:
-                                                show_title = show['attributes']['name']
-
-                                                if show['relationships'].get('images'):
-                                                    for image in images:
-                                                        for show_images in show['relationships']['images']['data']:
-                                                            if image['id'] == show_images['id']:
-                                                                if image['attributes']['kind'] == 'default':
-                                                                    show_fanart_image = image['attributes']['src']
-                                                                if image['attributes']['kind'] == 'logo':
-                                                                    show_logo_image = image['attributes']['src']
-                                                                # discoveryplus.in has logos in poster
-                                                                if helper.d.realm == 'dplusindia':
-                                                                    if image['attributes']['kind'] == 'poster':
-                                                                        show_poster_image = image['attributes']['src']
-                                                                else:
-                                                                    if image['attributes'][
-                                                                        'kind'] == 'poster_with_logo':
-                                                                        show_poster_image = image['attributes']['src']
-
-                                        g = []
-                                        if video['relationships'].get('txGenres'):
-                                            for taxonomyNode in taxonomyNodes:
-                                                for video_genre in video['relationships']['txGenres']['data']:
-                                                    if taxonomyNode['id'] == video_genre['id']:
-                                                        g.append(taxonomyNode['attributes']['name'])
-
-                                        mpaa = None
-                                        if video['attributes'].get('contentRatings'):
-                                            for contentRating in video['attributes']['contentRatings']:
-                                                if contentRating['system'] == helper.d.contentRatingSystem:
-                                                    mpaa = contentRating['code']
-
-                                        if video['relationships'].get('primaryChannel'):
-                                            for channel in channels:
-                                                if channel['id'] == video['relationships']['primaryChannel']['data'][
-                                                    'id']:
-                                                    primaryChannel = channel['attributes']['name']
-                                        else:
-                                            primaryChannel = None
-
-                                        if video['relationships'].get('images'):
-                                            for image in images:
-                                                if image['id'] == video['relationships']['images']['data'][0]['id']:
-                                                    video_thumb_image = image['attributes']['src']
-                                        else:
-                                            video_thumb_image = None
-
-                                        duration = video['attributes']['videoDuration'] / 1000.0 if video[
-                                            'attributes'].get(
-                                            'videoDuration') else None
-
-                                        # If episode is not yet playable, show playable time in plot
-                                        if video['attributes'].get('earliestPlayableStart'):
-                                            if helper.d.parse_datetime(
-                                                    video['attributes'][
-                                                        'earliestPlayableStart']) > helper.d.get_current_time():
-                                                playable = str(
-                                                    helper.d.parse_datetime(
-                                                        video['attributes']['earliestPlayableStart']).strftime(
-                                                        '%d.%m.%Y %H:%M'))
-                                                if video['attributes'].get('description'):
-                                                    plot = helper.language(30002) + playable + ' ' + video[
-                                                        'attributes'].get(
-                                                        'description')
-                                                else:
-                                                    plot = helper.language(30002) + playable
-                                            else:
-                                                plot = video['attributes'].get('description')
+                                                plot = helper.language(30002) + playable
                                         else:
                                             plot = video['attributes'].get('description')
+                                    else:
+                                        plot = video['attributes'].get('description')
 
-                                        # discovery+ subscription check
-                                        # First check if video is available for free
-                                        if len(video['attributes']['packages']) > 1:
-                                            # Get all available packages in availabilityWindows
-                                            for availabilityWindow in video['attributes']['availabilityWindows']:
-                                                if availabilityWindow['package'] == 'Free' or availabilityWindow[
-                                                    'package'] == 'Registered':
-                                                    # Check if there is ending time for free availability
-                                                    if availabilityWindow.get('playableEnd'):
-                                                        # Check if video is still available for free
-                                                        if helper.d.parse_datetime(availabilityWindow[
-                                                                                       'playableStart']) < helper.d.get_current_time() < helper.d.parse_datetime(
-                                                            availabilityWindow['playableEnd']):
-                                                            subscription_needed = False
+                                    # discovery+ subscription check
+                                    # First check if video is available for free
+                                    if len(video['attributes']['packages']) > 1:
+                                        # Get all available packages in availabilityWindows
+                                        for availabilityWindow in video['attributes']['availabilityWindows']:
+                                            if availabilityWindow['package'] == 'Free' or availabilityWindow[
+                                                'package'] == 'Registered':
+                                                # Check if there is ending time for free availability
+                                                if availabilityWindow.get('playableEnd'):
+                                                    # Check if video is still available for free
+                                                    if helper.d.parse_datetime(availabilityWindow[
+                                                                                   'playableStart']) < helper.d.get_current_time() < helper.d.parse_datetime(
+                                                        availabilityWindow['playableEnd']):
+                                                        subscription_needed = False
 
-                                                        else:  # Video is not anymore available for free
-                                                            subscription_needed = True
-                                        else:  # Only one package in packages = Subscription needed
-                                            subscription_needed = True
+                                                    else:  # Video is not anymore available for free
+                                                        subscription_needed = True
+                                    else:  # Only one package in packages = Subscription needed
+                                        subscription_needed = True
 
-                                        # Check if user has needed subscription
-                                        check = any(x in video['attributes']['packages'] for x in
-                                                    helper.d.get_user_data()['attributes']['packages'])
-                                        if check is True:
-                                            subscription_needed = False
+                                    # Check if user has needed subscription
+                                    check = any(x in video['attributes']['packages'] for x in
+                                                helper.d.get_user_data()['attributes']['packages'])
+                                    if check is True:
+                                        subscription_needed = False
+                                    else:
+                                        subscription_needed = True
+
+                                    if subscription_needed is True:
+                                        if plot:
+                                            plot = helper.language(30034) + ' ' + plot
                                         else:
-                                            subscription_needed = True
+                                            plot = helper.language(30034)
 
-                                        if subscription_needed is True:
-                                            if plot:
-                                                plot = helper.language(30034) + ' ' + plot
-                                            else:
-                                                plot = helper.language(30034)
+                                    # secondaryTitle used in sport events
+                                    if video['attributes'].get('secondaryTitle'):
+                                        video_title = video['attributes'].get('name').lstrip() + ' - ' + \
+                                                      video['attributes']['secondaryTitle'].lstrip()
+                                    else:
+                                        video_title = video['attributes'].get('name').lstrip()
 
-                                        # secondaryTitle used in sport events
-                                        if video['attributes'].get('secondaryTitle'):
-                                            video_title = video['attributes'].get('name').lstrip() + ' - ' + \
-                                                          video['attributes']['secondaryTitle'].lstrip()
-                                        else:
-                                            video_title = video['attributes'].get('name').lstrip()
+                                    episode_info = {
+                                        'mediatype': 'episode',
+                                        'title': video_title,
+                                        'tvshowtitle': show_title,
+                                        'season': video['attributes'].get('seasonNumber'),
+                                        'episode': video['attributes'].get('episodeNumber'),
+                                        'plot': plot,
+                                        'genre': g,
+                                        'studio': primaryChannel,
+                                        'duration': duration,
+                                        'aired': video['attributes'].get('airDate'),
+                                        'mpaa': mpaa
+                                    }
 
-                                        episode_info = {
-                                            'mediatype': 'episode',
-                                            'title': video_title,
-                                            'tvshowtitle': show_title,
-                                            'season': video['attributes'].get('seasonNumber'),
-                                            'episode': video['attributes'].get('episodeNumber'),
-                                            'plot': plot,
-                                            'genre': g,
-                                            'studio': primaryChannel,
-                                            'duration': duration,
-                                            'aired': video['attributes'].get('airDate'),
-                                            'mpaa': mpaa
-                                        }
-
-                                        # Watched status from Discovery+
-                                        if helper.get_setting('sync_playback'):
-                                            if video['attributes']['viewingHistory']['viewed']:
-                                                if video['attributes']['viewingHistory'].get(
-                                                        'completed'):  # Watched video
-                                                    episode_info['playcount'] = '1'
-                                                    resume = 0
-                                                    total = duration
-                                                else:  # Partly watched video
-                                                    episode_info['playcount'] = '0'
-                                                    resume = video['attributes']['viewingHistory']['position'] / 1000.0
-                                                    total = duration
-                                            else:  # Unwatched video
-                                                episode_info['playcount'] = '0'
+                                    # Watched status from Discovery+
+                                    if helper.get_setting('sync_playback'):
+                                        if video['attributes']['viewingHistory']['viewed']:
+                                            if video['attributes']['viewingHistory'].get(
+                                                    'completed'):  # Watched video
+                                                episode_info['playcount'] = '1'
                                                 resume = 0
-                                                total = 1
-                                        else:  # Kodis resume data used
-                                            resume = None
-                                            total = None
+                                                total = duration
+                                            else:  # Partly watched video
+                                                episode_info['playcount'] = '0'
+                                                resume = video['attributes']['viewingHistory']['position'] / 1000.0
+                                                total = duration
+                                        else:  # Unwatched video
+                                            episode_info['playcount'] = '0'
+                                            resume = 0
+                                            total = 1
+                                    else:  # Kodis resume data used
+                                        resume = None
+                                        total = None
 
-                                        episode_art = {
-                                            'fanart': show_fanart_image,
-                                            'thumb': video_thumb_image,
-                                            'clearlogo': show_logo_image,
-                                            'poster': show_poster_image
-                                        }
+                                    episode_art = {
+                                        'fanart': show_fanart_image,
+                                        'thumb': video_thumb_image,
+                                        'clearlogo': show_logo_image,
+                                        'poster': show_poster_image
+                                    }
 
-                                        helper.add_item(video_title, params=params,
-                                                        info=episode_info, art=episode_art,
-                                                        content='episodes', playable=True, resume=resume, total=total,
-                                                        folder_name=collection['attributes'].get('title'),
-                                                        sort_method='sort_episodes')
+                                    helper.add_item(video_title, params=params,
+                                                    info=episode_info, art=episode_art,
+                                                    content='episodes', playable=True, resume=resume, total=total,
+                                                    folder_name=collection['attributes'].get('title'),
+                                                    sort_method='sort_episodes')
 
     helper.eod()
 
@@ -1764,316 +1501,130 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
         routes = list(filter(lambda x: x['type'] == 'route', page_data['included']))
         taxonomyNodes = list(filter(lambda x: x['type'] == 'taxonomyNode', page_data['included']))
 
-        # Get order of content from page_data['data']
-        for collection_relationship in page_data['data']['relationships']['items']['data']:
-            for collectionItem in collectionItems:
-                # Match collectionItem id's from collection listing to all collectionItems in data
-                if collection_relationship['id'] == collectionItem['id']:
-                    # List shows
-                    if collectionItem['relationships'].get('show'):
-                        for show in shows:
-                            if collectionItem['relationships']['show']['data']['id'] == show['id']:
+        # dicoveryplus.com (US and EU) and discoveryplus.in list series season grid
+        # Parameter is missing for season listing and shows without seasons (movies, documentaries)
+        # So we check that there's seasons listed in data (['filters'][0]['options'])
+        if page_data['data']['attributes'].get('component') and \
+                page_data['data']['attributes']['component']['id'] == 'tabbed-content' and \
+                page_data['data']['attributes']['component'].get('filters') and \
+                parameter is None and \
+                len(page_data['data']['attributes']['component']['filters'][0].get('options')) > 0:
 
-                                title = show['attributes']['name'].encode('utf-8')
+            # If there's only one season and setting flattentvshows is true -> list videos
+            if helper.get_setting('flattentvshows') and \
+                    len(page_data['data']['attributes']['component']['filters'][0]['options']) == 1:
+                list_collection(collection_id=page_data['data']['id'],
+                                page=1,
+                                mandatoryParams=page_data['data']['attributes']['component'].get('mandatoryParams'),
+                                parameter=page_data['data']['attributes']['component']['filters'][0]['options'][0][
+                                    'id'])
+            else:
+                for option in page_data['data']['attributes']['component']['filters'][0]['options']:
+                    title = helper.language(30011) + ' ' + str(option['id'])
+                    params = {
+                        'action': 'list_collection',
+                        'collection_id': page_data['data']['id'],
+                        # 66290614510668341673562607828298581172
+                        'mandatoryParams': page_data['data']['attributes'][
+                            'component'].get(
+                            'mandatoryParams'),  # pf[show.id]=12423
+                        'parameter': option['parameter']  # pf[seasonNumber]=1
+                    }
 
-                                # Find page path from routes
-                                for route in routes:
-                                    if route['id'] == show['relationships']['routes']['data'][0]['id']:
-                                        next_page_path = route['attributes']['url']
+                    # Show metadata
+                    info = {
+                        'mediatype': 'season',
+                        'tvshowtitle': shows[0]['attributes'].get('name'),
+                        'plotoutline': shows[0]['attributes'].get('description'),
+                        'plot': shows[0]['attributes'].get('longDescription'),
+                        'season': len(shows[0]['attributes']['seasonNumbers']),
+                        'episode': shows[0]['attributes']['episodeCount']
+                    }
 
-                                params = {
-                                    'action': 'list_page',
-                                    'page_path': next_page_path
-                                }
+                    g = []
+                    # Show genres
+                    if shows[0]['relationships'].get('txGenres'):
+                        for taxonomyNode in taxonomyNodes:
+                            for show_genre in shows[0]['relationships']['txGenres']['data']:
+                                if taxonomyNode['id'] == show_genre['id']:
+                                    g.append(taxonomyNode['attributes']['name'])
 
-                                g = []
-                                # Show genres
-                                if show['relationships'].get('txGenres'):
-                                    for taxonomyNode in taxonomyNodes:
-                                        for show_genre in show['relationships']['txGenres']['data']:
-                                            if taxonomyNode['id'] == show_genre['id']:
-                                                g.append(taxonomyNode['attributes']['name'])
+                    mpaa = None
+                    if shows[0]['attributes'].get('contentRatings'):
+                        for contentRating in shows[0]['attributes']['contentRatings']:
+                            if contentRating['system'] == helper.d.contentRatingSystem:
+                                mpaa = contentRating['code']
 
-                                mpaa = None
-                                if show['attributes'].get('contentRatings'):
-                                    for contentRating in show['attributes']['contentRatings']:
-                                        if contentRating['system'] == helper.d.contentRatingSystem:
-                                            mpaa = contentRating['code']
-
-                                if show['relationships'].get('primaryChannel'):
-                                    for channel in channels:
-                                        if channel['id'] == show['relationships']['primaryChannel']['data'][
-                                            'id']:
-                                            primaryChannel = channel['attributes']['name']
-                                else:
-                                    primaryChannel = None
-
-                                info = {
-                                    'mediatype': 'tvshow',
-                                    'plotoutline': show['attributes'].get('description'),
-                                    'plot': show['attributes'].get('longDescription'),
-                                    'genre': g,
-                                    'studio': primaryChannel,
-                                    'season': len(show['attributes'].get('seasonNumbers')),
-                                    'episode': show['attributes'].get('episodeCount'),
-                                    'mpaa': mpaa
-                                }
-
-                                # Add or delete favorite context menu
-                                if show['attributes']['isFavorite']:
-                                    menu = []
-                                    menu.append((helper.language(30010),
-                                                 'RunPlugin(plugin://' + helper.addon_name + '/?action=delete_favorite&show_id=' + str(
-                                                     show['id']) + ')',))
-                                else:
-                                    menu = []
-                                    menu.append((helper.language(30009),
-                                                 'RunPlugin(plugin://' + helper.addon_name + '/?action=add_favorite&show_id=' + str(
-                                                     show['id']) + ')',))
-
-                                fanart_image = None
-                                thumb_image = None
-                                logo_image = None
-                                poster_image = None
-                                if show['relationships'].get('images'):
-                                    for image in images:
-                                        for show_images in show['relationships']['images']['data']:
-                                            if image['id'] == show_images['id']:
-                                                if image['attributes']['kind'] == 'default':
-                                                    fanart_image = image['attributes']['src']
-                                                    thumb_image = image['attributes']['src']
-                                                if image['attributes']['kind'] == 'logo':
-                                                    logo_image = image['attributes']['src']
-                                                # discoveryplus.in has logos in poster
-                                                if helper.d.realm == 'dplusindia':
-                                                    if image['attributes']['kind'] == 'poster':
-                                                        poster_image = image['attributes']['src']
-                                                else:
-                                                    if image['attributes'][
-                                                        'kind'] == 'poster_with_logo':
-                                                        poster_image = image['attributes']['src']
-
-                                show_art = {
-                                    'fanart': fanart_image,
-                                    'thumb': thumb_image,
-                                    'clearlogo': logo_image,
-                                    'poster': poster_image
-                                }
-
-                                helper.add_item(title, params, info=info, art=show_art, content='tvshows',
-                                                menu=menu, folder_name=page_data['data']['attributes'].get('title'),
-                                                sort_method='unsorted')
-
-                    # List videos
-                    if collectionItem['relationships'].get('video'):
-                        for video in videos:
-                            # Match collectionItem's video id to all video id's in data
-                            if collectionItem['relationships']['video']['data']['id'] == video['id']:
-
-                                params = {
-                                    'action': 'play',
-                                    'video_id': video['id'],
-                                    'video_type': video['attributes']['videoType']
-                                }
-
-                                show_fanart_image = None
-                                show_logo_image = None
-                                show_poster_image = None
-                                for show in shows:
-                                    if show['id'] == video['relationships']['show']['data']['id']:
-                                        show_title = show['attributes']['name']
-
-                                        if show['relationships'].get('images'):
-                                            for image in images:
-                                                for show_images in show['relationships']['images']['data']:
-                                                    if image['id'] == show_images['id']:
-                                                        if image['attributes']['kind'] == 'default':
-                                                            show_fanart_image = image['attributes']['src']
-                                                        if image['attributes']['kind'] == 'logo':
-                                                            show_logo_image = image['attributes']['src']
-                                                        # discoveryplus.in has logos in poster
-                                                        if helper.d.realm == 'dplusindia':
-                                                            if image['attributes']['kind'] == 'poster':
-                                                                show_poster_image = image['attributes']['src']
-                                                        else:
-                                                            if image['attributes'][
-                                                                'kind'] == 'poster_with_logo':
-                                                                show_poster_image = image['attributes']['src']
-
-                                g = []
-                                if video['relationships'].get('txGenres'):
-                                    for taxonomyNode in taxonomyNodes:
-                                        for video_genre in video['relationships']['txGenres']['data']:
-                                            if taxonomyNode['id'] == video_genre['id']:
-                                                g.append(taxonomyNode['attributes']['name'])
-
-                                mpaa = None
-                                if video['attributes'].get('contentRatings'):
-                                    for contentRating in video['attributes']['contentRatings']:
-                                        if contentRating['system'] == helper.d.contentRatingSystem:
-                                            mpaa = contentRating['code']
-
-                                # Sport example Tennis
-                                if video['relationships'].get('txSports'):
-                                    for taxonomyNode in taxonomyNodes:
-                                        if taxonomyNode['id'] == video['relationships']['txSports']['data'][0]['id']:
-                                            sport = taxonomyNode['attributes']['name']
-                                # Olympics sport
-                                elif video['relationships'].get('txOlympicssport'):
-                                    for taxonomyNode in taxonomyNodes:
-                                        if taxonomyNode['id'] == video['relationships']['txOlympicssport']['data'][0]['id']:
-                                            sport = taxonomyNode['attributes']['name']
-                                else:
-                                    sport = None
-
-                                if video['relationships'].get('primaryChannel'):
-                                    for channel in channels:
-                                        if channel['id'] == video['relationships']['primaryChannel']['data']['id']:
-                                            primaryChannel = channel['attributes']['name']
-                                else:
-                                    primaryChannel = None
-
-                                if video['relationships'].get('images'):
-                                    for image in images:
-                                        if image['id'] == video['relationships']['images']['data'][0]['id']:
-                                            video_thumb_image = image['attributes']['src']
-                                else:
-                                    video_thumb_image = None
-
-                                duration = video['attributes']['videoDuration'] / 1000.0 if video['attributes'].get(
-                                    'videoDuration') else None
-
-                                # If episode is not yet playable, show playable time in plot
-                                if video['attributes'].get('earliestPlayableStart'):
-                                    if helper.d.parse_datetime(
-                                            video['attributes']['earliestPlayableStart']) > helper.d.get_current_time():
-                                        playable = str(
-                                            helper.d.parse_datetime(
-                                                video['attributes']['earliestPlayableStart']).strftime(
-                                                '%d.%m.%Y %H:%M'))
-                                        if video['attributes'].get('description'):
-                                            plot = helper.language(30002) + playable + ' ' + video['attributes'].get(
-                                                'description')
-                                        else:
-                                            plot = helper.language(30002) + playable
-                                    else:
-                                        plot = video['attributes'].get('description')
-                                else:
-                                    plot = video['attributes'].get('description')
-
-                                # discovery+ subscription check
-                                # First check if video is available for free
-                                if len(video['attributes']['packages']) > 1:
-                                    # Get all available packages in availabilityWindows
-                                    for availabilityWindow in video['attributes']['availabilityWindows']:
-                                        if availabilityWindow['package'] == 'Free' or availabilityWindow['package'] == 'Registered':
-                                            # Check if there is ending time for free availability
-                                            if availabilityWindow.get('playableEnd'):
-                                                # Check if video is still available for free
-                                                if helper.d.parse_datetime(availabilityWindow[
-                                                                                'playableStart']) < helper.d.get_current_time() < helper.d.parse_datetime(
-                                                    availabilityWindow['playableEnd']):
-                                                    subscription_needed = False
-
-                                                else:  # Video is not anymore available for free
-                                                    subscription_needed = True
-                                else:  # Only one package in packages = Subscription needed
-                                    subscription_needed = True
-
-                                # Check if user has needed subscription
-                                check = any(x in video['attributes']['packages'] for x in
-                                            helper.d.get_user_data()['attributes']['packages'])
-                                if check is True:
-                                    subscription_needed = False
-                                else:
-                                    subscription_needed = True
-
-                                if subscription_needed is True:
-                                    if plot:
-                                        plot = helper.language(30034) + ' ' + plot
-                                    else:
-                                        plot = helper.language(30034)
-
-                                video_title = video['attributes'].get('name').lstrip()
-                                # Sport
-                                if sport:
-                                    video_title = sport + ': ' + video_title
-                                # secondaryTitle used in sport events
-                                if video['attributes'].get('secondaryTitle'):
-                                    video_title = video_title + ' - ' + \
-                                                  video['attributes']['secondaryTitle'].lstrip()
-
-                                episode_info = {
-                                    'mediatype': 'episode',
-                                    'title': video_title,
-                                    'tvshowtitle': show_title,
-                                    'season': video['attributes'].get('seasonNumber'),
-                                    'episode': video['attributes'].get('episodeNumber'),
-                                    'plot': plot,
-                                    'genre': g,
-                                    'studio': primaryChannel,
-                                    'duration': duration,
-                                    'aired': video['attributes'].get('airDate'),
-                                    'mpaa': mpaa
-                                }
-
-                                # Watched status from discovery+
-                                if helper.get_setting('sync_playback'):
-                                    if video['attributes']['viewingHistory']['viewed']:
-                                        if video['attributes']['viewingHistory'].get('completed'):
-                                            if video['attributes']['viewingHistory']['completed']:  # Watched video
-                                                episode_info['playcount'] = '1'
-                                                resume = 0
-                                                total = duration
-                                            else:  # Partly watched video
-                                                episode_info['playcount'] = '0'
-                                                resume = video['attributes']['viewingHistory']['position'] / 1000.0
-                                                total = duration
-                                        else: # Sometimes 'viewed' is True but 'completed' is missing. Example some Live sports
-                                            episode_info['playcount'] = '0'
-                                            resume = 0
-                                            total = 1
-                                    else:  # Unwatched video
-                                        episode_info['playcount'] = '0'
-                                        resume = 0
-                                        total = 1
-                                else:  # Kodis resume data used
-                                    resume = None
-                                    total = None
-
-                                episode_art = {
-                                    'fanart': show_fanart_image,
-                                    'thumb': video_thumb_image,
-                                    'clearlogo': show_logo_image,
-                                    'poster': show_poster_image
-                                }
-
-                                # mandatoryParams and no parameter = list search result videos (Episodes, Specials, Extras)
-                                if mandatoryParams and parameter is None:
-                                    folder_name = page_data['data']['attributes'].get('title')
-                                # parameter = list season
-                                elif parameter:
-                                    folder_name = show_title + ' / ' + helper.language(30011) + ' ' + str(
-                                        video['attributes'].get('seasonNumber'))
-                                else:
-                                    folder_name = show_title
-
-                                helper.add_item(video_title, params=params,
-                                                info=episode_info,
-                                                art=episode_art,
-                                                content='episodes', playable=True, resume=resume, total=total,
-                                                folder_name=folder_name, sort_method='sort_episodes')
-
-                    # Explore -> Live Channels & On Demand Shows, Explore Shows and Full Episodes content in d+ India
-                    # Home -> For You -> Network logo rail content in discoveryplus.com (US and EU)
-                    if collectionItem['relationships'].get('channel'):
+                    if shows[0]['relationships'].get('primaryChannel'):
                         for channel in channels:
-                            if collectionItem['relationships']['channel']['data']['id'] == channel['id']:
-                                # List channel pages
-                                if channel['relationships'].get('routes'):
+                            if channel['id'] == \
+                                    shows[0]['relationships']['primaryChannel']['data']['id']:
+                                primaryChannel = channel['attributes']['name']
+                    else:
+                        primaryChannel = None
+
+                    info['genre'] = g
+                    info['studio'] = primaryChannel
+                    info['mpaa'] = mpaa
+
+                    fanart_image = None
+                    thumb_image = None
+                    logo_image = None
+                    poster_image = None
+                    if shows[0]['relationships'].get('images'):
+                        for image in images:
+                            for show_images in shows[0]['relationships']['images']['data']:
+                                if image['id'] == show_images['id']:
+                                    if image['attributes']['kind'] == 'default':
+                                        fanart_image = image['attributes']['src']
+                                        thumb_image = image['attributes']['src']
+                                    if image['attributes']['kind'] == 'logo':
+                                        logo_image = image['attributes']['src']
+                                    # discoveryplus.in has logos in poster
+                                    if helper.d.realm == 'dplusindia':
+                                        if image['attributes']['kind'] == 'poster':
+                                            poster_image = image['attributes']['src']
+                                    else:
+                                        if image['attributes'][
+                                            'kind'] == 'poster_with_logo':
+                                            poster_image = image['attributes']['src']
+
+                    show_art = {
+                        'fanart': fanart_image,
+                        'thumb': thumb_image,
+                        'clearlogo': logo_image,
+                        'poster': poster_image
+                    }
+
+                    if page_data['data']['attributes'].get('title'):
+                        folder_name = shows[0]['attributes'].get('name') + ' / ' + page_data['data'][
+                            'attributes'].get(
+                            'title')
+                    else:
+                        folder_name = shows[0]['attributes'].get('name')
+
+                    helper.add_item(title, params, info=info, art=show_art,
+                                    content='seasons', folder_name=folder_name,
+                                    sort_method='sort_label')
+
+        # content-grid, content-hero etc
+        else:
+
+            # Get order of content from page_data['data']
+            for collection_relationship in page_data['data']['relationships']['items']['data']:
+                for collectionItem in collectionItems:
+                    # Match collectionItem id's from collection listing to all collectionItems in data
+                    if collection_relationship['id'] == collectionItem['id']:
+                        # List shows
+                        if collectionItem['relationships'].get('show'):
+                            for show in shows:
+                                if collectionItem['relationships']['show']['data']['id'] == show['id']:
+
+                                    title = show['attributes']['name'].encode('utf-8')
+
                                     # Find page path from routes
                                     for route in routes:
-                                        if route['id'] == channel['relationships']['routes']['data'][0]['id']:
+                                        if route['id'] == show['relationships']['routes']['data'][0]['id']:
                                             next_page_path = route['attributes']['url']
 
                                     params = {
@@ -2081,268 +1632,560 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                         'page_path': next_page_path
                                     }
 
-                                    channel_info = {
-                                        'title': channel['attributes'].get('name'),
-                                        'plot': channel['attributes'].get('description')
+                                    g = []
+                                    # Show genres
+                                    if show['relationships'].get('txGenres'):
+                                        for taxonomyNode in taxonomyNodes:
+                                            for show_genre in show['relationships']['txGenres']['data']:
+                                                if taxonomyNode['id'] == show_genre['id']:
+                                                    g.append(taxonomyNode['attributes']['name'])
+
+                                    mpaa = None
+                                    if show['attributes'].get('contentRatings'):
+                                        for contentRating in show['attributes']['contentRatings']:
+                                            if contentRating['system'] == helper.d.contentRatingSystem:
+                                                mpaa = contentRating['code']
+
+                                    if show['relationships'].get('primaryChannel'):
+                                        for channel in channels:
+                                            if channel['id'] == show['relationships']['primaryChannel']['data'][
+                                                'id']:
+                                                primaryChannel = channel['attributes']['name']
+                                    else:
+                                        primaryChannel = None
+
+                                    info = {
+                                        'mediatype': 'tvshow',
+                                        'plotoutline': show['attributes'].get('description'),
+                                        'plot': show['attributes'].get('longDescription'),
+                                        'genre': g,
+                                        'studio': primaryChannel,
+                                        'season': len(show['attributes'].get('seasonNumbers')),
+                                        'episode': show['attributes'].get('episodeCount'),
+                                        'mpaa': mpaa
                                     }
 
-                                    channel_logo = None
+                                    # Add or delete favorite context menu
+                                    if show['attributes']['isFavorite']:
+                                        menu = []
+                                        menu.append((helper.language(30010),
+                                                     'RunPlugin(plugin://' + helper.addon_name + '/?action=delete_favorite&show_id=' + str(
+                                                         show['id']) + ')',))
+                                    else:
+                                        menu = []
+                                        menu.append((helper.language(30009),
+                                                     'RunPlugin(plugin://' + helper.addon_name + '/?action=add_favorite&show_id=' + str(
+                                                         show['id']) + ')',))
+
                                     fanart_image = None
-                                    if channel['relationships'].get('images'):
+                                    thumb_image = None
+                                    logo_image = None
+                                    poster_image = None
+                                    if show['relationships'].get('images'):
                                         for image in images:
-                                            for channel_images in channel['relationships']['images']['data']:
-                                                if image['id'] == channel_images['id']:
-                                                    if image['attributes']['kind'] == 'logo':
-                                                        channel_logo = image['attributes']['src']
+                                            for show_images in show['relationships']['images']['data']:
+                                                if image['id'] == show_images['id']:
                                                     if image['attributes']['kind'] == 'default':
                                                         fanart_image = image['attributes']['src']
+                                                        thumb_image = image['attributes']['src']
+                                                    if image['attributes']['kind'] == 'logo':
+                                                        logo_image = image['attributes']['src']
+                                                    # discoveryplus.in has logos in poster
+                                                    if helper.d.realm == 'dplusindia':
+                                                        if image['attributes']['kind'] == 'poster':
+                                                            poster_image = image['attributes']['src']
+                                                    else:
+                                                        if image['attributes'][
+                                                            'kind'] == 'poster_with_logo':
+                                                            poster_image = image['attributes']['src']
 
-                                    if channel_logo:
-                                        thumb_image = channel_logo
-                                    else:
-                                        thumb_image = fanart_image
-
-                                    channel_art = {
+                                    show_art = {
                                         'fanart': fanart_image,
-                                        'thumb': thumb_image
+                                        'thumb': thumb_image,
+                                        'clearlogo': logo_image,
+                                        'poster': poster_image
                                     }
 
-                                    helper.add_item(channel['attributes'].get('name'), params,
-                                                    info=channel_info,
-                                                    content='videos', art=channel_art,
-                                                    folder_name=page_data['data']['attributes'].get('title'),
+                                    helper.add_item(title, params, info=info, art=show_art, content='tvshows',
+                                                    menu=menu, folder_name=page_data['data']['attributes'].get('title'),
                                                     sort_method='unsorted')
 
-                                # List channel livestreams only if there's no route to channel page
-                                elif channel['attributes'].get('hasLiveStream'):
+                        # List videos
+                        if collectionItem['relationships'].get('video'):
+                            for video in videos:
+                                # Match collectionItem's video id to all video id's in data
+                                if collectionItem['relationships']['video']['data']['id'] == video['id']:
+
                                     params = {
                                         'action': 'play',
-                                        'video_id': channel['id'],
-                                        'video_type': 'channel'
+                                        'video_id': video['id'],
+                                        'video_type': video['attributes']['videoType']
                                     }
 
-                                    channel_info = {
-                                        'mediatype': 'video',
-                                        'title': channel['attributes'].get('name'),
-                                        'plot': channel['attributes'].get('description'),
-                                        'playcount': '0'
-                                    }
+                                    show_fanart_image = None
+                                    show_logo_image = None
+                                    show_poster_image = None
+                                    for show in shows:
+                                        if show['id'] == video['relationships']['show']['data']['id']:
+                                            show_title = show['attributes']['name']
 
-                                    channel_logo = None
-                                    fanart_image = None
-                                    if channel['relationships'].get('images'):
-                                        for image in images:
-                                            for channel_images in channel['relationships']['images']['data']:
-                                                if image['id'] == channel_images['id']:
-                                                    if image['attributes']['kind'] == 'logo':
-                                                        channel_logo = image['attributes']['src']
-                                                    if image['attributes']['kind'] == 'default':
-                                                        fanart_image = image['attributes']['src']
+                                            if show['relationships'].get('images'):
+                                                for image in images:
+                                                    for show_images in show['relationships']['images']['data']:
+                                                        if image['id'] == show_images['id']:
+                                                            if image['attributes']['kind'] == 'default':
+                                                                show_fanart_image = image['attributes']['src']
+                                                            if image['attributes']['kind'] == 'logo':
+                                                                show_logo_image = image['attributes']['src']
+                                                            # discoveryplus.in has logos in poster
+                                                            if helper.d.realm == 'dplusindia':
+                                                                if image['attributes']['kind'] == 'poster':
+                                                                    show_poster_image = image['attributes']['src']
+                                                            else:
+                                                                if image['attributes'][
+                                                                    'kind'] == 'poster_with_logo':
+                                                                    show_poster_image = image['attributes']['src']
 
-                                    if channel_logo:
-                                        thumb_image = channel_logo
+                                    g = []
+                                    if video['relationships'].get('txGenres'):
+                                        for taxonomyNode in taxonomyNodes:
+                                            for video_genre in video['relationships']['txGenres']['data']:
+                                                if taxonomyNode['id'] == video_genre['id']:
+                                                    g.append(taxonomyNode['attributes']['name'])
+
+                                    mpaa = None
+                                    if video['attributes'].get('contentRatings'):
+                                        for contentRating in video['attributes']['contentRatings']:
+                                            if contentRating['system'] == helper.d.contentRatingSystem:
+                                                mpaa = contentRating['code']
+
+                                    # Sport example Tennis
+                                    if video['relationships'].get('txSports'):
+                                        for taxonomyNode in taxonomyNodes:
+                                            if taxonomyNode['id'] == video['relationships']['txSports']['data'][0][
+                                                'id']:
+                                                sport = taxonomyNode['attributes']['name']
+                                    # Olympics sport
+                                    elif video['relationships'].get('txOlympicssport'):
+                                        for taxonomyNode in taxonomyNodes:
+                                            if taxonomyNode['id'] == \
+                                                    video['relationships']['txOlympicssport']['data'][0]['id']:
+                                                sport = taxonomyNode['attributes']['name']
                                     else:
-                                        thumb_image = fanart_image
+                                        sport = None
 
-                                    channel_art = {
-                                        'fanart': fanart_image,
+                                    if video['relationships'].get('primaryChannel'):
+                                        for channel in channels:
+                                            if channel['id'] == video['relationships']['primaryChannel']['data']['id']:
+                                                primaryChannel = channel['attributes']['name']
+                                    else:
+                                        primaryChannel = None
+
+                                    if video['relationships'].get('images'):
+                                        for image in images:
+                                            if image['id'] == video['relationships']['images']['data'][0]['id']:
+                                                video_thumb_image = image['attributes']['src']
+                                    else:
+                                        video_thumb_image = None
+
+                                    duration = video['attributes']['videoDuration'] / 1000.0 if video['attributes'].get(
+                                        'videoDuration') else None
+
+                                    # If episode is not yet playable, show playable time in plot
+                                    if video['attributes'].get('earliestPlayableStart'):
+                                        if helper.d.parse_datetime(
+                                                video['attributes'][
+                                                    'earliestPlayableStart']) > helper.d.get_current_time():
+                                            playable = str(
+                                                helper.d.parse_datetime(
+                                                    video['attributes']['earliestPlayableStart']).strftime(
+                                                    '%d.%m.%Y %H:%M'))
+                                            if video['attributes'].get('description'):
+                                                plot = helper.language(30002) + playable + ' ' + video[
+                                                    'attributes'].get(
+                                                    'description')
+                                            else:
+                                                plot = helper.language(30002) + playable
+                                        else:
+                                            plot = video['attributes'].get('description')
+                                    else:
+                                        plot = video['attributes'].get('description')
+
+                                    # discovery+ subscription check
+                                    # First check if video is available for free
+                                    if len(video['attributes']['packages']) > 1:
+                                        # Get all available packages in availabilityWindows
+                                        for availabilityWindow in video['attributes']['availabilityWindows']:
+                                            if availabilityWindow['package'] == 'Free' or availabilityWindow[
+                                                'package'] == 'Registered':
+                                                # Check if there is ending time for free availability
+                                                if availabilityWindow.get('playableEnd'):
+                                                    # Check if video is still available for free
+                                                    if helper.d.parse_datetime(availabilityWindow[
+                                                                                   'playableStart']) < helper.d.get_current_time() < helper.d.parse_datetime(
+                                                        availabilityWindow['playableEnd']):
+                                                        subscription_needed = False
+
+                                                    else:  # Video is not anymore available for free
+                                                        subscription_needed = True
+                                    else:  # Only one package in packages = Subscription needed
+                                        subscription_needed = True
+
+                                    # Check if user has needed subscription
+                                    check = any(x in video['attributes']['packages'] for x in
+                                                helper.d.get_user_data()['attributes']['packages'])
+                                    if check is True:
+                                        subscription_needed = False
+                                    else:
+                                        subscription_needed = True
+
+                                    if subscription_needed is True:
+                                        if plot:
+                                            plot = helper.language(30034) + ' ' + plot
+                                        else:
+                                            plot = helper.language(30034)
+
+                                    video_title = video['attributes'].get('name').lstrip()
+                                    # Sport
+                                    if sport:
+                                        video_title = sport + ': ' + video_title
+                                    # secondaryTitle used in sport events
+                                    if video['attributes'].get('secondaryTitle'):
+                                        video_title = video_title + ' - ' + \
+                                                      video['attributes']['secondaryTitle'].lstrip()
+
+                                    episode_info = {
+                                        'mediatype': 'episode',
+                                        'title': video_title,
+                                        'tvshowtitle': show_title,
+                                        'season': video['attributes'].get('seasonNumber'),
+                                        'episode': video['attributes'].get('episodeNumber'),
+                                        'plot': plot,
+                                        'genre': g,
+                                        'studio': primaryChannel,
+                                        'duration': duration,
+                                        'aired': video['attributes'].get('airDate'),
+                                        'mpaa': mpaa
+                                    }
+
+                                    # Watched status from discovery+
+                                    if helper.get_setting('sync_playback'):
+                                        if video['attributes']['viewingHistory']['viewed']:
+                                            if video['attributes']['viewingHistory'].get('completed'):
+                                                if video['attributes']['viewingHistory']['completed']:  # Watched video
+                                                    episode_info['playcount'] = '1'
+                                                    resume = 0
+                                                    total = duration
+                                                else:  # Partly watched video
+                                                    episode_info['playcount'] = '0'
+                                                    resume = video['attributes']['viewingHistory']['position'] / 1000.0
+                                                    total = duration
+                                            else:  # Sometimes 'viewed' is True but 'completed' is missing. Example some Live sports
+                                                episode_info['playcount'] = '0'
+                                                resume = 0
+                                                total = 1
+                                        else:  # Unwatched video
+                                            episode_info['playcount'] = '0'
+                                            resume = 0
+                                            total = 1
+                                    else:  # Kodis resume data used
+                                        resume = None
+                                        total = None
+
+                                    episode_art = {
+                                        'fanart': show_fanart_image,
+                                        'thumb': video_thumb_image,
+                                        'clearlogo': show_logo_image,
+                                        'poster': show_poster_image
+                                    }
+
+                                    # mandatoryParams and no parameter = list search result videos (Episodes, Specials, Extras)
+                                    if mandatoryParams and parameter is None:
+                                        folder_name = page_data['data']['attributes'].get('title')
+                                    # parameter = list season
+                                    elif parameter:
+                                        folder_name = show_title + ' / ' + helper.language(30011) + ' ' + str(
+                                            video['attributes'].get('seasonNumber'))
+                                    else:
+                                        folder_name = show_title
+
+                                    helper.add_item(video_title, params=params,
+                                                    info=episode_info,
+                                                    art=episode_art,
+                                                    content='episodes', playable=True, resume=resume, total=total,
+                                                    folder_name=folder_name, sort_method='sort_episodes')
+
+                        # Explore -> Live Channels & On Demand Shows, Explore Shows and Full Episodes content in d+ India
+                        # Home -> For You -> Network logo rail content in discoveryplus.com (US and EU)
+                        if collectionItem['relationships'].get('channel'):
+                            for channel in channels:
+                                if collectionItem['relationships']['channel']['data']['id'] == channel['id']:
+                                    # List channel pages
+                                    if channel['relationships'].get('routes'):
+                                        # Find page path from routes
+                                        for route in routes:
+                                            if route['id'] == channel['relationships']['routes']['data'][0]['id']:
+                                                next_page_path = route['attributes']['url']
+
+                                        params = {
+                                            'action': 'list_page',
+                                            'page_path': next_page_path
+                                        }
+
+                                        channel_info = {
+                                            'title': channel['attributes'].get('name'),
+                                            'plot': channel['attributes'].get('description')
+                                        }
+
+                                        channel_logo = None
+                                        fanart_image = None
+                                        if channel['relationships'].get('images'):
+                                            for image in images:
+                                                for channel_images in channel['relationships']['images']['data']:
+                                                    if image['id'] == channel_images['id']:
+                                                        if image['attributes']['kind'] == 'logo':
+                                                            channel_logo = image['attributes']['src']
+                                                        if image['attributes']['kind'] == 'default':
+                                                            fanart_image = image['attributes']['src']
+
+                                        channel_art = {
+                                            'fanart': fanart_image,
+                                            'thumb': channel_logo if channel_logo else fanart_image
+                                        }
+
+                                        helper.add_item(channel['attributes'].get('name'), params,
+                                                        info=channel_info,
+                                                        content='videos', art=channel_art,
+                                                        folder_name=page_data['data']['attributes'].get('title'),
+                                                        sort_method='unsorted')
+
+                                    # List channel livestreams only if there's no route to channel page
+                                    elif channel['attributes'].get('hasLiveStream'):
+                                        params = {
+                                            'action': 'play',
+                                            'video_id': channel['id'],
+                                            'video_type': 'channel'
+                                        }
+
+                                        channel_info = {
+                                            'mediatype': 'video',
+                                            'title': channel['attributes'].get('name'),
+                                            'plot': channel['attributes'].get('description'),
+                                            'playcount': '0'
+                                        }
+
+                                        channel_logo = None
+                                        fanart_image = None
+                                        if channel['relationships'].get('images'):
+                                            for image in images:
+                                                for channel_images in channel['relationships']['images']['data']:
+                                                    if image['id'] == channel_images['id']:
+                                                        if image['attributes']['kind'] == 'logo':
+                                                            channel_logo = image['attributes']['src']
+                                                        if image['attributes']['kind'] == 'default':
+                                                            fanart_image = image['attributes']['src']
+
+                                        channel_art = {
+                                            'fanart': fanart_image,
+                                            'thumb': channel_logo if channel_logo else fanart_image
+                                        }
+
+                                        helper.add_item(
+                                            helper.language(30014) + ' ' + channel['attributes'].get('name'),
+                                            params=params,
+                                            info=channel_info, content='videos', art=channel_art,
+                                            playable=True, folder_name=collection['attributes'].get('title'))
+
+                        # List collections in discoveryplus.com (US and EU) and discoveryplus.in
+
+                        # Browse -> Channel or genre -> Category listing (A-Z, Trending...)
+                        if collectionItem['relationships'].get('collection'):
+                            for collection in collections:
+                                if collection['id'] == collectionItem['relationships']['collection']['data']['id']:
+                                    if collection['attributes']['component']['id'] == 'content-grid':
+                                        if collection['attributes'].get('title') or collection['attributes'].get(
+                                                'name'):
+
+                                            # content-grid name can be title or name
+                                            if collection['attributes'].get('title'):
+                                                title = collection['attributes']['title']
+                                            else:
+                                                title = collection['attributes']['name']
+
+                                            params = {
+                                                'action': 'list_collection',
+                                                'collection_id': collection['id']
+                                            }
+
+                                            helper.add_item(title, params, content='videos')
+
+                                    # discoveryplus.in
+                                    if collection['attributes']['component']['id'] == 'taxonomy-replica':
+                                        # Don't list empty category
+                                        if collection.get('relationships'):
+                                            # Genres in discoveryplus.in
+                                            if collection['relationships'].get('cmpContextLink'):
+                                                for link in links:
+                                                    if collection['relationships']['cmpContextLink']['data']['id'] == \
+                                                            link[
+                                                                'id']:
+                                                        # Find page path from routes
+                                                        for route in routes:
+                                                            if route['id'] == \
+                                                                    link['relationships']['linkedContentRoutes'][
+                                                                        'data'][0]['id']:
+                                                                next_page_path = route['attributes']['url']
+
+                                                        params = {
+                                                            'action': 'list_page',
+                                                            'page_path': next_page_path
+                                                        }
+
+                                                        for collectionItem2 in collectionItems:
+                                                            if collection['relationships']['items']['data'][0]['id'] == \
+                                                                    collectionItem2['id']:
+                                                                if collectionItem2['relationships'].get('image'):
+                                                                    for image in images:
+                                                                        if image['id'] == \
+                                                                                collectionItem2['relationships'][
+                                                                                    'image'][
+                                                                                    'data'][
+                                                                                    'id']:
+                                                                            thumb_image = image['attributes']['src']
+                                                                else:
+                                                                    thumb_image = None
+
+                                                        category_art = {
+                                                            'fanart': thumb_image,
+                                                            'thumb': thumb_image
+                                                        }
+
+                                                        # Category titles have stored in different places
+                                                        if collection['attributes'].get('title'):
+                                                            link_title = collection['attributes']['title']
+                                                        elif link['attributes'].get('title'):
+                                                            link_title = link['attributes']['title']
+                                                        elif link['attributes'].get('name'):
+                                                            link_title = link['attributes']['name']
+                                                        else:
+                                                            link_title = None
+
+                                                        helper.add_item(link_title, params, content='videos',
+                                                                        art=category_art,
+                                                                        folder_name=collection['attributes'].get(
+                                                                            'title'))
+
+                        # discoveryplus.com (US and EU) search result 'collections' folder content
+                        if collectionItem['relationships'].get('link'):
+                            for link in links:
+                                if collectionItem['relationships']['link']['data']['id'] == link['id']:
+                                    # Find page path from routes
+                                    for route in routes:
+                                        if route['id'] == \
+                                                link['relationships']['linkedContentRoutes'][
+                                                    'data'][0]['id']:
+                                            next_page_path = route['attributes']['url']
+
+                                    params = {
+                                        'action': 'list_page',
+                                        'page_path': next_page_path
+                                    }
+
+                                    if link['relationships'].get('images'):
+                                        for image in images:
+                                            if image['id'] == \
+                                                    link['relationships']['images']['data'][0][
+                                                        'id']:
+                                                thumb_image = image['attributes']['src']
+                                    else:
+                                        thumb_image = None
+
+                                    link_info = {
+                                        'plot': link['attributes'].get('description')
+                                    }
+
+                                    link_art = {
+                                        'fanart': thumb_image,
                                         'thumb': thumb_image
                                     }
 
-                                    helper.add_item(
-                                        helper.language(30014) + ' ' + channel['attributes'].get('name'),
-                                        params=params,
-                                        info=channel_info, content='videos', art=channel_art,
-                                        playable=True, folder_name=collection['attributes'].get('title'))
+                                    # Category titles have stored in different places
+                                    if collectionItem.get('attributes') and collectionItem['attributes'].get('title'):
+                                        link_title = collectionItem['attributes']['title']
+                                    elif link['attributes'].get('title'):
+                                        link_title = link['attributes']['title']
+                                    elif link['attributes'].get('name'):
+                                        link_title = link['attributes']['name']
+                                    else:
+                                        link_title = None
 
-                    # List collections in discoveryplus.com (US and EU) and discoveryplus.in
+                                    helper.add_item(link_title, params, info=link_info, content='videos',
+                                                    art=link_art,
+                                                    folder_name=page_data['data']['attributes'].get('title'))
 
-                    # Browse -> Channel or genre -> Category listing (A-Z, Trending...)
-                    if collectionItem['relationships'].get('collection'):
-                        for collection in collections:
-                            if collection['id'] == collectionItem['relationships']['collection']['data']['id']:
-                                if collection['attributes']['component']['id'] == 'content-grid':
-                                    if collection['attributes'].get('title') or collection['attributes'].get('name'):
+                        # Kids -> Superheroes/Heroes We Love discoveryplus.in
+                        # Sports -> All Sports discoveryplus.com (EU)
+                        # Olympics -> All Sports discoveryplus.com (EU)
+                        if collectionItem['relationships'].get('taxonomyNode'):
+                            for taxonomyNode in taxonomyNodes:
+                                if collectionItem['relationships']['taxonomyNode']['data']['id'] == taxonomyNode['id']:
 
-                                        # content-grid name can be title or name
-                                        if collection['attributes'].get('title'):
-                                            title = collection['attributes']['title']
-                                        else:
-                                            title = collection['attributes']['name']
+                                    # Find page path from routes
+                                    for route in routes:
+                                        if route['id'] == taxonomyNode['relationships']['routes']['data'][0]['id']:
+                                            next_page_path = route['attributes']['url']
 
-                                        params = {
-                                            'action': 'list_collection',
-                                            'collection_id': collection['id']
-                                        }
+                                    params = {
+                                        'action': 'list_page',
+                                        'page_path': next_page_path
+                                    }
 
-                                        helper.add_item(title, params, content='videos')
-
-                                # discoveryplus.in
-                                if collection['attributes']['component']['id'] == 'taxonomy-replica':
-                                    # Don't list empty category
-                                    if collection.get('relationships'):
-                                        # Genres in discoveryplus.in
-                                        if collection['relationships'].get('cmpContextLink'):
-                                            for link in links:
-                                                if collection['relationships']['cmpContextLink']['data']['id'] == link[
-                                                    'id']:
-                                                    # Find page path from routes
-                                                    for route in routes:
-                                                        if route['id'] == \
-                                                                link['relationships']['linkedContentRoutes'][
-                                                                    'data'][0]['id']:
-                                                            next_page_path = route['attributes']['url']
-
-                                                    params = {
-                                                        'action': 'list_page',
-                                                        'page_path': next_page_path
-                                                    }
-
-                                                    for collectionItem2 in collectionItems:
-                                                        if collection['relationships']['items']['data'][0]['id'] == \
-                                                                collectionItem2['id']:
-                                                            if collectionItem2['relationships'].get('image'):
-                                                                for image in images:
-                                                                    if image['id'] == \
-                                                                            collectionItem2['relationships'][
-                                                                                'image'][
-                                                                                'data'][
-                                                                                'id']:
-                                                                        thumb_image = image['attributes']['src']
-                                                            else:
-                                                                thumb_image = None
-
-                                                    category_art = {
-                                                        'fanart': thumb_image,
-                                                        'thumb': thumb_image
-                                                    }
-
-                                                    # Category titles have stored in different places
-                                                    if collection['attributes'].get('title'):
-                                                        link_title = collection['attributes']['title']
-                                                    elif link['attributes'].get('title'):
-                                                        link_title = link['attributes']['title']
-                                                    elif link['attributes'].get('name'):
-                                                        link_title = link['attributes']['name']
+                                    fanart_image = None
+                                    logo_image = None
+                                    poster_image = None
+                                    if taxonomyNode['relationships'].get('images'):
+                                        for image in images:
+                                            for taxonomyNode_images in taxonomyNode['relationships']['images']['data']:
+                                                if image['id'] == taxonomyNode_images['id']:
+                                                    if image['attributes']['kind'] == 'default':
+                                                        fanart_image = image['attributes']['src']
+                                                    if image['attributes']['kind'] == 'logo':
+                                                        logo_image = image['attributes']['src']
+                                                    # discoveryplus.in has logos in poster
+                                                    if helper.d.realm == 'dplusindia':
+                                                        if image['attributes']['kind'] == 'poster':
+                                                            poster_image = image['attributes']['src']
                                                     else:
-                                                        link_title = None
+                                                        if image['attributes'][
+                                                            'kind'] == 'poster_with_logo':
+                                                            poster_image = image['attributes']['src']
 
-                                                    helper.add_item(link_title, params, content='videos',
-                                                                    art=category_art,
-                                                                    folder_name=collection['attributes'].get(
-                                                                        'title'))
+                                    art = {
+                                        'fanart': fanart_image,
+                                        'thumb': logo_image if logo_image else fanart_image,
+                                        'poster': poster_image
+                                    }
 
-                    # discoveryplus.com (US and EU) search result 'collections' folder content
-                    if collectionItem['relationships'].get('link'):
-                        for link in links:
-                            if collectionItem['relationships']['link']['data']['id'] == link['id']:
-                                # Find page path from routes
-                                for route in routes:
-                                    if route['id'] == \
-                                            link['relationships']['linkedContentRoutes'][
-                                                'data'][0]['id']:
-                                        next_page_path = route['attributes']['url']
+                                    info = {
+                                        'plot': taxonomyNode['attributes'].get('description')
+                                    }
 
-                                params = {
-                                    'action': 'list_page',
-                                    'page_path': next_page_path
-                                }
+                                    helper.add_item(taxonomyNode['attributes']['name'], params, info=info, art=art,
+                                                    content='tvshows', sort_method='unsorted')
 
-                                if link['relationships'].get('images'):
-                                    for image in images:
-                                        if image['id'] == \
-                                                link['relationships']['images']['data'][0][
-                                                    'id']:
-                                            thumb_image = image['attributes']['src']
-                                else:
-                                    thumb_image = None
-
-                                link_info = {
-                                    'plot': link['attributes'].get('description')
-                                }
-
-                                link_art = {
-                                    'fanart': thumb_image,
-                                    'thumb': thumb_image
-                                }
-
-                                # Category titles have stored in different places
-                                if collectionItem.get('attributes') and collectionItem['attributes'].get('title'):
-                                    link_title = collectionItem['attributes']['title']
-                                elif link['attributes'].get('title'):
-                                    link_title = link['attributes']['title']
-                                elif link['attributes'].get('name'):
-                                    link_title = link['attributes']['name']
-                                else:
-                                    link_title = None
-
-                                helper.add_item(link_title, params, info=link_info, content='videos',
-                                                art=link_art,
-                                                folder_name=page_data['data']['attributes'].get('title'))
-
-                    # Kids -> Superheroes/Heroes We Love discoveryplus.in
-                    # Sports -> All Sports discoveryplus.com (EU)
-                    # Olympics -> All Sports discoveryplus.com (EU)
-                    if collectionItem['relationships'].get('taxonomyNode'):
-                        for taxonomyNode in taxonomyNodes:
-                            if collectionItem['relationships']['taxonomyNode']['data']['id'] == taxonomyNode['id']:
-
-                                # Find page path from routes
-                                for route in routes:
-                                    if route['id'] == taxonomyNode['relationships']['routes']['data'][0]['id']:
-                                        next_page_path = route['attributes']['url']
-
-                                params = {
-                                    'action': 'list_page',
-                                    'page_path': next_page_path
-                                }
-
-                                fanart_image = None
-                                logo_image = None
-                                poster_image = None
-                                if taxonomyNode['relationships'].get('images'):
-                                    for image in images:
-                                        for taxonomyNode_images in taxonomyNode['relationships']['images']['data']:
-                                            if image['id'] == taxonomyNode_images['id']:
-                                                if image['attributes']['kind'] == 'default':
-                                                    fanart_image = image['attributes']['src']
-                                                if image['attributes']['kind'] == 'logo':
-                                                    logo_image = image['attributes']['src']
-                                                # discoveryplus.in has logos in poster
-                                                if helper.d.realm == 'dplusindia':
-                                                    if image['attributes']['kind'] == 'poster':
-                                                        poster_image = image['attributes']['src']
-                                                else:
-                                                    if image['attributes'][
-                                                        'kind'] == 'poster_with_logo':
-                                                        poster_image = image['attributes']['src']
-
-                                art = {
-                                    'fanart': fanart_image,
-                                    'thumb': logo_image if logo_image else fanart_image,
-                                    'poster': poster_image
-                                }
-
-                                info = {
-                                    'plot': taxonomyNode['attributes'].get('description')
-                                }
-
-                                helper.add_item(taxonomyNode['attributes']['name'], params, info=info, art=art,
-                                                content='tvshows', sort_method='unsorted')
-
-        try:
-            if page_data['data']['meta']['itemsCurrentPage'] != page_data['data']['meta']['itemsTotalPages']:
-                nextPage = page_data['data']['meta']['itemsCurrentPage'] + 1
-                params = {
-                    'action': 'list_collection',
-                    'collection_id': collection_id,
-                    'page': nextPage,
-                    'parameter': parameter,
-                    'mandatoryParams': mandatoryParams
-                }
-                helper.add_item(helper.language(30019), params, content='tvshows', sort_method='bottom')
-        except KeyError:
-            pass
+            try:
+                if page_data['data']['meta']['itemsCurrentPage'] != page_data['data']['meta']['itemsTotalPages']:
+                    nextPage = page_data['data']['meta']['itemsCurrentPage'] + 1
+                    params = {
+                        'action': 'list_collection',
+                        'collection_id': collection_id,
+                        'page': nextPage,
+                        'parameter': parameter,
+                        'mandatoryParams': mandatoryParams
+                    }
+                    helper.add_item(helper.language(30019), params, content='tvshows', sort_method='bottom')
+            except KeyError:
+                pass
 
     helper.eod()
 
