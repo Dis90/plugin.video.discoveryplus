@@ -1538,16 +1538,6 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                         'parameter': option['parameter']  # pf[seasonNumber]=1
                     }
 
-                    # Show metadata
-                    info = {
-                        'mediatype': 'season',
-                        'tvshowtitle': shows[0]['attributes'].get('name'),
-                        'plotoutline': shows[0]['attributes'].get('description'),
-                        'plot': shows[0]['attributes'].get('longDescription'),
-                        'season': len(shows[0]['attributes']['seasonNumbers']),
-                        'episode': shows[0]['attributes']['episodeCount']
-                    }
-
                     g = []
                     # Show genres
                     if shows[0]['relationships'].get('txGenres'):
@@ -1570,9 +1560,17 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                     else:
                         primaryChannel = None
 
-                    info['genre'] = g
-                    info['studio'] = primaryChannel
-                    info['mpaa'] = mpaa
+                    info = {
+                        'mediatype': 'season',
+                        'tvshowtitle': shows[0]['attributes'].get('name'),
+                        'plotoutline': shows[0]['attributes'].get('description'),
+                        'plot': shows[0]['attributes'].get('longDescription'),
+                        'genre': g,
+                        'studio': primaryChannel,
+                        'season': len(shows[0]['attributes'].get('seasonNumbers')),
+                        'episode': shows[0]['attributes'].get('episodeCount'),
+                        'mpaa': mpaa
+                    }
 
                     fanart_image = None
                     thumb_image = None
