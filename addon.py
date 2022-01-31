@@ -1081,6 +1081,10 @@ def list_collection_items(collection_id, page_path=None):
                                     else:
                                         video_title = video['attributes'].get('name').lstrip()
 
+                                    aired = None
+                                    if video['attributes'].get('earliestPlayableStart'):
+                                        aired = str(helper.d.parse_datetime(video['attributes']['earliestPlayableStart']))
+
                                     episode_info = {
                                         'mediatype': 'episode',
                                         'title': video_title,
@@ -1091,7 +1095,7 @@ def list_collection_items(collection_id, page_path=None):
                                         'genre': g,
                                         'studio': primaryChannel,
                                         'duration': duration,
-                                        'aired': video['attributes'].get('airDate'),
+                                        'aired': aired,
                                         'mpaa': mpaa
                                     }
 
@@ -1429,6 +1433,10 @@ def list_favorite_watchlist_videos_in(videoType=None, playlist=None):
             else:
                 plot = helper.language(30034)
 
+        aired = None
+        if video['attributes'].get('earliestPlayableStart'):
+            aired = str(helper.d.parse_datetime(video['attributes']['earliestPlayableStart']))
+
         episode_info = {
             'mediatype': 'episode',
             'title': video['attributes'].get('name').lstrip(),
@@ -1439,7 +1447,7 @@ def list_favorite_watchlist_videos_in(videoType=None, playlist=None):
             'genre': g,
             'studio': primaryChannel,
             'duration': duration,
-            'aired': video['attributes'].get('airDate'),
+            'aired': aired,
             'mpaa': mpaa
         }
 
@@ -1853,6 +1861,10 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                         video_title = video_title + ' - ' + \
                                                       video['attributes']['secondaryTitle'].lstrip()
 
+                                    aired = None
+                                    if video['attributes'].get('earliestPlayableStart'):
+                                        aired = str(helper.d.parse_datetime(video['attributes']['earliestPlayableStart']))
+
                                     episode_info = {
                                         'mediatype': 'episode',
                                         'title': video_title,
@@ -1863,7 +1875,7 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                         'genre': g,
                                         'studio': primaryChannel,
                                         'duration': duration,
-                                        'aired': video['attributes'].get('airDate'),
+                                        'aired': aired,
                                         'mpaa': mpaa
                                     }
 
