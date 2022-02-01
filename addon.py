@@ -636,7 +636,7 @@ def list_page_in(page_path):
                                                                         }
                                                                     elif contentType == 'favoriteShows':
                                                                         params = {
-                                                                            'action': 'list_favorites'
+                                                                            'action': 'list_favorite_shows'
                                                                         }
                                                                     else:
                                                                         params = {}
@@ -1134,8 +1134,9 @@ def list_collection_items(collection_id, page_path=None):
 
     helper.eod()
 
-def list_search_shows_in(search_query):
-    page_data = helper.d.get_search_shows_in(search_query=search_query)
+# Favorite and search shows in discoveryplus.in
+def list_favorite_search_shows_in(search_query=None):
+    page_data = helper.d.get_favorite_search_shows_in(search_query=search_query)
 
     images = list(filter(lambda x: x['type'] == 'image', page_data['included']))
     routes = list(filter(lambda x: x['type'] == 'route', page_data['included']))
@@ -1217,105 +1218,19 @@ def list_search_shows_in(search_query):
             'poster': poster_image
         }
 
-        folder_name = helper.language(30007) + ' / ' + search_query
+        if search_query:
+            folder_name = helper.language(30007) + ' / ' + search_query
+        else:
+            folder_name = helper.language(30017) + ' / Shows'
 
         helper.add_item(title, params, info=info, art=show_art, content='tvshows', menu=menu, folder_name=folder_name,
                         sort_method='unsorted')
 
     helper.eod()
 
-# Favorite shows in discoveryplus.in
-def list_favorites_in():
-    page_data = helper.d.get_favorites_in()
-
-    images = list(filter(lambda x: x['type'] == 'image', page_data['included']))
-    routes = list(filter(lambda x: x['type'] == 'route', page_data['included']))
-    taxonomyNodes = list(filter(lambda x: x['type'] == 'taxonomyNode', page_data['included']))
-
-    for show in page_data['data']:
-        title = data['attributes']['name'].encode('utf-8')
-
-        # Find page path from routes
-        for route in routes:
-            if route['id'] == show['relationships']['routes']['data'][0]['id']:
-                next_page_path = route['attributes']['url']
-
-        params = {
-            'action': 'list_page',
-            'page_path': next_page_path
-        }
-
-        g = []
-        if show['relationships'].get('txGenres'):
-            for taxonomyNode in taxonomyNodes:
-                for show_genre in show['relationships']['txGenres']['data']:
-                    if taxonomyNode['id'] == show_genre['id']:
-                        g.append(taxonomyNode['attributes']['name'])
-
-        mpaa = None
-        if show['attributes'].get('contentRatings'):
-            for contentRating in show['attributes']['contentRatings']:
-                if contentRating['system'] == helper.d.contentRatingSystem:
-                    mpaa = contentRating['code']
-
-        info = {
-            'mediatype': 'tvshow',
-            'plot': show['attributes'].get('description'),
-            'genre': g,
-            'season': len(show['attributes'].get('seasonNumbers')),
-            'episode': show['attributes'].get('episodeCount'),
-            'mpaa': mpaa
-        }
-
-        menu = []
-        menu.append((helper.language(30010),
-                     'RunPlugin(plugin://' + helper.addon_name + '/?action=delete_favorite&show_id=' + str(
-                         show['id']) + ')',))
-
-        fanart_image = None
-        thumb_image = None
-        logo_image = None
-        poster_image = None
-        if show['relationships'].get('images'):
-            for image in images:
-                for show_images in show['relationships']['images']['data']:
-                    if image['id'] == show_images['id']:
-                        if image['attributes']['kind'] == 'default':
-                            fanart_image = image['attributes']['src']
-                            thumb_image = image['attributes']['src']
-                        if image['attributes']['kind'] == 'logo':
-                            logo_image = image['attributes']['src']
-                        # discoveryplus.in has logos in poster
-                        if helper.d.realm == 'dplusindia':
-                            if image['attributes']['kind'] == 'poster':
-                                poster_image = image['attributes']['src']
-                        else:
-                            if image['attributes'][
-                                'kind'] == 'poster_with_logo':
-                                poster_image = image['attributes']['src']
-
-        show_art = {
-            'fanart': fanart_image,
-            'thumb': thumb_image,
-            'clearlogo': logo_image,
-            'poster': poster_image
-        }
-
-        folder_name = helper.language(30017) + ' / Shows'
-
-        helper.add_item(title, params, info=info, art=show_art, content='tvshows', menu=menu,
-                        folder_name=folder_name,
-                        sort_method='unsorted')
-
-    helper.eod()
-
-
 # Favorite and watchlist videos in discoveryplus.in
 def list_favorite_watchlist_videos_in(videoType=None, playlist=None):
-    if videoType:
-        page_data = helper.d.get_favorite_videos_in(videoType)
-    else:
-        page_data = helper.d.get_watchlist_in(playlist)
+    page_data = helper.d.get_favorite_watchlist_videos_in(videoType=videoType, playlist=playlist)
 
     images = list(filter(lambda x: x['type'] == 'image', page_data['included']))
     shows = list(filter(lambda x: x['type'] == 'show', page_data['included']))
@@ -2202,7 +2117,7 @@ def search():
     search_query = helper.get_user_input(helper.language(30007))
     if search_query:
         if helper.d.realm == 'dplusindia':
-            list_search_shows_in(search_query)
+            list_favorite_search_shows_in(search_query)
         # discoveryplus.com (US and EU)
         else:
             list_page_us('/search/result', search_query)
@@ -2281,8 +2196,8 @@ def router(paramstring):
                 list_page_in(page_path=params['page_path'])
             else:
                 list_page_us(page_path=params['page_path'])
-        elif params['action'] == 'list_favorites':
-            list_favorites_in()
+        elif params['action'] == 'list_favorite_shows':
+            list_favorite_search_shows_in(search_query=params.get('search_query'))
         elif params['action'] == 'list_favorite_watchlist_videos':
             list_favorite_watchlist_videos_in(videoType=params.get('videoType'), playlist=params.get('playlist'))
         elif params['action'] == 'list_collection':
