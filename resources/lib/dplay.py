@@ -291,55 +291,41 @@ class Dplay(object):
         data = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))
         return data
 
-    def get_search_shows_in(self, search_query):
-        url = '{api_url}/content/shows'.format(api_url=self.api_url)
-
-        params = {
-            'decorators': 'isFavorite',
-            'include': 'images,contentPackages,taxonomyNodes',
-            'page[size]': 100,
-            'query': search_query
-        }
-
-        data = json.loads(self.make_request(url, 'get', params=params))
-        return data
-
-    def get_watchlist_in(self, playlist):
-        url = '{api_url}/content/videos'.format(api_url=self.api_url)
-        params = {
-            'decorators': 'viewingHistory,isFavorite',
-            'include': 'images,contentPackages,show,genres,primaryChannel,taxonomyNodes',
-            'filter[playlist]': playlist,
-            'page[size]': 100,
-            'page[number]': 1
-        }
-
-        data = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))
-        return data
-
-    def get_favorites_in(self):
+    def get_favorite_search_shows_in(self, search_query=None):
         url = '{api_url}/content/shows'.format(api_url=self.api_url)
         params = {
             'decorators': 'isFavorite',
             'include': 'images,contentPackages,taxonomyNodes',
-            'filter[isFavorite]': 'true',
             'page[size]': 100,
-            'page[number]': 1
         }
+
+        # Search shows
+        if search_query:
+            params['query'] = search_query
+        # Favorite shows
+        else:
+            params['filter[isFavorite]'] = 'true'
+            params['page[number]'] = 1
 
         data = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))
         return data
 
-    def get_favorite_videos_in(self, videoType):
+    def get_favorite_watchlist_videos_in(self, videoType=None, playlist=None):
         url = '{api_url}/content/videos'.format(api_url=self.api_url)
         params = {
             'decorators': 'viewingHistory,isFavorite',
             'include': 'images,contentPackages,show,genres,primaryChannel,taxonomyNodes',
-            'filter[isFavorite]': 'true',
             'page[size]': 100,
             'page[number]': 1,
-            'filter[videoType]': videoType
         }
+
+        # Favorite videos
+        if videoType:
+            params['filter[videoType]'] = videoType
+            params['filter[isFavorite]'] = 'true'
+        # Watchlist videos
+        else:
+            params['filter[playlist]'] = playlist
 
         data = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))
         return data
