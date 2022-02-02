@@ -1833,11 +1833,17 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                     else:
                                         folder_name = show_title
 
+                                    # Use sort_episodes only when episodeNumber is available
+                                    if video['attributes'].get('episodeNumber'):
+                                        sort_method = 'sort_episodes'
+                                    else:
+                                        sort_method = 'unsorted'
+
                                     helper.add_item(video_title, params=params,
                                                     info=episode_info,
                                                     art=episode_art,
                                                     content='episodes', playable=True, resume=resume, total=total,
-                                                    folder_name=folder_name, sort_method='sort_episodes')
+                                                    folder_name=folder_name, sort_method=sort_method)
 
                         # Explore -> Live Channels & On Demand Shows, Explore Shows and Full Episodes content in d+ India
                         # Home -> For You -> Network logo rail content in discoveryplus.com (US and EU)
