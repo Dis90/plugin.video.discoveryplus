@@ -330,14 +330,14 @@ class Dplay(object):
         data = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))
         return data
 
-    def update_playback_progress(self, method, video_id, position):
+    def update_playback_progress(self, video_id, position):
         url = '{api_url}/playback/v2/report/video/{video_id}'.format(api_url=self.api_url, video_id=video_id)
 
         params = {
             'position': position
         }
 
-        return self.make_request(url, method, params=params)
+        return self.make_request(url, 'post', params=params, headers=self.site_headers)
 
     def get_current_episode_info(self, video_id):
         url = '{api_url}/content/videos/{video_id}'.format(api_url=self.api_url, video_id=video_id)
