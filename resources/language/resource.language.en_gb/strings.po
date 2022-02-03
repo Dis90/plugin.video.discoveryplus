@@ -181,3 +181,14 @@ msgctxt "#30041"
 msgid "Use DRM"
 msgstr ""
 
+msgctxt "#30042"
+msgid "Mark as unwatched (d+)"
+msgstr ""
+
+msgctxt "#30043"
+msgid "Mark as watched (d+)"
+msgstr ""
+
+msgctxt "#30044"
+msgid "Reset resume position (d+)"
+msgstr ""
