@@ -546,11 +546,7 @@ class DplusPlayer(xbmc.Player):
         # Over 92 percent watched = use totaltime
         if video_percentage > 92:
             self.helper.log('Marking episode completely watched')
-            # discovery+ wants POST before PUT
-            self.helper.d.update_playback_progress('post', self.video_id, video_totaltime_msec)
-            self.helper.d.update_playback_progress('put', self.video_id, video_totaltime_msec)
+            self.helper.d.update_playback_progress(self.video_id, video_totaltime_msec)
         else:
             self.helper.log('Marking episode partly watched')
-            # discovery+ wants POST before PUT
-            self.helper.d.update_playback_progress('post', self.video_id, video_lastpos_msec)
-            self.helper.d.update_playback_progress('put', self.video_id, video_lastpos_msec)
+            self.helper.d.update_playback_progress(self.video_id, video_lastpos_msec)
