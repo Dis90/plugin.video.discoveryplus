@@ -126,7 +126,7 @@ class KodiHelper(object):
             listitem.setProperty('IsPlayable', 'true')
             listitem.setProperty('get_stream_details_from_player', 'true')
             folder = False
-        if resume:
+        if resume is not None:
             listitem.setProperty("ResumeTime", str(resume))
             listitem.setProperty("TotalTime", str(total))
         if art:

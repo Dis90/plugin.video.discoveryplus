@@ -337,7 +337,11 @@ class Dplay(object):
             'position': position
         }
 
-        return self.make_request(url, 'post', params=params, headers=self.site_headers)
+        # d+ website doesn't offer option to set video as unwatched but API seems to support it
+        if position == '0':
+            return self.make_request(url, 'delete', headers=self.site_headers)
+        else:
+            return self.make_request(url, 'post', params=params, headers=self.site_headers)
 
     def get_current_episode_info(self, video_id):
         url = '{api_url}/content/videos/{video_id}'.format(api_url=self.api_url, video_id=video_id)
