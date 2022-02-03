@@ -292,16 +292,25 @@ class KodiHelper(object):
                 duration = current_episode['data']['attributes']['videoDuration'] / 1000.0 if current_episode['data'][
                     'attributes'].get('videoDuration') else None
 
-                info = {
-                    'mediatype': 'episode',
-                    'title': current_episode['data']['attributes'].get('name').lstrip(),
-                    'tvshowtitle': show_title,
-                    'season': current_episode['data']['attributes'].get('seasonNumber'),
-                    'episode': current_episode['data']['attributes'].get('episodeNumber'),
-                    'plot': current_episode['data']['attributes'].get('description'),
-                    'duration': duration,
-                    'aired': current_episode['data']['attributes'].get('airDate')
-                }
+                if current_episode['data']['attributes']['videoType'] == 'LIVE':
+                    info = {
+                        'mediatype': 'video',
+                        'title': current_episode['data']['attributes'].get('name').lstrip(),
+                        'plot': current_episode['data']['attributes'].get('description'),
+                        'duration': duration,
+                        'aired': current_episode['data']['attributes'].get('airDate')
+                    }
+                else:
+                    info = {
+                        'mediatype': 'episode',
+                        'title': current_episode['data']['attributes'].get('name').lstrip(),
+                        'tvshowtitle': show_title,
+                        'season': current_episode['data']['attributes'].get('seasonNumber'),
+                        'episode': current_episode['data']['attributes'].get('episodeNumber'),
+                        'plot': current_episode['data']['attributes'].get('description'),
+                        'duration': duration,
+                        'aired': current_episode['data']['attributes'].get('airDate')
+                    }
 
                 playitem.setInfo('video', info)
 

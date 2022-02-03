@@ -1830,19 +1830,29 @@ def list_collection(collection_id, page, mandatoryParams=None, parameter=None):
                                     if video['attributes'].get('earliestPlayableStart'):
                                         aired = str(helper.d.parse_datetime(video['attributes']['earliestPlayableStart']))
 
-                                    episode_info = {
-                                        'mediatype': 'episode',
-                                        'title': video_title,
-                                        'tvshowtitle': show_title,
-                                        'season': video['attributes'].get('seasonNumber'),
-                                        'episode': video['attributes'].get('episodeNumber'),
-                                        'plot': plot,
-                                        'genre': g,
-                                        'studio': primaryChannel,
-                                        'duration': duration,
-                                        'aired': aired,
-                                        'mpaa': mpaa
-                                    }
+                                    if video['attributes']['videoType'] == 'LIVE':
+                                        episode_info = {
+                                            'mediatype': 'video',
+                                            'title': video_title,
+                                            'plot': plot,
+                                            'studio': primaryChannel,
+                                            'duration': duration,
+                                            'aired': aired
+                                        }
+                                    else:
+                                        episode_info = {
+                                            'mediatype': 'episode',
+                                            'title': video_title,
+                                            'tvshowtitle': show_title,
+                                            'season': video['attributes'].get('seasonNumber'),
+                                            'episode': video['attributes'].get('episodeNumber'),
+                                            'plot': plot,
+                                            'genre': g,
+                                            'studio': primaryChannel,
+                                            'duration': duration,
+                                            'aired': aired,
+                                            'mpaa': mpaa
+                                        }
 
                                     # Watched status from discovery+
                                     menu = []
