@@ -399,7 +399,7 @@ class Dplay(object):
 
                                 for channel in channels:
                                     if channel['attributes']['hasLiveStream']:
-                                        url = 'plugin://plugin.video.discoveryplus/?action=play&video_id={channel_id}&video_type=channel'.format(
+                                        url = 'plugin://plugin.video.discoveryplus/play/{channel_id}?video_type=channel'.format(
                                             channel_id=channel['id'])
 
                                         channel_logo = None
@@ -448,7 +448,7 @@ class Dplay(object):
                                                 'id'] == channel['id']:
 
                                         if channel['attributes']['hasLiveStream']:
-                                            url = 'plugin://plugin.video.discoveryplus/?action=play&video_id={channel_id}&video_type=channel'.format(
+                                            url = 'plugin://plugin.video.discoveryplus/play/{channel_id}?video_type=channel'.format(
                                                 channel_id=channel['id'])
 
                                             channel_logo = None
@@ -502,7 +502,7 @@ class Dplay(object):
                                                 'id'] == channel['id']:
 
                                         if channel['attributes']['hasLiveStream']:
-                                            url = 'plugin://plugin.video.discoveryplus/?action=play&video_id={channel_id}&video_type=channel'.format(
+                                            url = 'plugin://plugin.video.discoveryplus/play/{channel_id}?video_type=channel'.format(
                                                 channel_id=channel['id'])
 
                                             channel_logo = None

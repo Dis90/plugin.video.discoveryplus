@@ -117,7 +117,7 @@ class KodiHelper(object):
         if os.path.exists(cookie_file):
             os.remove(cookie_file)
 
-    def add_item(self, title, params, folder=True, playable=False, info=None, art=None, content=False,
+    def add_item(self, title, url, folder=True, playable=False, info=None, art=None, content=False,
                  menu=None, resume=None, total=None, folder_name=None, sort_method=None):
         addon = self.get_addon()
         listitem = xbmcgui.ListItem(label=title, offscreen=True)
@@ -157,9 +157,8 @@ class KodiHelper(object):
             if sort_method == 'bottom':
                 listitem.setProperty("SpecialSort", "bottom")
 
-        recursive_url = self.base_url + '?' + urlencode(params)
+        xbmcplugin.addDirectoryItem(self.handle, url, listitem, folder)
 
-        xbmcplugin.addDirectoryItem(self.handle, recursive_url, listitem, folder)
 
     def eod(self):
         """Tell Kodi that the end of the directory listing is reached."""
@@ -518,8 +517,8 @@ class DplusPlayer(xbmc.Player):
                     runtime=next_episode['data'][0]['attributes'].get('videoDuration') / 1000.0,
                 ),
 
-                play_url='plugin://' + self.helper.addon_name + '/?action=play&video_id=' +
-                         next_episode['data'][0]['id'] + '&video_type=' + next_episode['data'][0]['attributes'][
+                play_url='plugin://' + self.helper.addon_name + '/play/' +
+                         next_episode['data'][0]['id'] + '?video_type=' + next_episode['data'][0]['attributes'][
                              'videoType'],
                 notification_time='',
             )
