@@ -215,189 +215,179 @@ def list_page_us(page_path, search_query=None):
             else:
                 for page_relationship in page['relationships']['items']['data']:
                     pageItem = [x for x in pageItems if page_relationship['id'] == x['id']][0]
-                    # Used in discoveryplus.com Home and Browse
-                    if page['attributes'].get('component') and page['attributes']['component']['id'] == 'tabbed-page':
-                        if pageItem['relationships'].get('link'):
-                            link = [x for x in links if pageItem['relationships']['link']['data']['id'] == x['id']][0]
 
-                            # For You -link
-                            if link['relationships'].get('linkedContentRoutes'):
-                                # Find page path from routes
-                                next_page_path = [x['attributes']['url'] for x in routes if
-                                                  link['relationships']['linkedContentRoutes']['data'][0]['id'] == x['id']][0]
+                    if pageItem['relationships'].get('link'):
+                        link = [x for x in links if pageItem['relationships']['link']['data']['id'] == x['id']][0]
 
-                                plugin_url = plugin.url_for(list_page, next_page_path)
+                        # For You -link
+                        if link['relationships'].get('linkedContentRoutes'):
+                            # Find page path from routes
+                            next_page_path = [x['attributes']['url'] for x in routes if
+                                              link['relationships']['linkedContentRoutes']['data'][0]['id'] == x['id']][0]
 
-                                link_art = {}
+                            plugin_url = plugin.url_for(list_page, next_page_path)
 
-                            # All, Channel pages listing (discovery+ Originals, HGTV...)
+                            link_art = {}
+
+                        # All, Channel pages listing (discovery+ Originals, HGTV...)
+                        else:
+
+                            plugin_url = plugin.url_for(list_collection,
+                                                        collection_id=link['relationships']['linkedContent']['data']['id'])
+
+                            thumb_image = None
+                            if link['relationships'].get('images'):
+                                thumb_image = [x['attributes']['src'] for x in images if
+                                               link['relationships']['images']['data'][0]['id'] == x['id']][0]
+
+                            link_art = {
+                                'thumb': thumb_image
+                            }
+
+                        # Hide Sports -> Schedule link (sports-schedule-link) and
+                        # Olympics -> Schedule link (olympics-schedule-page-link)
+                        if '-schedule-' not in link['attributes']['alias']:
+
+                            if link['attributes'].get('title'):
+                                link_title = link['attributes']['title']
+                            elif link['attributes'].get('name'):
+                                link_title = link['attributes']['name']
                             else:
+                                link_title = None
 
-                                plugin_url = plugin.url_for(list_collection,
-                                                            collection_id=link['relationships']['linkedContent']['data']['id'])
+                            helper.add_item(link_title, url=plugin_url, content='videos', art=link_art,
+                                            folder_name=page['attributes'].get('title'))
 
-                                thumb_image = None
-                                if link['relationships'].get('images'):
-                                    thumb_image = [x['attributes']['src'] for x in images if
-                                                   link['relationships']['images']['data'][0]['id'] == x['id']][0]
+                    if pageItem['relationships'].get('collection'):
+                        collection = [x for x in collections if pageItem['relationships']['collection']['data']['id'] == x['id']][0]
+                        # Some collections doesn't have component
+                        if collection['attributes'].get('component'):
 
-                                link_art = {
-                                    'thumb': thumb_image
-                                }
+                            # Home -> For You -> categories
+                            # TV Channel -> categories
+                            if collection['attributes']['component']['id'] == 'content-grid':
+                                # Hide empty grids but allow continue watching.
+                                # For unknown reason d+ returns it empty when add-on loads homepage.
+                                if collection.get('relationships') or collection['attributes']['alias'] == 'continue-watching':
 
-                            # Hide Sports -> Schedule link (sports-schedule-link) and
-                            # Olympics -> Schedule link (olympics-schedule-page-link)
-                            if '-schedule-' not in link['attributes']['alias']:
+                                    if collection['attributes'].get('title'):
+                                        # mandatoryParams = pf[channel.id]=292&pf[recs.id]=292&pf[recs.type]=channel
+                                        plugin_url = plugin.url_for(
+                                            list_collection,
+                                            collection_id=collection['id'],
+                                            mandatoryParams=collection['attributes']['component'].get('mandatoryParams'))
 
-                                if link['attributes'].get('title'):
-                                    link_title = link['attributes']['title']
-                                elif link['attributes'].get('name'):
-                                    link_title = link['attributes']['name']
-                                else:
-                                    link_title = None
-
-                                helper.add_item(link_title, url=plugin_url, content='videos', art=link_art,
-                                                folder_name=page['attributes'].get('title'))
-
-                        if pageItem['relationships'].get('collection'):
-                            for collection in collections:
-                                # Genres in US version
-                                if collection['attributes']['component']['id'] == 'taxonomy-container':
-                                    for c in collection['relationships']['items']['data']:
-                                        collectionItem = [x for x in collectionItems if c['id'] == x['id']][0]
-
-                                        if collectionItem['relationships'].get('taxonomyNode'):
-                                            taxonomyNode = [x for x in taxonomyNodes if collectionItem['relationships']['taxonomyNode']['data']['id'] == x['id']][0]
-
-                                            # Find page path from routes
-                                            next_page_path = [x['attributes']['url'] for x in routes if
-                                                              taxonomyNode['relationships'][
-                                                                  'routes']['data'][0]['id'] == x['id']][0]
-
-                                            plugin_url = plugin.url_for(list_page, next_page_path)
-
-                                            helper.add_item(taxonomyNode['attributes']['name'],
-                                                            url=plugin_url,
-                                                            content='videos',
-                                                            folder_name=page['attributes'].get('pageMetadataTitle'))
-
-                    # Some pages doesn't have component
-                    # So we use this method to all non tabbed-page
-                    else:
-                        if pageItem['relationships'].get('collection'):
-                            collection = [x for x in collections if
-                                          pageItem['relationships']['collection']['data']['id'] == x['id']][0]
-                            # Some collections doesn't have component
-                            if collection['attributes'].get('component'):
-
-                                # Home -> For You -> categories
-                                # TV Channel -> categories
-                                if collection['attributes']['component']['id'] == 'content-grid':
-                                    # Hide empty grids but allow continue watching.
-                                    # For unknown reason d+ returns it empty when add-on loads homepage.
-                                    if collection.get('relationships') or collection['attributes'][
-                                        'alias'] == 'continue-watching':
-
-                                        if collection['attributes'].get('title'):
-                                            # mandatoryParams = pf[channel.id]=292&pf[recs.id]=292&pf[recs.type]=channel
-                                            plugin_url = plugin.url_for(
-                                                list_collection,
-                                                collection_id=collection['id'],
-                                                mandatoryParams=collection['attributes']['component'].get(
-                                                    'mandatoryParams'))
-
-                                            helper.add_item(collection['attributes']['title'],
-                                                            url=plugin_url,
-                                                            content='videos',
-                                                            folder_name=page['attributes'].get('pageMetadataTitle'))
-
-                                        # Home -> For You -> Network logo rail category link
-                                        if collection['attributes']['component'].get('templateId') == 'circle' and \
-                                                collection['attributes']['component'].get('customAttributes') and \
-                                                collection['attributes'].get('title') is None:
-                                            if collection['attributes']['component']['customAttributes'].get(
-                                                    'isBroadcastTile') is True:
-                                                plugin_url = plugin.url_for(list_collection,
-                                                                            collection_id=collection['id'])
-
-                                                helper.add_item(helper.language(30040),
-                                                                url=plugin_url,
-                                                                content='videos',
-                                                                folder_name=page['attributes'].get('pageMetadataTitle'))
-
-                                # Episodes, Extras, About the Show, You May Also Like
-                                if collection['attributes']['component']['id'] == 'tabbed-component':
-                                    for c in collection['relationships']['items']['data']:
-                                        collectionItem = [x for x in collectionItems if c['id'] == x['id']][0]
-                                        c2 = [x for x in collections if
-                                              collectionItem['relationships']['collection']['data']['id'] == x['id']][0]
-
-                                        # User setting for listing only seasons in shows page
-                                        if helper.get_setting('seasonsonly') and \
-                                                c2['attributes']['component'].get('filters') and \
-                                                len(c2['attributes']['component']['filters'][0].get(
-                                                    'options')) >= 0:
-                                            list_collection(collection_id=c2['id'],
-                                                            mandatoryParams=c2['attributes']['component'].get('mandatoryParams'),
-                                                            page=1)
-
-                                        else:
-                                            # Episodes and Extras (tabbed-content)
-                                            # You May Also Like (content-grid)
-                                            # Channel category (d+ US) and Extras on shows that doesn't have episodes (content-grid)
-                                            if c2['attributes']['component']['id'] == 'tabbed-content' or \
-                                                    c2['attributes']['component']['id'] == 'content-grid':
-                                                # Hide empty folders
-                                                if c2.get('relationships'):
-                                                    # mandatoryParams = pf[show.id]=12423
-                                                    plugin_url = plugin.url_for(list_collection, collection_id=c2['id'],
-                                                                                mandatoryParams=c2['attributes'][
-                                                                                    'component'].get('mandatoryParams'))
-
-                                                    helper.add_item(c2['attributes']['title'], url=plugin_url,
-                                                                    content='videos',
-                                                                    folder_name=page['attributes'].get(
-                                                                        'pageMetadataTitle'))
-
-                                # discoveryplus.com (US) -> search -> collections -> list content of collection
-                                if collection['attributes']['component']['id'] == 'playlist':
-                                    list_collection(collection_id=collection['id'], page=1)
-
-                                # discoveryplus.com (US) -> Introducing discovery+ Channels -> channel page live stream
-                                # discoveryplus.com (EU) Network Rail -> Channel -> livestream
-                                if collection['attributes']['component']['id'] == 'player':
-                                    if collection.get('relationships'):
-                                        for c in collection['relationships']['items']['data']:
-                                            collectionItem = [x for x in collectionItems if c['id'] == x['id']][0]
-
-                                            if collectionItem['relationships'].get('channel'):
-                                                channel = [x for x in channels if
-                                                           collectionItem['relationships']['channel']['data']['id'] ==
-                                                           x['id']][0]
-
-                                                if channel['attributes'].get('hasLiveStream'):
-                                                    channel_info = {
-                                                        'mediatype': 'video',
-                                                        'title': channel['attributes'].get('name'),
-                                                        'plot': channel['attributes'].get('description'),
-                                                        'playcount': '0'
-                                                    }
-
-                                                    channel_art = artwork(channel['relationships'].get('images'),
-                                                                          images,
-                                                                          type='channel')
-
-                                                    plugin_url = plugin.url_for(play, video_id=channel['id'],
-                                                                                video_type='channel')
-
-                                                    helper.add_item(
-                                                        helper.language(30014) + ' ' + channel['attributes'].get(
-                                                            'name'),
+                                        helper.add_item(collection['attributes']['title'],
                                                         url=plugin_url,
-                                                        info=channel_info, content='videos',
-                                                        art=channel_art,
-                                                        playable=True,
-                                                        folder_name=collection['attributes'].get('title'))
+                                                        content='videos',
+                                                        folder_name=page['attributes'].get('pageMetadataTitle'))
+
+                                    # Home -> For You -> Network logo rail category link
+                                    if collection['attributes']['component'].get('templateId') == 'circle' and \
+                                            collection['attributes']['component'].get('customAttributes') and \
+                                            collection['attributes'].get('title') is None:
+                                        if collection['attributes']['component']['customAttributes'].get(
+                                                'isBroadcastTile') is True:
+                                            plugin_url = plugin.url_for(list_collection, collection_id=collection['id'])
+
+                                            helper.add_item(helper.language(30040),
+                                                            url=plugin_url,
+                                                            content='videos',
+                                                            folder_name=page['attributes'].get('pageMetadataTitle'))
+
+                            # Episodes, Extras, About the Show, You May Also Like
+                            if collection['attributes']['component']['id'] == 'tabbed-component':
+                                for c in collection['relationships']['items']['data']:
+                                    collectionItem = [x for x in collectionItems if c['id'] == x['id']][0]
+                                    c2 = [x for x in collections if
+                                          collectionItem['relationships']['collection']['data']['id'] == x['id']][0]
+
+                                    # User setting for listing only seasons in shows page
+                                    if helper.get_setting('seasonsonly') and \
+                                            c2['attributes']['component'].get('filters') and \
+                                            len(c2['attributes']['component']['filters'][0].get('options')) >= 0:
+                                        list_collection(collection_id=c2['id'],
+                                                        mandatoryParams=c2['attributes']['component'].get('mandatoryParams'),
+                                                        page=1)
+
+                                    else:
+                                        # Episodes and Extras (tabbed-content)
+                                        # You May Also Like (content-grid)
+                                        # Channel category (d+ US) and Extras on shows that doesn't have episodes (content-grid)
+                                        if c2['attributes']['component']['id'] == 'tabbed-content' or \
+                                                c2['attributes']['component']['id'] == 'content-grid':
+                                            # Hide empty folders
+                                            if c2.get('relationships'):
+                                                # mandatoryParams = pf[show.id]=12423
+                                                plugin_url = plugin.url_for(list_collection, collection_id=c2['id'],
+                                                                            mandatoryParams=c2['attributes'][
+                                                                                'component'].get('mandatoryParams'))
+
+                                                helper.add_item(c2['attributes']['title'], url=plugin_url,
+                                                                content='videos',
+                                                                folder_name=page['attributes'].get(
+                                                                    'pageMetadataTitle'))
+
+                            # discoveryplus.com (US) -> search -> collections -> list content of collection
+                            if collection['attributes']['component']['id'] == 'playlist':
+                                list_collection(collection_id=collection['id'], page=1)
+
+                            # discoveryplus.com (US) -> Introducing discovery+ Channels -> channel page live stream
+                            # discoveryplus.com (EU) Network Rail -> Channel -> livestream
+                            if collection['attributes']['component']['id'] == 'player':
+                                if collection.get('relationships'):
+                                    for c in collection['relationships']['items']['data']:
+                                        collectionItem = [x for x in collectionItems if c['id'] == x['id']][0]
+
+                                        if collectionItem['relationships'].get('channel'):
+                                            channel = [x for x in channels if
+                                                       collectionItem['relationships']['channel']['data']['id'] ==
+                                                       x['id']][0]
+
+                                            if channel['attributes'].get('hasLiveStream'):
+                                                channel_info = {
+                                                    'mediatype': 'video',
+                                                    'title': channel['attributes'].get('name'),
+                                                    'plot': channel['attributes'].get('description'),
+                                                    'playcount': '0'
+                                                }
+
+                                                channel_art = artwork(channel['relationships'].get('images'),
+                                                                      images,
+                                                                      type='channel')
+
+                                                plugin_url = plugin.url_for(play, video_id=channel['id'],
+                                                                            video_type='channel')
+
+                                                helper.add_item(
+                                                    helper.language(30014) + ' ' + channel['attributes'].get(
+                                                        'name'),
+                                                    url=plugin_url,
+                                                    info=channel_info, content='videos',
+                                                    art=channel_art,
+                                                    playable=True,
+                                                    folder_name=collection['attributes'].get('title'))
+
+                            # Genres in US version
+                            if collection['attributes']['component']['id'] == 'taxonomy-container':
+                                for c in collection['relationships']['items']['data']:
+                                    collectionItem = [x for x in collectionItems if c['id'] == x['id']][0]
+
+                                    if collectionItem['relationships'].get('taxonomyNode'):
+                                        taxonomyNode = [x for x in taxonomyNodes if
+                                                        collectionItem['relationships']['taxonomyNode']['data']['id'] ==
+                                                        x['id']][0]
+
+                                        # Find page path from routes
+                                        next_page_path = [x['attributes']['url'] for x in routes if
+                                                          taxonomyNode['relationships'][ 'routes']['data'][0]['id'] == x['id']][0]
+
+                                        plugin_url = plugin.url_for(list_page, next_page_path)
+
+                                        helper.add_item(taxonomyNode['attributes']['name'],
+                                                        url=plugin_url,
+                                                        content='videos',
+                                                        folder_name=page['attributes'].get('pageMetadataTitle'))
 
     helper.eod()
 
