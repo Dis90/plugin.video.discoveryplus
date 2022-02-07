@@ -1362,7 +1362,7 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                                     # Reset resume position
                                     menu.append((helper.language(30044),
                                                  'RunPlugin(plugin://' + helper.addon_name +
-                                                 '/update_playback_progress/' + str(ideo['id']) + '?position=0' + ')',))
+                                                 '/update_playback_progress/' + str(video['id']) + '?position=0' + ')',))
                                     # Mark as watched
                                     menu.append((helper.language(30043),
                                                  'RunPlugin(plugin://' + helper.addon_name +
