@@ -617,34 +617,28 @@ def list_page_in(page_path):
                                 for collection_relationship in collection['relationships']['items']['data']:
                                     if collectionItem['id'] == collection_relationship['id']:
                                         if collectionItem['relationships'].get('collection'):
-                                            for collection2 in collections:
-                                                if collection2['id'] == collectionItem['relationships']['collection']['data']['id']:
-                                                    if collection2.get('relationships'):
-                                                        for collection2_relationship in collection2['relationships']['items']['data']:
-                                                            for collectionItem2 in collectionItems:
-                                                                if collectionItem2['id'] == collection2_relationship['id']:
-                                                                    if collectionItem2['relationships'].get('taxonomyNode'):
+                                            collection2 = [x for x in collections if
+                                                               collectionItem['relationships']['collection']['data']['id'] == x['id']][0]
+                                            if collection2.get('relationships'):
+                                                for collection2_relationship in collection2['relationships']['items']['data']:
+                                                    collectionItem2 = [x for x in collectionItems if
+                                                                       collection2_relationship['id'] == x['id']][0]
 
-                                                                        for taxonomyNode in taxonomyNodes:
-                                                                            if taxonomyNode['id'] == \
-                                                                                    collectionItem2['relationships'][
-                                                                                        'taxonomyNode'][
-                                                                                        'data']['id']:
+                                                    if collectionItem2['relationships'].get('taxonomyNode'):
+                                                        taxonomyNode = [x for x in taxonomyNodes if
+                                                                        collectionItem2['relationships'][
+                                                                            'taxonomyNode']['data']['id'] == x['id']][0]
 
-                                                                                # Find page path from routes
-                                                                                next_page_path = \
-                                                                                [x['attributes']['url'] for x in routes
-                                                                                 if
-                                                                                 taxonomyNode['relationships'][
-                                                                                     'routes']['data'][0][
-                                                                                     'id'] == x['id']][0]
+                                                        # Find page path from routes
+                                                        next_page_path = \
+                                                            [x['attributes']['url'] for x in routes
+                                                             if taxonomyNode['relationships']['routes']['data'][0]['id'] == x['id']][0]
 
-                                                                                plugin_url = plugin.url_for(list_page,
-                                                                                                            next_page_path)
+                                                        plugin_url = plugin.url_for(list_page,
+                                                                                    next_page_path)
 
-                                                                                helper.add_item(taxonomyNode['attributes']['name'],
-                                                                                                content='videos',
-                                                                                                url=plugin_url)
+                                                        helper.add_item(taxonomyNode['attributes']['name'],
+                                                                        content='videos', url=plugin_url)
 
     helper.eod()
 
