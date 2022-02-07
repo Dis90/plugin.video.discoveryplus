@@ -146,9 +146,8 @@ def list_page_us(page_path, search_query=None):
 
                 # Browse -> All (EU)
                 if pageItem['relationships'].get('link'):
-                    for link in links:
-                        if pageItem['relationships']['link']['data']['id'] == link['id']:
-                            list_collection(collection_id=link['relationships']['linkedContent']['data']['id'], page=1)
+                    link = [x for x in links if pageItem['relationships']['link']['data']['id'] == x['id']][0]
+                    list_collection(collection_id=link['relationships']['linkedContent']['data']['id'], page=1)
 
                 if pageItem['relationships'].get('collection'):
                     collection = [x for x in collections if pageItem['relationships']['collection']['data']['id'] == x['id']][0]
@@ -161,21 +160,21 @@ def list_page_us(page_path, search_query=None):
 
                         # discoveryplus.com (US and EU) search result categories (Shows, Episodes, Specials, Collections, Extras)
                         if collection['attributes']['component']['id'] == 'tabbed-component':
-                            for c in collection['relationships']['items']['data']:
-                                collectionItem = [x for x in collectionItems if c['id'] == x['id']][0]
-                                c2 = [x for x in collections if
+                            for collection_relationship in collection['relationships']['items']['data']:
+                                collectionItem = [x for x in collectionItems if collection_relationship['id'] == x['id']][0]
+                                collection2 = [x for x in collections if
                                       collectionItem['relationships']['collection']['data']['id'] == x['id']][0]
 
-                                if c2['attributes']['component']['id'] == 'content-grid':
+                                if collection2['attributes']['component']['id'] == 'content-grid':
                                     # Hide empty collections
-                                    if c2.get('relationships'):
+                                    if collection2.get('relationships'):
                                         folder_name = helper.language(30007) + ' / ' + search_query
 
                                         # mandatoryParams = pf[query]=mythbusters
-                                        plugin_url = plugin.url_for(list_collection, collection_id=c2['id'],
-                                                                    mandatoryParams=c2['attributes']['component'].get('mandatoryParams'))
+                                        plugin_url = plugin.url_for(list_collection, collection_id=collection2['id'],
+                                                                    mandatoryParams=collection2['attributes']['component'].get('mandatoryParams'))
 
-                                        helper.add_item(c2['attributes']['title'], url=plugin_url, content='videos',
+                                        helper.add_item(collection2['attributes']['title'], url=plugin_url, content='videos',
                                                         folder_name=folder_name)
 
                         # Channel livestream when it is only item in page
@@ -183,8 +182,8 @@ def list_page_us(page_path, search_query=None):
                         # discoveryplus.com (EU) Network Rail -> Channel -> livestream
                         if collection['attributes']['component']['id'] == 'player':
                             if collection.get('relationships'):
-                                for c in collection['relationships']['items']['data']:
-                                    collectionItem = [x for x in collectionItems if c['id'] == x['id']][0]
+                                for collection_relationship in collection['relationships']['items']['data']:
+                                    collectionItem = [x for x in collectionItems if collection_relationship['id'] == x['id']][0]
 
                                     if collectionItem['relationships'].get('channel'):
                                         channel = [x for x in channels if collectionItem['relationships']['channel']['data']['id'] == x['id']][0]
@@ -297,36 +296,35 @@ def list_page_us(page_path, search_query=None):
 
                             # Episodes, Extras, About the Show, You May Also Like
                             if collection['attributes']['component']['id'] == 'tabbed-component':
-                                for c in collection['relationships']['items']['data']:
-                                    collectionItem = [x for x in collectionItems if c['id'] == x['id']][0]
-                                    c2 = [x for x in collections if
+                                for collection_relationship in collection['relationships']['items']['data']:
+                                    collectionItem = [x for x in collectionItems if collection_relationship['id'] == x['id']][0]
+                                    collection2 = [x for x in collections if
                                           collectionItem['relationships']['collection']['data']['id'] == x['id']][0]
 
                                     # User setting for listing only seasons in shows page
                                     if helper.get_setting('seasonsonly') and \
-                                            c2['attributes']['component'].get('filters') and \
-                                            len(c2['attributes']['component']['filters'][0].get('options')) >= 0:
-                                        list_collection(collection_id=c2['id'],
-                                                        mandatoryParams=c2['attributes']['component'].get('mandatoryParams'),
+                                            collection2['attributes']['component'].get('filters') and \
+                                            len(collection2['attributes']['component']['filters'][0].get('options')) >= 0:
+                                        list_collection(collection_id=collection2['id'],
+                                                        mandatoryParams=collection2['attributes']['component'].get('mandatoryParams'),
                                                         page=1)
 
                                     else:
                                         # Episodes and Extras (tabbed-content)
                                         # You May Also Like (content-grid)
                                         # Channel category (d+ US) and Extras on shows that doesn't have episodes (content-grid)
-                                        if c2['attributes']['component']['id'] == 'tabbed-content' or \
-                                                c2['attributes']['component']['id'] == 'content-grid':
+                                        if collection2['attributes']['component']['id'] == 'tabbed-content' or \
+                                                collection2['attributes']['component']['id'] == 'content-grid':
                                             # Hide empty folders
-                                            if c2.get('relationships'):
+                                            if collection2.get('relationships'):
                                                 # mandatoryParams = pf[show.id]=12423
-                                                plugin_url = plugin.url_for(list_collection, collection_id=c2['id'],
-                                                                            mandatoryParams=c2['attributes'][
+                                                plugin_url = plugin.url_for(list_collection, collection_id=collection2['id'],
+                                                                            mandatoryParams=collection2['attributes'][
                                                                                 'component'].get('mandatoryParams'))
 
-                                                helper.add_item(c2['attributes']['title'], url=plugin_url,
+                                                helper.add_item(collection2['attributes']['title'], url=plugin_url,
                                                                 content='videos',
-                                                                folder_name=page['attributes'].get(
-                                                                    'pageMetadataTitle'))
+                                                                folder_name=page['attributes'].get('pageMetadataTitle'))
 
                             # discoveryplus.com (US) -> search -> collections -> list content of collection
                             if collection['attributes']['component']['id'] == 'playlist':
@@ -336,8 +334,8 @@ def list_page_us(page_path, search_query=None):
                             # discoveryplus.com (EU) Network Rail -> Channel -> livestream
                             if collection['attributes']['component']['id'] == 'player':
                                 if collection.get('relationships'):
-                                    for c in collection['relationships']['items']['data']:
-                                        collectionItem = [x for x in collectionItems if c['id'] == x['id']][0]
+                                    for collection_relationship in collection['relationships']['items']['data']:
+                                        collectionItem = [x for x in collectionItems if collection_relationship['id'] == x['id']][0]
 
                                         if collectionItem['relationships'].get('channel'):
                                             channel = [x for x in channels if
@@ -360,8 +358,7 @@ def list_page_us(page_path, search_query=None):
                                                                             video_type='channel')
 
                                                 helper.add_item(
-                                                    helper.language(30014) + ' ' + channel['attributes'].get(
-                                                        'name'),
+                                                    helper.language(30014) + ' ' + channel['attributes'].get('name'),
                                                     url=plugin_url,
                                                     info=channel_info, content='videos',
                                                     art=channel_art,
@@ -370,8 +367,8 @@ def list_page_us(page_path, search_query=None):
 
                             # Genres in US version
                             if collection['attributes']['component']['id'] == 'taxonomy-container':
-                                for c in collection['relationships']['items']['data']:
-                                    collectionItem = [x for x in collectionItems if c['id'] == x['id']][0]
+                                for collection_relationship in collection['relationships']['items']['data']:
+                                    collectionItem = [x for x in collectionItems if collection_relationship['id'] == x['id']][0]
 
                                     if collectionItem['relationships'].get('taxonomyNode'):
                                         taxonomyNode = [x for x in taxonomyNodes if
@@ -441,16 +438,16 @@ def list_page_in(page_path):
                                     collectionItem = [x for x in collectionItems if
                                                 collection_relationship['id'] == x['id']][0]
 
-                                    c2 = [x for x in collections if
+                                    collection2 = [x for x in collections if
                                                 collectionItem['relationships']['collection']['data']['id'] == x['id']][0]
 
-                                    if c2['attributes']['component']['id'] == 'mindblown-videos-list':
-                                        list_collection(collection_id=c2['id'], page=1)
+                                    if collection2['attributes']['component']['id'] == 'mindblown-videos-list':
+                                        list_collection(collection_id=collection2['id'], page=1)
 
                                     # Favorites (Episodes, Shorts, Shows) and Watchlist (Episodes, Shorts)
-                                    if c2['attributes']['component']['id'] == 'tab-bar-item':
-                                        if c2['attributes']['component'].get('customAttributes'):
-                                            contentType = c2['attributes']['component']['customAttributes']['contentType']
+                                    if collection2['attributes']['component']['id'] == 'tab-bar-item':
+                                        if collection2['attributes']['component'].get('customAttributes'):
+                                            contentType = collection2['attributes']['component']['customAttributes']['contentType']
                                             if contentType == 'watchlistVideos':
                                                 plugin_url = plugin.url_for(
                                                     list_favorite_watchlist_videos_in, playlist='dplus-watchlist-videos')
@@ -466,7 +463,7 @@ def list_page_in(page_path):
                                             elif contentType == 'favoriteShows':
                                                 plugin_url = plugin.url_for(list_favorite_search_shows_in)
 
-                                        title = c2['attributes']['title'] if c2['attributes'].get('title') else c2['attributes']['name']
+                                        title = collection2['attributes']['title'] if collection2['attributes'].get('title') else collection2['attributes']['name']
 
                                         helper.add_item(title, url=plugin_url, content='videos',
                                                         folder_name=collection['attributes'].get('title'))
@@ -495,10 +492,10 @@ def list_page_in(page_path):
                                                     folder_name=page['attributes'].get('pageMetadataTitle'))
 
                         if collection['attributes']['component']['id'] == 'mindblown-listing':
-                            for c in collection['relationships']['items']['data']:
-                                collectionItem = [x for x in collectionItems if c['id']  == x['id']][0]
-                                c2 = [x for x in collections if collectionItem['relationships']['collection']['data']['id'] == x['id']][0]
-                                collectionItem2 = [x for x in collectionItems if c2['relationships']['items']['data'][0]['id'] == x['id']][0]
+                            for collection_relationship in collection['relationships']['items']['data']:
+                                collectionItem = [x for x in collectionItems if collection_relationship['id']  == x['id']][0]
+                                collection2 = [x for x in collections if collectionItem['relationships']['collection']['data']['id'] == x['id']][0]
+                                collectionItem2 = [x for x in collectionItems if collection2['relationships']['items']['data'][0]['id'] == x['id']][0]
 
                                 link = [x for x in links if
                                                    collectionItem2['relationships']['link']['data']['id'] == x['id']][0]
@@ -514,8 +511,8 @@ def list_page_in(page_path):
                                                    link['relationships']['images']['data'][0]['id'] == x['id']][0]
 
                                 info = {
-                                    'title': c2['attributes'].get('title'),
-                                    'plot': c2['attributes'].get('description')
+                                    'title': collection2['attributes'].get('title'),
+                                    'plot': collection2['attributes'].get('description')
                                 }
 
                                 category_art = {
@@ -525,7 +522,7 @@ def list_page_in(page_path):
 
                                 plugin_url = plugin.url_for(list_page, next_page_path)
 
-                                helper.add_item(c2['attributes']['title'],
+                                helper.add_item(collection2['attributes']['title'],
                                                 url=plugin_url,
                                                 info=info,
                                                 content='videos',
@@ -536,33 +533,32 @@ def list_page_in(page_path):
                         if collection['attributes']['component']['id'] == 'show-container':
                             for collection_relationship in collection['relationships']['items']['data']:
                                 collectionItem = [x for x in collectionItems if collection_relationship['id'] == x['id']][0]
-                                c2 = [x for x in collections if
+                                collection2 = [x for x in collections if
                                       collectionItem['relationships']['collection']['data']['id'] == x['id']][0]
 
                                 # Don't list empty category
-                                if c2.get('relationships'):
+                                if collection2.get('relationships'):
 
-                                    if c2['attributes'].get('name'):
-                                        if c2['attributes']['name'] == 'blueprint-show-seasons-grid':
+                                    if collection2['attributes'].get('name'):
+                                        if collection2['attributes']['name'] == 'blueprint-show-seasons-grid':
                                             # mandatoryParams = pf[show.id]=6613
                                             plugin_url = plugin.url_for(
                                                 list_collection,
-                                                collection_id=c2['id'],
-                                                mandatoryParams=c2['attributes']['component'].get('mandatoryParams'))
+                                                collection_id=collection2['id'],
+                                                mandatoryParams=collection2['attributes']['component'].get('mandatoryParams'))
 
                                             helper.add_item('Episodes', url=plugin_url,
                                                             content='videos',
                                                             folder_name=pages[0]['attributes'].get('title'))
 
-                                        if c2['attributes']['name'] == 'blueprint-show-shorts':
+                                        if collection2['attributes']['name'] == 'blueprint-show-shorts':
                                             plugin_url = plugin.url_for(list_collection_items,
                                                                         page_path=page_path,
-                                                                        collection_id=c2['id'])
+                                                                        collection_id=collection2['id'])
 
                                             helper.add_item('Shorts', url=plugin_url,
                                                             content='videos',
-                                                            folder_name=pages[0][
-                                                                'attributes'].get('title'))
+                                                            folder_name=pages[0]['attributes'].get('title'))
 
                         # Channels page category links (example Discovery -> Discovery Shows) and 'Explore Shows and Full Episodes' -> BBC
                         if collection['attributes']['component']['id'] == 'content-grid':
@@ -585,29 +581,25 @@ def list_page_in(page_path):
                             collectionItem = [x for x in collectionItems if collection['relationships']['items']['data'][0]['id'] == x['id']][0]
 
                             if collectionItem['relationships'].get('channel'):
+                                channel = [x for x in channels if
+                                           collectionItem['relationships']['channel']['data']['id'] == x['id']][0]
 
-                                # Channel livestream
-                                for channel in channels:
-                                    if collectionItem['relationships']['channel']['data']['id'] == \
-                                            channel['id']:
+                                channel_info = {
+                                    'mediatype': 'video',
+                                    'title': channel['attributes'].get('name'),
+                                    'plot': channel['attributes'].get('description'),
+                                    'playcount': '0'
+                                }
 
-                                        channel_info = {
-                                            'mediatype': 'video',
-                                            'title': channel['attributes'].get('name'),
-                                            'plot': channel['attributes'].get('description'),
-                                            'playcount': '0'
-                                        }
+                                channel_art = artwork(channel['relationships'].get('images'), images, type='channel')
 
-                                        channel_art = artwork(channel['relationships'].get('images'), images,
-                                                              type='channel')
-
-                                        plugin_url = plugin.url_for(play, video_id=channel['id'], video_type='channel')
-                                        helper.add_item(
-                                            helper.language(30014) + ' ' + channel['attributes'].get('name'),
-                                            url=plugin_url,
-                                            art=channel_art, info=channel_info,
-                                            content='videos',
-                                            playable=True)
+                                plugin_url = plugin.url_for(play, video_id=channel['id'], video_type='channel')
+                                helper.add_item(
+                                    helper.language(30014) + ' ' + channel['attributes'].get('name'),
+                                    url=plugin_url,
+                                    art=channel_art, info=channel_info,
+                                    content='videos',
+                                    playable=True)
 
                         # Used in Premium page, Home (Category and OMG Moments!) and Shorts genres content
                         if collection['attributes']['component']['id'] == 'carousel':
@@ -625,12 +617,12 @@ def list_page_in(page_path):
                                 for collection_relationship in collection['relationships']['items']['data']:
                                     if collectionItem['id'] == collection_relationship['id']:
                                         if collectionItem['relationships'].get('collection'):
-                                            for c2 in collections:
-                                                if c2['id'] == collectionItem['relationships']['collection']['data']['id']:
-                                                    if c2.get('relationships'):
-                                                        for c2_relationship in c2['relationships']['items']['data']:
+                                            for collection2 in collections:
+                                                if collection2['id'] == collectionItem['relationships']['collection']['data']['id']:
+                                                    if collection2.get('relationships'):
+                                                        for collection2_relationship in collection2['relationships']['items']['data']:
                                                             for collectionItem2 in collectionItems:
-                                                                if collectionItem2['id'] == c2_relationship['id']:
+                                                                if collectionItem2['id'] == collection2_relationship['id']:
                                                                     if collectionItem2['relationships'].get('taxonomyNode'):
 
                                                                         for taxonomyNode in taxonomyNodes:
@@ -709,16 +701,11 @@ def list_collection_items(page_path, collection_id):
             # If episode is not yet playable, show playable time in plot
             if video['attributes'].get('earliestPlayableStart'):
                 if helper.d.parse_datetime(
-                        video['attributes'][
-                            'earliestPlayableStart']) > helper.d.get_current_time():
+                        video['attributes']['earliestPlayableStart']) > helper.d.get_current_time():
                     playable = str(
-                        helper.d.parse_datetime(
-                            video['attributes']['earliestPlayableStart']).strftime(
-                            '%d.%m.%Y %H:%M'))
+                        helper.d.parse_datetime(video['attributes']['earliestPlayableStart']).strftime('%d.%m.%Y %H:%M'))
                     if video['attributes'].get('description'):
-                        plot = helper.language(30002) + playable + ' ' + video[
-                            'attributes'].get(
-                            'description')
+                        plot = helper.language(30002) + playable + ' ' + video['attributes'].get('description')
                     else:
                         plot = helper.language(30002) + playable
                 else:
@@ -731,13 +718,12 @@ def list_collection_items(page_path, collection_id):
             if len(video['attributes']['packages']) > 1:
                 # Get all available packages in availabilityWindows
                 for availabilityWindow in video['attributes']['availabilityWindows']:
-                    if availabilityWindow['package'] == 'Free' or availabilityWindow[
-                        'package'] == 'Registered':
+                    if availabilityWindow['package'] == 'Free' or availabilityWindow['package'] == 'Registered':
                         # Check if there is ending time for free availability
                         if availabilityWindow.get('playableEnd'):
                             # Check if video is still available for free
-                            if helper.d.parse_datetime(availabilityWindow[
-                                                           'playableStart']) < helper.d.get_current_time() < helper.d.parse_datetime(
+                            if helper.d.parse_datetime(availabilityWindow['playableStart']) < \
+                                    helper.d.get_current_time() < helper.d.parse_datetime(
                                 availabilityWindow['playableEnd']):
                                 subscription_needed = False
 
@@ -747,8 +733,7 @@ def list_collection_items(page_path, collection_id):
                 subscription_needed = True
 
             # Check if user has needed subscription
-            check = any(x in video['attributes']['packages'] for x in
-                        helper.d.get_user_data()['attributes']['packages'])
+            check = any(x in video['attributes']['packages'] for x in helper.d.get_user_data()['attributes']['packages'])
             if check is True:
                 subscription_needed = False
             else:
@@ -762,8 +747,7 @@ def list_collection_items(page_path, collection_id):
 
             # secondaryTitle used in sport events
             if video['attributes'].get('secondaryTitle'):
-                video_title = video['attributes'].get('name').lstrip() + ' - ' + \
-                              video['attributes']['secondaryTitle'].lstrip()
+                video_title = video['attributes'].get('name').lstrip() + ' - ' + video['attributes']['secondaryTitle'].lstrip()
             else:
                 video_title = video['attributes'].get('name').lstrip()
 
@@ -789,7 +773,6 @@ def list_collection_items(page_path, collection_id):
             menu = []
             if helper.get_setting('sync_playback'):
                 if video['attributes']['viewingHistory']['viewed']:
-                    # if video['attributes']['viewingHistory'].get('completed'):
                     if 'completed' in video['attributes']['viewingHistory']:
                         if video['attributes']['viewingHistory']['completed']:  # Watched video
                             episode_info['playcount'] = '1'
@@ -798,8 +781,7 @@ def list_collection_items(page_path, collection_id):
                             # Mark as unwatched
                             menu.append((helper.language(30042),
                                          'RunPlugin(plugin://' + helper.addon_name +
-                                         '/update_playback_progress/' + str(
-                                             video['id']) + '?position=0' + ')',))
+                                         '/update_playback_progress/' + str(video['id']) + '?position=0' + ')',))
                         else:  # Partly watched video
                             episode_info['playcount'] = '0'
                             resume = video['attributes']['viewingHistory']['position'] / 1000.0
@@ -807,14 +789,12 @@ def list_collection_items(page_path, collection_id):
                             # Reset resume position
                             menu.append((helper.language(30044),
                                          'RunPlugin(plugin://' + helper.addon_name +
-                                         '/update_playback_progress/' + str(
-                                             video['id']) + '?position=0' + ')',))
+                                         '/update_playback_progress/' + str( video['id']) + '?position=0' + ')',))
                             # Mark as watched
                             menu.append((helper.language(30043),
                                          'RunPlugin(plugin://' + helper.addon_name +
-                                         '/update_playback_progress/' + str(
-                                             video['id']) + '?position=' + str(video['attributes'][
-                                                                                   'videoDuration']) + ')',))
+                                         '/update_playback_progress/' + str(video['id']) +
+                                         '?position=' + str(video['attributes']['videoDuration']) + ')',))
                     else:  # Sometimes 'viewed' is True but 'completed' is missing. Example some Live sports
                         episode_info['playcount'] = '0'
                         resume = 0
@@ -828,9 +808,8 @@ def list_collection_items(page_path, collection_id):
                         # Mark as watched
                         menu.append((helper.language(30043),
                                      'RunPlugin(plugin://' + helper.addon_name +
-                                     '/update_playback_progress/' + str(
-                                         video['id']) + '?position=' + str(video['attributes'][
-                                                                               'videoDuration']) + ')',))
+                                     '/update_playback_progress/' + str(video['id']) +
+                                     '?position=' + str(video['attributes']['videoDuration']) + ')',))
             else:  # Kodis resume data used
                 resume = None
                 total = None
@@ -960,13 +939,9 @@ def list_favorite_watchlist_videos_in():
         if video['attributes'].get('earliestPlayableStart'):
             if helper.d.parse_datetime(
                     video['attributes']['earliestPlayableStart']) > helper.d.get_current_time():
-                playable = str(
-                    helper.d.parse_datetime(
-                        video['attributes']['earliestPlayableStart']).strftime(
-                        '%d.%m.%Y %H:%M'))
+                playable = str(helper.d.parse_datetime(video['attributes']['earliestPlayableStart']).strftime('%d.%m.%Y %H:%M'))
                 if video['attributes'].get('description'):
-                    plot = helper.language(30002) + playable + ' ' + video['attributes'].get(
-                        'description')
+                    plot = helper.language(30002) + playable + ' ' + video['attributes'].get('description')
                 else:
                     plot = helper.language(30002) + playable
             else:
@@ -1028,7 +1003,6 @@ def list_favorite_watchlist_videos_in():
         menu = []
         if helper.get_setting('sync_playback'):
             if video['attributes']['viewingHistory']['viewed']:
-                # if video['attributes']['viewingHistory'].get('completed'):
                 if 'completed' in video['attributes']['viewingHistory']:
                     if video['attributes']['viewingHistory']['completed']:  # Watched video
                         episode_info['playcount'] = '1'
@@ -1187,8 +1161,6 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                 if collectionItem['relationships'].get('show'):
                     show = [x for x in shows if collectionItem['relationships']['show']['data']['id'] == x['id']][0]
 
-                    title = show['attributes']['name'].encode('utf-8')
-
                     # Find page path from routes
                     next_page_path = [x['attributes']['url'] for x in routes if
                                       show['relationships']['routes']['data'][0]['id'] == x['id']][0]
@@ -1239,8 +1211,8 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
 
                     plugin_url = plugin.url_for(list_page, next_page_path)
 
-                    helper.add_item(title, url=plugin_url, info=info, art=show_art, content='tvshows',
-                                    menu=menu, folder_name=page_data['data']['attributes'].get('title'),
+                    helper.add_item(show['attributes']['name'].encode('utf-8'), url=plugin_url, info=info, art=show_art,
+                                    content='tvshows', menu=menu, folder_name=page_data['data']['attributes'].get('title'),
                                     sort_method='unsorted')
 
                 # List videos
@@ -1295,16 +1267,11 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                     # If episode is not yet playable, show playable time in plot
                     if video['attributes'].get('earliestPlayableStart'):
                         if helper.d.parse_datetime(
-                                video['attributes'][
-                                    'earliestPlayableStart']) > helper.d.get_current_time():
-                            playable = str(
-                                helper.d.parse_datetime(
-                                    video['attributes']['earliestPlayableStart']).strftime(
+                                video['attributes']['earliestPlayableStart']) > helper.d.get_current_time():
+                            playable = str(helper.d.parse_datetime(video['attributes']['earliestPlayableStart']).strftime(
                                     '%d.%m.%Y %H:%M'))
                             if video['attributes'].get('description'):
-                                plot = helper.language(30002) + playable + ' ' + video[
-                                    'attributes'].get(
-                                    'description')
+                                plot = helper.language(30002) + playable + ' ' + video['attributes'].get('description')
                             else:
                                 plot = helper.language(30002) + playable
                         else:
@@ -1333,8 +1300,7 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                         subscription_needed = True
 
                     # Check if user has needed subscription
-                    check = any(x in video['attributes']['packages'] for x in
-                                helper.d.get_user_data()['attributes']['packages'])
+                    check = any(x in video['attributes']['packages'] for x in helper.d.get_user_data()['attributes']['packages'])
                     if check is True:
                         subscription_needed = False
                     else:
@@ -1352,8 +1318,7 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                         video_title = sport + ': ' + video_title
                     # secondaryTitle used in sport events
                     if video['attributes'].get('secondaryTitle'):
-                        video_title = video_title + ' - ' + \
-                                      video['attributes']['secondaryTitle'].lstrip()
+                        video_title = video_title + ' - ' + video['attributes']['secondaryTitle'].lstrip()
 
                     aired = None
                     if video['attributes'].get('earliestPlayableStart'):
@@ -1387,7 +1352,6 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                     menu = []
                     if helper.get_setting('sync_playback'):
                         if video['attributes']['viewingHistory']['viewed']:
-                            # if video['attributes']['viewingHistory'].get('completed'):
                             if 'completed' in video['attributes']['viewingHistory']:
                                 if video['attributes']['viewingHistory']['completed']:  # Watched video
                                     episode_info['playcount'] = '1'
@@ -1396,8 +1360,7 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                                     # Mark as unwatched
                                     menu.append((helper.language(30042),
                                                  'RunPlugin(plugin://' + helper.addon_name +
-                                                 '/update_playback_progress/' + str(
-                                                     video['id']) + '?position=0' + ')',))
+                                                 '/update_playback_progress/' + str(video['id']) + '?position=0' + ')',))
                                 else:  # Partly watched video
                                     episode_info['playcount'] = '0'
                                     resume = video['attributes']['viewingHistory']['position'] / 1000.0
@@ -1405,14 +1368,12 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                                     # Reset resume position
                                     menu.append((helper.language(30044),
                                                  'RunPlugin(plugin://' + helper.addon_name +
-                                                 '/update_playback_progress/' + str(
-                                                     video['id']) + '?position=0' + ')',))
+                                                 '/update_playback_progress/' + str(ideo['id']) + '?position=0' + ')',))
                                     # Mark as watched
                                     menu.append((helper.language(30043),
                                                  'RunPlugin(plugin://' + helper.addon_name +
-                                                 '/update_playback_progress/' + str(
-                                                     video['id']) + '?position=' + str(video['attributes'][
-                                                                                           'videoDuration']) + ')',))
+                                                 '/update_playback_progress/' + str(video['id']) +
+                                                 '?position=' + str(video['attributes']['videoDuration']) + ')',))
                             else:  # Sometimes 'viewed' is True but 'completed' is missing. Example some Live sports
                                 episode_info['playcount'] = '0'
                                 resume = 0
@@ -1426,9 +1387,8 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                                 # Mark as watched
                                 menu.append((helper.language(30043),
                                              'RunPlugin(plugin://' + helper.addon_name +
-                                             '/update_playback_progress/' + str(
-                                                 video['id']) + '?position=' + str(video['attributes'][
-                                                                                       'videoDuration']) + ')',))
+                                             '/update_playback_progress/' + str(video['id']) +
+                                             '?position=' + str(video['attributes']['videoDuration']) + ')',))
                     else:  # Kodis resume data used
                         resume = None
                         total = None
@@ -1500,7 +1460,7 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                         helper.add_item(
                             helper.language(30014) + ' ' + channel['attributes'].get('name'),
                             url=plugin_url, info=channel_info, content='videos', art=channel_art,
-                            playable=True, folder_name=collection['attributes'].get('title'))
+                            playable=True, folder_name=page_data['data']['attributes'].get('title'))
 
                 # List collections in discoveryplus.com (US and EU) and discoveryplus.in
 
