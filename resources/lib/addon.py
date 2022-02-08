@@ -1717,8 +1717,8 @@ def mark_season_watched_unwatched(collection_id):
                     # Wait little bit between videos
                     xbmc.sleep(500)
 
-        # Close busy dialog
-        xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
+    # Close busy dialog
+    xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
 
 @plugin.route('/iptv/channels')
 def iptv_channels():
