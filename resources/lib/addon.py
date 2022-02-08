@@ -1093,15 +1093,16 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                     # Context menu
                     menu = []
 
-                    # Mark as watched
-                    menu.append((helper.language(30043),
+                    if helper.get_setting('sync_playback'):
+                        # Mark as watched
+                        menu.append((helper.language(30043),
                                  'RunPlugin(plugin://' + helper.addon_name + '/mark_season_watched_unwatched/' +
                                  str(page_data['data']['id']) +
                                      '?mandatoryParams=' + page_data['data']['attributes']['component'].get('mandatoryParams') +
                                  '&parameter=' + option['parameter']  + '&watched=True' + ')',))
 
-                    # Mark as unwatched
-                    menu.append((helper.language(30042),
+                        # Mark as unwatched
+                        menu.append((helper.language(30042),
                                  'RunPlugin(plugin://' + helper.addon_name + '/mark_season_watched_unwatched/' +
                                  str(page_data['data']['id']) +
                                      '?mandatoryParams=' + page_data['data']['attributes']['component'].get('mandatoryParams') +
