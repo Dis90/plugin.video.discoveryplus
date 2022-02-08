@@ -40,19 +40,19 @@ def list_menu():
     routes = list(filter(lambda x: x['type'] == 'route', page_data['included']))
 
     for data_collection in page_data['data']['relationships']['items']['data']:
-        collectionItem = [x for x in collectionItems if data_collection['id'] == x['id']][0]
+        collectionItem = [x for x in collectionItems if x['id'] == data_collection['id']][0]
 
         # discoveryplus.com (EU and US) uses links after collectionItems
         # Get only links
         if collectionItem['relationships'].get('link'):
-            link = [x for x in links if collectionItem['relationships']['link']['data']['id'] == x['id']][0]
+            link = [x for x in links if x['id'] == collectionItem['relationships']['link']['data']['id']][0]
 
             # Hide unwanted menu links
             if link['attributes']['kind'] == 'Internal Link' and link['attributes']['name'] not in helper.d.unwanted_menu_items:
 
                 # Find page path from routes
                 next_page_path = [x['attributes']['url'] for x in routes if
-                                  link['relationships']['linkedContentRoutes']['data'][0]['id'] == x['id']][0]
+                                  x['id'] == link['relationships']['linkedContentRoutes']['data'][0]['id']][0]
 
                 link_info = {
                     'plot': link['attributes'].get('description')
@@ -61,7 +61,7 @@ def list_menu():
                 thumb_image = None
                 if link['relationships'].get('images'):
                     thumb_image = [x['attributes']['src'] for x in images if
-                                   link['relationships']['images']['data'][0]['id'] == x['id']][0]
+                                   x['id'] == link['relationships']['images']['data'][0]['id']][0]
 
                 link_art = {
                     'icon': thumb_image
@@ -77,19 +77,19 @@ def list_menu():
 
         # discovery+ India uses collections after collectionItems
         if collectionItem['relationships'].get('collection'):
-            collection = [x for x in collections if collectionItem['relationships']['collection']['data']['id'] == x['id']][0]
+            collection = [x for x in collections if x['id'] == collectionItem['relationships']['collection']['data']['id']][0]
 
             if collection['attributes']['component']['id'] == 'menu-item':
-                collectionItem2 = [x for x in collectionItems if collection['relationships']['items']['data'][0]['id'] == x['id']][0]
+                collectionItem2 = [x for x in collectionItems if x['id'] == collection['relationships']['items']['data'][0]['id']][0]
                 # Get only links
                 if collectionItem2['relationships'].get('link'):
-                    link = [x for x in links if collectionItem2['relationships']['link']['data']['id'] == x['id']][0]
+                    link = [x for x in links if x['id'] == collectionItem2['relationships']['link']['data']['id']][0]
                     # Hide unwanted menu links
                     if link['attributes']['kind'] == 'Internal Link' and collection['attributes']['title'] not in helper.d.unwanted_menu_items:
 
                         # Find page path from routes
                         next_page_path = [x['attributes']['url'] for x in routes if
-                                            link['relationships']['linkedContentRoutes']['data'][0]['id'] == x['id']][0]
+                                          x['id'] == link['relationships']['linkedContentRoutes']['data'][0]['id']][0]
 
                         link_info = {
                             'plot': link['attributes'].get('description')
@@ -98,7 +98,7 @@ def list_menu():
                         thumb_image = None
                         if link['relationships'].get('images'):
                             thumb_image = [x['attributes']['src'] for x in images if
-                                           link['relationships']['images']['data'][0]['id'] == x['id']][0]
+                                           x['id'] == link['relationships']['images']['data'][0]['id']][0]
 
                         link_art = {
                             'icon': thumb_image
@@ -142,15 +142,15 @@ def list_page_us(page_path, search_query=None):
         for page in pages:
             # If only one pageItem in page -> relationships -> items -> data, list content page (categories)
             if len(page['relationships']['items']['data']) == 1:
-                pageItem = [x for x in pageItems if page['relationships']['items']['data'][0]['id'] == x['id']][0]
+                pageItem = [x for x in pageItems if x['id'] == page['relationships']['items']['data'][0]['id']][0]
 
                 # Browse -> All (EU)
                 if pageItem['relationships'].get('link'):
-                    link = [x for x in links if pageItem['relationships']['link']['data']['id'] == x['id']][0]
+                    link = [x for x in links if x['id'] == pageItem['relationships']['link']['data']['id']][0]
                     list_collection(collection_id=link['relationships']['linkedContent']['data']['id'], page=1)
 
                 if pageItem['relationships'].get('collection'):
-                    collection = [x for x in collections if pageItem['relationships']['collection']['data']['id'] == x['id']][0]
+                    collection = [x for x in collections if x['id'] == pageItem['relationships']['collection']['data']['id']][0]
                     # Some collections doesn't have component
                     if collection['attributes'].get('component'):
 
@@ -161,9 +161,9 @@ def list_page_us(page_path, search_query=None):
                         # discoveryplus.com (US and EU) search result categories (Shows, Episodes, Specials, Collections, Extras)
                         if collection['attributes']['component']['id'] == 'tabbed-component':
                             for collection_relationship in collection['relationships']['items']['data']:
-                                collectionItem = [x for x in collectionItems if collection_relationship['id'] == x['id']][0]
+                                collectionItem = [x for x in collectionItems if x['id'] == collection_relationship['id']][0]
                                 collection2 = [x for x in collections if
-                                      collectionItem['relationships']['collection']['data']['id'] == x['id']][0]
+                                               x['id'] == collectionItem['relationships']['collection']['data']['id']][0]
 
                                 if collection2['attributes']['component']['id'] == 'content-grid':
                                     # Hide empty collections
@@ -183,10 +183,11 @@ def list_page_us(page_path, search_query=None):
                         if collection['attributes']['component']['id'] == 'player':
                             if collection.get('relationships'):
                                 for collection_relationship in collection['relationships']['items']['data']:
-                                    collectionItem = [x for x in collectionItems if collection_relationship['id'] == x['id']][0]
+                                    collectionItem = [x for x in collectionItems if x['id'] == collection_relationship['id']][0]
 
                                     if collectionItem['relationships'].get('channel'):
-                                        channel = [x for x in channels if collectionItem['relationships']['channel']['data']['id'] == x['id']][0]
+                                        channel = [x for x in channels if
+                                                   x['id'] == collectionItem['relationships']['channel']['data']['id']][0]
 
                                         if channel['attributes'].get('hasLiveStream'):
                                             channel_info = {
@@ -213,16 +214,16 @@ def list_page_us(page_path, search_query=None):
             # More than one pageItem (homepage, browse, channels...)
             else:
                 for page_relationship in page['relationships']['items']['data']:
-                    pageItem = [x for x in pageItems if page_relationship['id'] == x['id']][0]
+                    pageItem = [x for x in pageItems if x['id'] == page_relationship['id']][0]
 
                     if pageItem['relationships'].get('link'):
-                        link = [x for x in links if pageItem['relationships']['link']['data']['id'] == x['id']][0]
+                        link = [x for x in links if x['id'] == pageItem['relationships']['link']['data']['id']][0]
 
                         # For You -link
                         if link['relationships'].get('linkedContentRoutes'):
                             # Find page path from routes
                             next_page_path = [x['attributes']['url'] for x in routes if
-                                              link['relationships']['linkedContentRoutes']['data'][0]['id'] == x['id']][0]
+                                              x['id'] == link['relationships']['linkedContentRoutes']['data'][0]['id']][0]
 
                             plugin_url = plugin.url_for(list_page, next_page_path)
 
@@ -237,7 +238,7 @@ def list_page_us(page_path, search_query=None):
                             thumb_image = None
                             if link['relationships'].get('images'):
                                 thumb_image = [x['attributes']['src'] for x in images if
-                                               link['relationships']['images']['data'][0]['id'] == x['id']][0]
+                                               x['id'] == link['relationships']['images']['data'][0]['id']][0]
 
                             link_art = {
                                 'thumb': thumb_image
@@ -258,7 +259,7 @@ def list_page_us(page_path, search_query=None):
                                             folder_name=page['attributes'].get('title'))
 
                     if pageItem['relationships'].get('collection'):
-                        collection = [x for x in collections if pageItem['relationships']['collection']['data']['id'] == x['id']][0]
+                        collection = [x for x in collections if x['id'] == pageItem['relationships']['collection']['data']['id']][0]
                         # Some collections doesn't have component
                         if collection['attributes'].get('component'):
 
@@ -297,9 +298,9 @@ def list_page_us(page_path, search_query=None):
                             # Episodes, Extras, About the Show, You May Also Like
                             if collection['attributes']['component']['id'] == 'tabbed-component':
                                 for collection_relationship in collection['relationships']['items']['data']:
-                                    collectionItem = [x for x in collectionItems if collection_relationship['id'] == x['id']][0]
+                                    collectionItem = [x for x in collectionItems if x['id'] == collection_relationship['id']][0]
                                     collection2 = [x for x in collections if
-                                          collectionItem['relationships']['collection']['data']['id'] == x['id']][0]
+                                                   x['id'] == collectionItem['relationships']['collection']['data']['id']][0]
 
                                     # User setting for listing only seasons in shows page
                                     if helper.get_setting('seasonsonly') and \
@@ -335,12 +336,11 @@ def list_page_us(page_path, search_query=None):
                             if collection['attributes']['component']['id'] == 'player':
                                 if collection.get('relationships'):
                                     for collection_relationship in collection['relationships']['items']['data']:
-                                        collectionItem = [x for x in collectionItems if collection_relationship['id'] == x['id']][0]
+                                        collectionItem = [x for x in collectionItems if x['id'] == collection_relationship['id']][0]
 
                                         if collectionItem['relationships'].get('channel'):
                                             channel = [x for x in channels if
-                                                       collectionItem['relationships']['channel']['data']['id'] ==
-                                                       x['id']][0]
+                                                       x['id'] == collectionItem['relationships']['channel']['data']['id']][0]
 
                                             if channel['attributes'].get('hasLiveStream'):
                                                 channel_info = {
@@ -368,16 +368,15 @@ def list_page_us(page_path, search_query=None):
                             # Genres in US version
                             if collection['attributes']['component']['id'] == 'taxonomy-container':
                                 for collection_relationship in collection['relationships']['items']['data']:
-                                    collectionItem = [x for x in collectionItems if collection_relationship['id'] == x['id']][0]
+                                    collectionItem = [x for x in collectionItems if x['id'] == collection_relationship['id']][0]
 
                                     if collectionItem['relationships'].get('taxonomyNode'):
                                         taxonomyNode = [x for x in taxonomyNodes if
-                                                        collectionItem['relationships']['taxonomyNode']['data']['id'] ==
-                                                        x['id']][0]
+                                                        x['id'] == collectionItem['relationships']['taxonomyNode']['data']['id']][0]
 
                                         # Find page path from routes
                                         next_page_path = [x['attributes']['url'] for x in routes if
-                                                          taxonomyNode['relationships'][ 'routes']['data'][0]['id'] == x['id']][0]
+                                                          x['id'] == taxonomyNode['relationships']['routes']['data'][0]['id']][0]
 
                                         plugin_url = plugin.url_for(list_page, next_page_path)
 
@@ -421,7 +420,7 @@ def list_page_in(page_path):
         for page in pages:
             # If only one pageItem in page -> relationships -> items -> data, list content page
             if len(page['relationships']['items']['data']) == 1:
-                pageItem = [x for x in pageItems if page['relationships']['items']['data'][0]['id'] == x['id']][0]
+                pageItem = [x for x in pageItems if x['id'] == page['relationships']['items']['data'][0]['id']][0]
 
                 for collection in collections:
                     if pageItem['relationships']['collection']['data']['id'] == collection['id']:
@@ -436,10 +435,10 @@ def list_page_in(page_path):
                                     collection['attributes']['component']['id'] == 'tab-bar':
                                 for collection_relationship in collection['relationships']['items']['data']:
                                     collectionItem = [x for x in collectionItems if
-                                                collection_relationship['id'] == x['id']][0]
+                                                      x['id'] == collection_relationship['id']][0]
 
                                     collection2 = [x for x in collections if
-                                                collectionItem['relationships']['collection']['data']['id'] == x['id']][0]
+                                                   x['id'] == collectionItem['relationships']['collection']['data']['id']][0]
 
                                     if collection2['attributes']['component']['id'] == 'mindblown-videos-list':
                                         list_collection(collection_id=collection2['id'], page=1)
@@ -471,9 +470,9 @@ def list_page_in(page_path):
             # More than one pageItem (explore, mindblown...)
             else:
                 for page_relationship in page['relationships']['items']['data']:
-                    pageItem = [x for x in pageItems if page_relationship['id'] == x['id']][0]
+                    pageItem = [x for x in pageItems if x['id'] == page_relationship['id']][0]
                     # PageItems have only one collection
-                    collection = [x for x in collections if pageItem['relationships']['collection']['data']['id'] == x['id']][0]
+                    collection = [x for x in collections if x['id'] == pageItem['relationships']['collection']['data']['id']][0]
 
                     # Some collections doesn't have component
                     if collection['attributes'].get('component'):
@@ -493,22 +492,21 @@ def list_page_in(page_path):
 
                         if collection['attributes']['component']['id'] == 'mindblown-listing':
                             for collection_relationship in collection['relationships']['items']['data']:
-                                collectionItem = [x for x in collectionItems if collection_relationship['id']  == x['id']][0]
-                                collection2 = [x for x in collections if collectionItem['relationships']['collection']['data']['id'] == x['id']][0]
-                                collectionItem2 = [x for x in collectionItems if collection2['relationships']['items']['data'][0]['id'] == x['id']][0]
+                                collectionItem = [x for x in collectionItems if x['id'] == collection_relationship['id']][0]
+                                collection2 = [x for x in collections if x['id'] == collectionItem['relationships']['collection']['data']['id']][0]
+                                collectionItem2 = [x for x in collectionItems if x['id'] == collection2['relationships']['items']['data'][0]['id']][0]
 
                                 link = [x for x in links if
-                                                   collectionItem2['relationships']['link']['data']['id'] == x['id']][0]
+                                        x['id'] == collectionItem2['relationships']['link']['data']['id']][0]
 
                                 # Find page path from routes
                                 next_page_path = [x['attributes']['url'] for x in routes if
-                                                  link['relationships']['linkedContentRoutes']['data'][0]['id'] == x[
-                                                      'id']][0]
+                                                  x['id'] == link['relationships']['linkedContentRoutes']['data'][0]['id']][0]
 
                                 thumb_image = None
                                 if link['relationships'].get('images'):
                                     thumb_image = [x['attributes']['src'] for x in images if
-                                                   link['relationships']['images']['data'][0]['id'] == x['id']][0]
+                                                   x['id'] == link['relationships']['images']['data'][0]['id']][0]
 
                                 info = {
                                     'title': collection2['attributes'].get('title'),
@@ -532,9 +530,9 @@ def list_page_in(page_path):
                         # Shows page in discoveryplus.in (Episodes, Shorts)
                         if collection['attributes']['component']['id'] == 'show-container':
                             for collection_relationship in collection['relationships']['items']['data']:
-                                collectionItem = [x for x in collectionItems if collection_relationship['id'] == x['id']][0]
+                                collectionItem = [x for x in collectionItems if x['id'] == collection_relationship['id']][0]
                                 collection2 = [x for x in collections if
-                                      collectionItem['relationships']['collection']['data']['id'] == x['id']][0]
+                                               x['id'] == collectionItem['relationships']['collection']['data']['id']][0]
 
                                 # Don't list empty category
                                 if collection2.get('relationships'):
@@ -578,11 +576,12 @@ def list_page_in(page_path):
 
                         # Channel livestream
                         if collection['attributes']['component']['id'] == 'channel-hero-player':
-                            collectionItem = [x for x in collectionItems if collection['relationships']['items']['data'][0]['id'] == x['id']][0]
+                            collectionItem = [x for x in collectionItems if
+                                              x['id'] == collection['relationships']['items']['data'][0]['id']][0]
 
                             if collectionItem['relationships'].get('channel'):
                                 channel = [x for x in channels if
-                                           collectionItem['relationships']['channel']['data']['id'] == x['id']][0]
+                                           x['id'] == collectionItem['relationships']['channel']['data']['id']][0]
 
                                 channel_info = {
                                     'mediatype': 'video',
@@ -618,21 +617,20 @@ def list_page_in(page_path):
                                     if collectionItem['id'] == collection_relationship['id']:
                                         if collectionItem['relationships'].get('collection'):
                                             collection2 = [x for x in collections if
-                                                               collectionItem['relationships']['collection']['data']['id'] == x['id']][0]
+                                                           x['id'] == collectionItem['relationships']['collection']['data']['id']][0]
                                             if collection2.get('relationships'):
                                                 for collection2_relationship in collection2['relationships']['items']['data']:
                                                     collectionItem2 = [x for x in collectionItems if
-                                                                       collection2_relationship['id'] == x['id']][0]
+                                                                       x['id'] == collection2_relationship['id']][0]
 
                                                     if collectionItem2['relationships'].get('taxonomyNode'):
                                                         taxonomyNode = [x for x in taxonomyNodes if
-                                                                        collectionItem2['relationships'][
-                                                                            'taxonomyNode']['data']['id'] == x['id']][0]
+                                                                        x['id'] == collectionItem2['relationships']['taxonomyNode']['data']['id']][0]
 
                                                         # Find page path from routes
                                                         next_page_path = \
-                                                            [x['attributes']['url'] for x in routes
-                                                             if taxonomyNode['relationships']['routes']['data'][0]['id'] == x['id']][0]
+                                                            [x['attributes']['url'] for x in routes if
+                                                             x['id'] == taxonomyNode['relationships']['routes']['data'][0]['id']][0]
 
                                                         plugin_url = plugin.url_for(list_page,
                                                                                     next_page_path)
@@ -656,12 +654,12 @@ def list_collection_items(page_path, collection_id):
 
     collection = [x for x in collections if collection_id == x['id']][0]
     for collection_relationship in collection['relationships']['items']['data']:
-        collectionItem = [x for x in collectionItems if collection_relationship['id'] == x['id']][0]
+        collectionItem = [x for x in collectionItems if x['id'] == collection_relationship['id']][0]
 
         # List videos (Show -> Shorts in d+ India) can't use list_collection because of missing mandatoryParams
         if collectionItem['relationships'].get('video'):
-            video = [x for x in videos if collectionItem['relationships']['video']['data']['id'] == x['id']][0]
-            show = [x for x in shows if video['relationships']['show']['data']['id'] == x['id']][0]
+            video = [x for x in videos if x['id'] == collectionItem['relationships']['video']['data']['id']][0]
+            show = [x for x in shows if x['id'] == video['relationships']['show']['data']['id']][0]
 
             # Genres
             g = []
@@ -682,20 +680,19 @@ def list_collection_items(page_path, collection_id):
             primaryChannel = None
             if video['relationships'].get('primaryChannel'):
                 primaryChannel = [x['attributes']['name'] for x in channels if
-                                  video['relationships']['primaryChannel']['data']['id'] == x['id']][0]
+                                  x['id'] == video['relationships']['primaryChannel']['data']['id']][0]
 
             # Thumbnail
             video_thumb_image = None
             if video['relationships'].get('images'):
                 video_thumb_image = [x['attributes']['src'] for x in images if
-                               video['relationships']['images']['data'][0]['id'] == x['id']][0]
+                                     x['id'] == video['relationships']['images']['data'][0]['id']][0]
 
             duration = video['attributes']['videoDuration'] / 1000.0 if video['attributes'].get('videoDuration') else None
 
             # If episode is not yet playable, show playable time in plot
             if video['attributes'].get('earliestPlayableStart'):
-                if helper.d.parse_datetime(
-                        video['attributes']['earliestPlayableStart']) > helper.d.get_current_time():
+                if helper.d.parse_datetime(video['attributes']['earliestPlayableStart']) > helper.d.get_current_time():
                     playable = str(
                         helper.d.parse_datetime(video['attributes']['earliestPlayableStart']).strftime('%d.%m.%Y %H:%M'))
                     if video['attributes'].get('description'):
@@ -833,7 +830,7 @@ def list_favorite_search_shows_in(search_query=None):
 
         # Find page path from routes
         next_page_path = [x['attributes']['url'] for x in routes if
-                          show['relationships']['routes']['data'][0]['id'] == x['id']][0]
+                          x['id'] == show['relationships']['routes']['data'][0]['id']][0]
 
         # Genres
         g = []
@@ -898,7 +895,7 @@ def list_favorite_watchlist_videos_in():
 
     for video in page_data['data']:
 
-        show = [x for x in shows if video['relationships']['show']['data']['id'] == x['id']][0]
+        show = [x for x in shows if x['id'] == video['relationships']['show']['data']['id']][0]
 
         # Genres
         g = []
@@ -919,20 +916,19 @@ def list_favorite_watchlist_videos_in():
         primaryChannel = None
         if video['relationships'].get('primaryChannel'):
             primaryChannel = [x['attributes']['name'] for x in channels if
-                              video['relationships']['primaryChannel']['data']['id'] == x['id']][0]
+                              x['id'] == video['relationships']['primaryChannel']['data']['id']][0]
 
         # Thumbnail
         video_thumb_image = None
         if video['relationships'].get('images'):
             video_thumb_image = [x['attributes']['src'] for x in images if
-                                 video['relationships']['images']['data'][0]['id'] == x['id']][0]
+                                 x['id'] == video['relationships']['images']['data'][0]['id']][0]
 
         duration = video['attributes']['videoDuration'] / 1000.0 if video['attributes'].get('videoDuration') else None
 
         # If episode is not yet playable, show playable time in plot
         if video['attributes'].get('earliestPlayableStart'):
-            if helper.d.parse_datetime(
-                    video['attributes']['earliestPlayableStart']) > helper.d.get_current_time():
+            if helper.d.parse_datetime(video['attributes']['earliestPlayableStart']) > helper.d.get_current_time():
                 playable = str(helper.d.parse_datetime(video['attributes']['earliestPlayableStart']).strftime('%d.%m.%Y %H:%M'))
                 if video['attributes'].get('description'):
                     plot = helper.language(30002) + playable + ' ' + video['attributes'].get('description')
@@ -1113,7 +1109,7 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                     primaryChannel = None
                     if shows[0]['relationships'].get('primaryChannel'):
                         primaryChannel = [x['attributes']['name'] for x in channels if
-                                          shows[0]['relationships']['primaryChannel']['data']['id'] == x['id']][0]
+                                          x['id'] == shows[0]['relationships']['primaryChannel']['data']['id']][0]
 
                     info = {
                         'mediatype': 'season',
@@ -1149,15 +1145,15 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
             # Get order of content from page_data['data']
             for collection_relationship in page_data['data']['relationships']['items']['data']:
                 # Match collectionItem id's from collection listing to all collectionItems in data
-                collectionItem = [x for x in collectionItems if collection_relationship['id'] == x['id']][0]
+                collectionItem = [x for x in collectionItems if x['id'] == collection_relationship['id']][0]
 
                 # List shows
                 if collectionItem['relationships'].get('show'):
-                    show = [x for x in shows if collectionItem['relationships']['show']['data']['id'] == x['id']][0]
+                    show = [x for x in shows if x['id'] == collectionItem['relationships']['show']['data']['id']][0]
 
                     # Find page path from routes
                     next_page_path = [x['attributes']['url'] for x in routes if
-                                      show['relationships']['routes']['data'][0]['id'] == x['id']][0]
+                                      x['id'] == show['relationships']['routes']['data'][0]['id']][0]
 
                     # Genres
                     g = []
@@ -1178,7 +1174,7 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                     primaryChannel = None
                     if show['relationships'].get('primaryChannel'):
                         primaryChannel = [x['attributes']['name'] for x in channels if
-                                          show['relationships']['primaryChannel']['data']['id'] == x['id']][0]
+                                          x['id'] == show['relationships']['primaryChannel']['data']['id']][0]
 
                     info = {
                         'mediatype': 'tvshow',
@@ -1212,8 +1208,8 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                 # List videos
                 if collectionItem['relationships'].get('video'):
                     # Match collectionItem's video id to all video id's in data
-                    video = [x for x in videos if collectionItem['relationships']['video']['data']['id'] == x['id']][0]
-                    show = [x for x in shows if video['relationships']['show']['data']['id'] == x['id']][0]
+                    video = [x for x in videos if x['id'] == collectionItem['relationships']['video']['data']['id']][0]
+                    show = [x for x in shows if x['id'] == video['relationships']['show']['data']['id']][0]
 
                     # Genres
                     g = []
@@ -1238,8 +1234,7 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                     # Olympics sport
                     elif video['relationships'].get('txOlympicssport'):
                         for taxonomyNode in taxonomyNodes:
-                            if taxonomyNode['id'] == \
-                                    video['relationships']['txOlympicssport']['data'][0]['id']:
+                            if taxonomyNode['id'] == video['relationships']['txOlympicssport']['data'][0]['id']:
                                 sport = taxonomyNode['attributes']['name']
                     else:
                         sport = None
@@ -1248,13 +1243,13 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                     primaryChannel = None
                     if video['relationships'].get('primaryChannel'):
                         primaryChannel = [x['attributes']['name'] for x in channels if
-                                          video['relationships']['primaryChannel']['data']['id'] == x['id']][0]
+                                          x['id'] == video['relationships']['primaryChannel']['data']['id']][0]
 
                     # Thumbnail
                     video_thumb_image = None
                     if video['relationships'].get('images'):
                         video_thumb_image = [x['attributes']['src'] for x in images if
-                                             video['relationships']['images']['data'][0]['id'] == x['id']][0]
+                                             x['id'] == video['relationships']['images']['data'][0]['id']][0]
 
                     duration = video['attributes']['videoDuration'] / 1000.0 if video['attributes'].get('videoDuration') else None
 
@@ -1278,8 +1273,7 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                     if len(video['attributes']['packages']) > 1:
                         # Get all available packages in availabilityWindows
                         for availabilityWindow in video['attributes']['availabilityWindows']:
-                            if availabilityWindow['package'] == 'Free' or availabilityWindow[
-                                'package'] == 'Registered':
+                            if availabilityWindow['package'] == 'Free' or availabilityWindow['package'] == 'Registered':
                                 # Check if there is ending time for free availability
                                 if availabilityWindow.get('playableEnd'):
                                     # Check if video is still available for free
@@ -1415,13 +1409,13 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                 # Explore -> Live Channels & On Demand Shows, Explore Shows and Full Episodes content in d+ India
                 # Home -> For You -> Network logo rail content in discoveryplus.com (US and EU)
                 if collectionItem['relationships'].get('channel'):
-                    channel = [x for x in channels if collectionItem['relationships']['channel']['data']['id'] == x['id']][0]
+                    channel = [x for x in channels if x['id'] == collectionItem['relationships']['channel']['data']['id']][0]
 
                     # List channel pages
                     if channel['relationships'].get('routes'):
                         # Find page path from routes
                         next_page_path = [x['attributes']['url'] for x in routes if
-                                          channel['relationships']['routes']['data'][0]['id'] == x['id']][0]
+                                          x['id'] == channel['relationships']['routes']['data'][0]['id']][0]
 
                         channel_info = {
                             'title': channel['attributes'].get('name'),
@@ -1460,7 +1454,7 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
 
                 # Browse -> Channel or genre -> Category listing (A-Z, Trending...)
                 if collectionItem['relationships'].get('collection'):
-                    collection = [x for x in collections if collectionItem['relationships']['collection']['data']['id'] == x['id']][0]
+                    collection = [x for x in collections if x['id'] == collectionItem['relationships']['collection']['data']['id']][0]
 
                     if collection['attributes']['component']['id'] == 'content-grid':
                         if collection['attributes'].get('title') or collection['attributes'].get('name'):
@@ -1480,12 +1474,11 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                             # Genres in discoveryplus.in
                             if collection['relationships'].get('cmpContextLink'):
                                 link = [x for x in links if
-                                           collection['relationships']['cmpContextLink']['data']['id'] == x['id']][0]
+                                        x['id'] == collection['relationships']['cmpContextLink']['data']['id']][0]
 
                                 # Find page path from routes
                                 next_page_path = [x['attributes']['url'] for x in routes if
-                                                  link['relationships']['linkedContentRoutes']['data'][0]['id'] == x[
-                                                      'id']][0]
+                                                  x['id'] == link['relationships']['linkedContentRoutes']['data'][0]['id']][0]
 
                                 for collectionItem2 in collectionItems:
                                     if collection['relationships']['items']['data'][0]['id'] == collectionItem2['id']:
@@ -1519,16 +1512,16 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
 
                 # discoveryplus.com (US and EU) search result 'collections' folder content
                 if collectionItem['relationships'].get('link'):
-                    link = [x for x in links if collectionItem['relationships']['link']['data']['id'] == x['id']][0]
+                    link = [x for x in links if x['id'] == collectionItem['relationships']['link']['data']['id']][0]
 
                     # Find page path from routes
                     next_page_path = [x['attributes']['url'] for x in routes if
-                                      link['relationships']['linkedContentRoutes']['data'][0]['id'] == x['id']][0]
+                                      x['id'] == link['relationships']['linkedContentRoutes']['data'][0]['id']][0]
 
                     thumb_image = None
                     if link['relationships'].get('images'):
                         thumb_image = [x['attributes']['src'] for x in images if
-                                       link['relationships']['images']['data'][0]['id'] == x['id']][0]
+                                       x['id'] == link['relationships']['images']['data'][0]['id']][0]
 
                     link_info = {
                         'plot': link['attributes'].get('description')
@@ -1558,11 +1551,11 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                 # Sports -> All Sports discoveryplus.com (EU)
                 # Olympics -> All Sports discoveryplus.com (EU)
                 if collectionItem['relationships'].get('taxonomyNode'):
-                    taxonomyNode = [x for x in taxonomyNodes if collectionItem['relationships']['taxonomyNode']['data']['id'] == x['id']][0]
+                    taxonomyNode = [x for x in taxonomyNodes if x['id'] == collectionItem['relationships']['taxonomyNode']['data']['id']][0]
 
                     # Find page path from routes
                     next_page_path = [x['attributes']['url'] for x in routes if
-                                      taxonomyNode['relationships']['routes']['data'][0]['id'] == x['id']][0]
+                                      x['id'] == taxonomyNode['relationships']['routes']['data'][0]['id']][0]
 
                     art = artwork(taxonomyNode['relationships'].get('images'), images, type='category')
 
@@ -1702,7 +1695,7 @@ def artwork(image_list, images, video_thumb=None, type=None):
 
     if image_list:
         for item in image_list['data']:
-            image = [x for x in images if item['id'] == x['id']][0]
+            image = [x for x in images if x['id'] == item['id']][0]
             if image['attributes']['kind'] == 'default':
                 fanart_image = image['attributes']['src']
             if image['attributes']['kind'] == 'logo':

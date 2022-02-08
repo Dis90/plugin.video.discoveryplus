@@ -259,7 +259,7 @@ class KodiHelper(object):
                 images = list(filter(lambda x: x['type'] == 'image', current_episode['included']))
                 shows = list(filter(lambda x: x['type'] == 'show', current_episode['included']))
 
-                show = [x for x in shows if current_episode['data']['relationships']['show']['data']['id'] == x['id']][0]
+                show = [x for x in shows if x['id'] == current_episode['data']['relationships']['show']['data']['id']][0]
 
                 show_fanart_image = None
                 show_logo_image = None
@@ -280,7 +280,7 @@ class KodiHelper(object):
                 video_thumb_image = None
                 if current_episode['data']['relationships'].get('images'):
                     video_thumb_image = [x['attributes']['src'] for x in images if
-                                         current_episode['data']['relationships']['images']['data'][0]['id'] == x['id']][0]
+                                         x['id'] == current_episode['data']['relationships']['images']['data'][0]['id']][0]
 
                 duration = current_episode['data']['attributes']['videoDuration'] / 1000.0 if current_episode['data'][
                     'attributes'].get('videoDuration') else None
@@ -428,13 +428,12 @@ class DplusPlayer(xbmc.Player):
         if next_episode.get('data'):
             self.helper.log('Current episode name: %s' % self.current_episode_info['title'].encode('utf-8'))
             self.helper.log(
-                'Next episode name: %s' % next_episode['data'][0]['attributes'].get('name').encode(
-                    'utf-8').lstrip())
+                'Next episode name: %s' % next_episode['data'][0]['attributes'].get('name').encode('utf-8').lstrip())
 
             images = list(filter(lambda x: x['type'] == 'image', next_episode['included']))
             shows = list(filter(lambda x: x['type'] == 'show', next_episode['included']))
 
-            show = [x for x in shows if next_episode['data'][0]['relationships']['show']['data']['id'] == x['id']][0]
+            show = [x for x in shows if x['id'] == next_episode['data'][0]['relationships']['show']['data']['id']][0]
 
             show_fanart_image = None
             show_logo_image = None
@@ -455,7 +454,7 @@ class DplusPlayer(xbmc.Player):
             next_episode_thumb_image = None
             if next_episode['data'][0]['relationships'].get('images'):
                 next_episode_thumb_image = [x['attributes']['src'] for x in images if
-                                     next_episode['data'][0]['relationships']['images']['data'][0]['id'] == x['id']][0]
+                                            x['id'] == next_episode['data'][0]['relationships']['images']['data'][0]['id']][0]
 
             if self.current_episode_info.get('aired'):
                 current_episode_aired = self.helper.d.parse_datetime(self.current_episode_info['aired']).strftime(
