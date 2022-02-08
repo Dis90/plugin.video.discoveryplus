@@ -1090,6 +1090,23 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                 for option in page_data['data']['attributes']['component']['filters'][0]['options']:
                     title = helper.language(30011) + ' ' + str(option['id'])
 
+                    # Context menu
+                    menu = []
+
+                    # Mark as watched
+                    menu.append((helper.language(30043),
+                                 'RunPlugin(plugin://' + helper.addon_name + '/mark_season_watched_unwatched/' +
+                                 str(page_data['data']['id']) +
+                                     '?mandatoryParams=' + page_data['data']['attributes']['component'].get('mandatoryParams') +
+                                 '&parameter=' + option['parameter']  + '&watched=True' + ')',))
+
+                    # Mark as unwatched
+                    menu.append((helper.language(30042),
+                                 'RunPlugin(plugin://' + helper.addon_name + '/mark_season_watched_unwatched/' +
+                                 str(page_data['data']['id']) +
+                                     '?mandatoryParams=' + page_data['data']['attributes']['component'].get('mandatoryParams') +
+                                 '&parameter=' + option['parameter']  + '&watched=False' + ')',))
+
                     # Genres
                     g = []
                     if shows[0]['relationships'].get('txGenres'):
@@ -1136,8 +1153,8 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                                                 mandatoryParams=page_data['data']['attributes']['component'].get('mandatoryParams'),
                                                 parameter=option['parameter'])
 
-                    helper.add_item(title, url=plugin_url, content='seasons', info=info, art=show_art, folder_name=folder_name,
-                                    sort_method='sort_label')
+                    helper.add_item(title, url=plugin_url, content='seasons', menu=menu, info=info, art=show_art,
+                                    folder_name=folder_name, sort_method='sort_label')
 
         # content-grid, content-hero etc
         else:
@@ -1662,6 +1679,45 @@ def switch_profile():
 def update_playback_progress(video_id):
     helper.d.update_playback_progress(video_id=video_id, position=plugin.args['position'][0])
     helper.refresh_list()
+
+@plugin.route('/mark_season_watched_unwatched/<collection_id>')
+def mark_season_watched_unwatched(collection_id):
+    mandatoryParams = plugin.args['mandatoryParams'][0] if plugin.args.get('mandatoryParams') else None
+    parameter = plugin.args['parameter'][0] if plugin.args.get('parameter') else None
+
+    page_data = helper.d.get_collections(collection_id=collection_id, page=1, mandatoryParams=mandatoryParams,
+                                         parameter=parameter)
+
+    import xbmc
+
+    # Show busy dialog while marking videos as watched or unwatched
+    xbmc.executebuiltin('ActivateWindow(busydialognocancel)')
+
+    # Don't try to list empty collection
+    if page_data['data'].get('relationships'):
+        collectionItems = list(filter(lambda x: x['type'] == 'collectionItem', page_data['included']))
+        videos = list(filter(lambda x: x['type'] == 'video', page_data['included']))
+
+        # Get order of content from page_data['data']
+        for collection_relationship in page_data['data']['relationships']['items']['data']:
+            # Match collectionItem id's from collection listing to all collectionItems in data
+            collectionItem = [x for x in collectionItems if x['id'] == collection_relationship['id']][0]
+
+            if collectionItem['relationships'].get('video'):
+                # Match collectionItem's video id to all video id's in data
+                video = [x for x in videos if x['id'] == collectionItem['relationships']['video']['data']['id']][0]
+
+                if plugin.args['watched'][0] == 'True':
+                    helper.d.update_playback_progress(video_id=video['id'], position=video['attributes']['videoDuration'])
+                    # Wait little bit between videos
+                    xbmc.sleep(500)
+                else:
+                    helper.d.update_playback_progress(video_id=video['id'], position='0')
+                    # Wait little bit between videos
+                    xbmc.sleep(500)
+
+        # Close busy dialog
+        xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
 
 @plugin.route('/iptv/channels')
 def iptv_channels():
