@@ -1,0 +1,194 @@
+# discovery+ language file
+msgid ""
+msgstr ""
+"Project-Id-Version: plugin.video.discoveryplus\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-09-25 23:00+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: Dutch\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+
+msgctxt "#30000"
+msgid "General"
+msgstr "Algemeen"
+
+msgctxt "#30001"
+msgid "Frontpage"
+msgstr ""
+
+msgctxt "#30002"
+msgid "Playable"
+msgstr "Afspeelbaar"
+
+msgctxt "#30003"
+msgid "Information"
+msgstr "Informatie"
+
+msgctxt "#30004"
+msgid "Please enter your login credentials in the add-on settings."
+msgstr "Voer uw inloggegevens in de add-on-instellingen in."
+
+msgctxt "#30005"
+msgid "Reset credentials"
+msgstr "Inloggegevens opnieuw instellen"
+
+msgctxt "#30006"
+msgid "Error"
+msgstr ""
+
+msgctxt "#30007"
+msgid "Search"
+msgstr "Zoekopdracht"
+
+msgctxt "#30008"
+msgid "No results found for"
+msgstr "Er zijn geen resultaten gevonden voor"
+
+msgctxt "#30009"
+msgid "Add to My List (discovery+)"
+msgstr "Voeg toe aan mijn lijst (Discovery+)"
+
+msgctxt "#30010"
+msgid "Delete from My List (discovery+)"
+msgstr "Verwijderen uit mijn lijst (Discovery+)"
+
+msgctxt "#30011"
+msgid "Season"
+msgstr "Seizoen"
+
+msgctxt "#30012"
+msgid "Wrong email or password"
+msgstr "verkeerde email of wachtwoord"
+
+msgctxt "#30013"
+msgid "Site"
+msgstr ""
+
+msgctxt "#30014"
+msgid "Watch"
+msgstr "Kijken maar"
+
+msgctxt "#30015"
+msgid "Email"
+msgstr ""
+
+msgctxt "#30016"
+msgid "Password"
+msgstr "Wachtwoord"
+
+msgctxt "#30017"
+msgid "Favorites"
+msgstr "Favorieten"
+
+msgctxt "#30018"
+msgid "Results per Page"
+msgstr "Resultaten per pagina"
+
+msgctxt "#30019"
+msgid "Next Page"
+msgstr "Volgende bladzijde"
+
+msgctxt "#30020"
+msgid "Use cookies.txt file"
+msgstr "Gebruik cookies.txt bestand"
+
+msgctxt "#30021"
+msgid "Cookies.txt location"
+msgstr "Cookies.txt locatie"
+
+msgctxt "#30022"
+msgid "It looks like you are not logged in to discovery+. Please login using Chrome and export cookies to file or set cookie in add-on settings."
+msgstr "Het lijkt erop dat u niet bent aangemeld bij discovery+.  Log in met Chrome en exporteer cookies naar een bestand of stel een cookie in in add-on-instellingen."
+
+msgctxt "#30023"
+msgid "Integration"
+msgstr "integratie"
+
+msgctxt "#30024"
+msgid "Install IPTV Manager add-on"
+msgstr "IPTV Manager add-on installeren"
+
+msgctxt "#30025"
+msgid "Enable IPTV Manager integration"
+msgstr "Integratie van IPTV Manager inschakelen"
+
+msgctxt "#30026"
+msgid "IPTV Manager settings…"
+msgstr "IPTV Manager-instellingen…"
+
+msgctxt "#30027"
+msgid "Sync to Discovery+"
+msgstr "Synchroniseren met Discovery+"
+
+msgctxt "#30028"
+msgid "Use InputStream Adaptive"
+msgstr "InputStream Adaptive gebruiken"
+
+msgctxt "#30029"
+msgid "Enable UHD (experimental) / USA only"
+msgstr "Schakel UHD (experimenteel) / alleen VS in"
+
+msgctxt "#30030"
+msgid "Promotion"
+msgstr "Promotie"
+
+msgctxt "#30031"
+msgid "Views"
+msgstr ""
+
+msgctxt "#30032"
+msgid "Hide non season categories from seasons page"
+msgstr ""Verberg niet-seizoenscategorieën op de seizoenenpagina
+
+msgctxt "#30033"
+msgid "Flatten TV show seasons if only one season"
+msgstr "Verberg niet seizoenscategorieën op de seizoenenpagina"
+
+msgctxt "#30034"
+msgid "[Subscription needed]"
+msgstr "[Abonnement nodig]"
+
+msgctxt "#30035"
+msgid "Reset settings"
+msgstr "Reset instellingen"
+
+msgctxt "#30036"
+msgid "Profiles"
+msgstr "Profielen"
+
+msgctxt "#30037"
+msgid "[PIN-Code required]"
+msgstr "[PIN-code vereist]"
+
+msgctxt "#30038"
+msgid "Enter the PIN for the profile"
+msgstr "Voer de pincode voor het profiel in"
+
+msgctxt "#30039"
+msgid "Cookie"
+msgstr ""
+
+msgctxt "#30040"
+msgid "Channels"
+msgstr "Kanalen"
+
+msgctxt "#30041"
+msgid "Use DRM"
+msgstr "Gebruik DRM"
+
+msgctxt "#30042"
+msgid "Mark as unwatched (d+)"
+msgstr "Markeren als niet bekeken (D+)"
+
+msgctxt "#30043"
+msgid "Mark as watched (d+)"
+msgstr "Markeren als bekeken (D+)"
+
+msgctxt "#30044"
+msgid "Reset resume position (d+)"
+msgstr "Hervattingspositie resetten (D+)"
