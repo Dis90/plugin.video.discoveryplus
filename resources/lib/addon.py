@@ -772,7 +772,7 @@ def list_collection_items(page_path, collection_id):
                             # Mark as unwatched
                             menu.append((helper.language(30042),
                                          'RunPlugin(plugin://' + helper.addon_name +
-                                         '/update_playback_progress/' + str(video['id']) + '?position=0' + ')',))
+                                         '/mark_video_watched_unwatched/' + str(video['id']) + '?position=0' + ')',))
                         else:  # Partly watched video
                             episode_info['playcount'] = '0'
                             resume = video['attributes']['viewingHistory']['position'] / 1000.0
@@ -780,11 +780,11 @@ def list_collection_items(page_path, collection_id):
                             # Reset resume position
                             menu.append((helper.language(30044),
                                          'RunPlugin(plugin://' + helper.addon_name +
-                                         '/update_playback_progress/' + str( video['id']) + '?position=0' + ')',))
+                                         '/mark_video_watched_unwatched/' + str( video['id']) + '?position=0' + ')',))
                             # Mark as watched
                             menu.append((helper.language(30043),
                                          'RunPlugin(plugin://' + helper.addon_name +
-                                         '/update_playback_progress/' + str(video['id']) +
+                                         '/mark_video_watched_unwatched/' + str(video['id']) +
                                          '?position=' + str(video['attributes']['videoDuration']) + ')',))
                     else:  # Sometimes 'viewed' is True but 'completed' is missing. Example some Live sports
                         episode_info['playcount'] = '0'
@@ -799,7 +799,7 @@ def list_collection_items(page_path, collection_id):
                         # Mark as watched
                         menu.append((helper.language(30043),
                                      'RunPlugin(plugin://' + helper.addon_name +
-                                     '/update_playback_progress/' + str(video['id']) +
+                                     '/mark_video_watched_unwatched/' + str(video['id']) +
                                      '?position=' + str(video['attributes']['videoDuration']) + ')',))
             else:  # Kodis resume data used
                 resume = None
@@ -1000,7 +1000,7 @@ def list_favorite_watchlist_videos_in():
                         total = duration
                         # Mark as unwatched
                         menu.append((helper.language(30042),
-                                     'RunPlugin(plugin://' + helper.addon_name + '/update_playback_progress/' + str(
+                                     'RunPlugin(plugin://' + helper.addon_name + '/mark_video_watched_unwatched/' + str(
                                          video['id']) + '?position=0' + ')',))
                     else:  # Partly watched video
                         episode_info['playcount'] = '0'
@@ -1008,11 +1008,11 @@ def list_favorite_watchlist_videos_in():
                         total = duration
                         # Reset resume position
                         menu.append((helper.language(30044),
-                                     'RunPlugin(plugin://' + helper.addon_name + '/update_playback_progress/' + str(
+                                     'RunPlugin(plugin://' + helper.addon_name + '/mark_video_watched_unwatched/' + str(
                                          video['id']) + '?position=0' + ')',))
                         # Mark as watched
                         menu.append((helper.language(30043),
-                                     'RunPlugin(plugin://' + helper.addon_name + '/update_playback_progress/' + str(
+                                     'RunPlugin(plugin://' + helper.addon_name + '/mark_video_watched_unwatched/' + str(
                                          video['id']) + '?position=' + str(video['attributes']['videoDuration']) + ')',))
                 else:  # Sometimes 'viewed' is True but 'completed' is missing. Example some Live sports
                     episode_info['playcount'] = '0'
@@ -1026,7 +1026,7 @@ def list_favorite_watchlist_videos_in():
                 if video['attributes'].get('videoDuration'):
                     # Mark as watched
                     menu.append((helper.language(30043),
-                                 'RunPlugin(plugin://' + helper.addon_name + '/update_playback_progress/' + str(
+                                 'RunPlugin(plugin://' + helper.addon_name + '/mark_video_watched_unwatched/' + str(
                                      video['id']) + '?position=' + str(video['attributes']['videoDuration']) + ')',))
         else:  # Kodis resume data used
             resume = None
@@ -1365,7 +1365,7 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                                     # Mark as unwatched
                                     menu.append((helper.language(30042),
                                                  'RunPlugin(plugin://' + helper.addon_name +
-                                                 '/update_playback_progress/' + str(video['id']) + '?position=0' + ')',))
+                                                 '/mark_video_watched_unwatched/' + str(video['id']) + '?position=0' + ')',))
                                 else:  # Partly watched video
                                     episode_info['playcount'] = '0'
                                     resume = video['attributes']['viewingHistory']['position'] / 1000.0
@@ -1373,11 +1373,11 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                                     # Reset resume position
                                     menu.append((helper.language(30044),
                                                  'RunPlugin(plugin://' + helper.addon_name +
-                                                 '/update_playback_progress/' + str(video['id']) + '?position=0' + ')',))
+                                                 '/mark_video_watched_unwatched/' + str(video['id']) + '?position=0' + ')',))
                                     # Mark as watched
                                     menu.append((helper.language(30043),
                                                  'RunPlugin(plugin://' + helper.addon_name +
-                                                 '/update_playback_progress/' + str(video['id']) +
+                                                 '/mark_video_watched_unwatched/' + str(video['id']) +
                                                  '?position=' + str(video['attributes']['videoDuration']) + ')',))
                             else:  # Sometimes 'viewed' is True but 'completed' is missing. Example some Live sports
                                 episode_info['playcount'] = '0'
@@ -1392,7 +1392,7 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                                 # Mark as watched
                                 menu.append((helper.language(30043),
                                              'RunPlugin(plugin://' + helper.addon_name +
-                                             '/update_playback_progress/' + str(video['id']) +
+                                             '/mark_video_watched_unwatched/' + str(video['id']) +
                                              '?position=' + str(video['attributes']['videoDuration']) + ')',))
                     else:  # Kodis resume data used
                         resume = None
@@ -1675,8 +1675,8 @@ def switch_profile():
         helper.d.switch_profile(plugin.args['profileId'][0])
     helper.refresh_list()
 
-@plugin.route('/update_playback_progress/<video_id>')
-def update_playback_progress(video_id):
+@plugin.route('/mark_video_watched_unwatched/<video_id>')
+def mark_video_watched_unwatched(video_id):
     helper.d.update_playback_progress(video_id=video_id, position=plugin.args['position'][0])
     helper.refresh_list()
 
