@@ -381,47 +381,43 @@ class Dplay(object):
 
         current_day = datetime.today().strftime('%Y-%m-%d')
 
-        for collection in collections:
-            if collection['attributes']['alias'] == 'epg-listing-wrapper':
-                for collection_relationships in collection['relationships']['items']['data']:
-                    for collectionItem in collectionItems:
-                        if collection_relationships['id'] == collectionItem['id']:
+        collection = [x for x in collections if x['attributes']['alias'] == 'epg-listing-wrapper'][0]
+        for collection_relationships in collection['relationships']['items']['data']:
+            collectionItem = [x for x in collectionItems if x['id'] == collection_relationships['id']][0]
 
-                            epg_page_data = self.get_collections(
-                                collection_id=collectionItem['relationships']['collection']['data']['id'], page=1,
-                                parameter='pf[day]={current_day}'.format(current_day=current_day))
+            epg_page_data = self.get_collections(
+                collection_id=collectionItem['relationships']['collection']['data']['id'], page=1,
+                parameter='pf[day]={current_day}'.format(current_day=current_day))
 
-                            # It is possible that there's empty channel
-                            if epg_page_data.get('included'):
+            # It is possible that there's empty channel
+            if epg_page_data.get('included'):
 
-                                channels = list(filter(lambda x: x['type'] == 'channel', epg_page_data['included']))
-                                images = list(filter(lambda x: x['type'] == 'image', epg_page_data['included']))
+                channels = list(filter(lambda x: x['type'] == 'channel', epg_page_data['included']))
+                images = list(filter(lambda x: x['type'] == 'image', epg_page_data['included']))
 
-                                for channel in channels:
-                                    if channel['attributes']['hasLiveStream']:
-                                        url = 'plugin://plugin.video.discoveryplus/play/{channel_id}?video_type=channel'.format(
-                                            channel_id=channel['id'])
+                for channel in channels:
+                    if channel['attributes']['hasLiveStream']:
+                        url = 'plugin://plugin.video.discoveryplus/play/{channel_id}?video_type=channel'.format(
+                            channel_id=channel['id'])
 
-                                        channel_logo = None
-                                        fanart_image = None
-                                        if channel['relationships'].get('images'):
-                                            for image in images:
-                                                for channel_images in channel['relationships']['images']['data']:
-                                                    if image['id'] == channel_images['id']:
-                                                        if image['attributes']['kind'] == 'logo':
-                                                            channel_logo = image['attributes']['src']
-                                                        if image['attributes']['kind'] == 'default':
-                                                            fanart_image = image['attributes']['src']
+                        channel_logo = None
+                        fanart_image = None
+                        if channel['relationships'].get('images'):
+                            for image in images:
+                                for channel_images in channel['relationships']['images']['data']:
+                                    if image['id'] == channel_images['id']:
+                                        if image['attributes']['kind'] == 'logo':
+                                            channel_logo = image['attributes']['src']
+                                        if image['attributes']['kind'] == 'default':
+                                            fanart_image = image['attributes']['src']
 
-                                        channels_list.append(dict(
-                                            id='%s@%s' % (channel['id'], slugify(
-                                                xbmcaddon.Addon(id='plugin.video.discoveryplus').getAddonInfo(
-                                                    'name'))),
-                                            name=channel['attributes']['name'],
-                                            logo=channel_logo if channel_logo else fanart_image,
-                                            stream=url
-                                        ))
-
+                        channels_list.append(dict(
+                            id='%s@%s' % (channel['id'], slugify(
+                                xbmcaddon.Addon(id='plugin.video.discoveryplus').getAddonInfo('name'))),
+                            name=channel['attributes']['name'],
+                            logo=channel_logo if channel_logo else fanart_image,
+                            stream=url
+                        ))
 
         return channels_list
 
@@ -435,48 +431,36 @@ class Dplay(object):
 
         channels_list = []
 
-        for collection in collections:
-            # Introducing discovery+ Channels - Category
-            if collection['attributes']['alias'] == 'home-rail-jip-channels':
-                for c in collection['relationships']['items']['data']:
-                    for collectionItem in collectionItems:
-                        if c['id'] == collectionItem['id']:
-                            if collectionItem['relationships'].get('channel'):
-                                for channel in channels:
-                                    if \
-                                            collectionItem['relationships']['channel']['data'][
-                                                'id'] == channel['id']:
+        # Introducing discovery+ Channels - Category
+        collection = [x for x in collections if x['attributes']['alias'] == 'home-rail-jip-channels'][0]
+        for collection_relationship in collection['relationships']['items']['data']:
+            collectionItem = [x for x in collectionItems if x['id'] == collection_relationship['id']][0]
 
-                                        if channel['attributes']['hasLiveStream']:
-                                            url = 'plugin://plugin.video.discoveryplus/play/{channel_id}?video_type=channel'.format(
-                                                channel_id=channel['id'])
+            if collectionItem['relationships'].get('channel'):
+                channel = [x for x in channels if x['id'] == collectionItem['relationships']['channel']['data']['id']][0]
 
-                                            channel_logo = None
-                                            fanart_image = None
-                                            if channel['relationships'].get('images'):
-                                                for image in images:
-                                                    for channel_images in \
-                                                            channel['relationships']['images'][
-                                                                'data']:
-                                                        if image['id'] == channel_images[
-                                                            'id']:
-                                                            if image['attributes'][
-                                                                'kind'] == 'logo':
-                                                                channel_logo = \
-                                                                    image['attributes']['src']
-                                                            if image['attributes'][
-                                                                'kind'] == 'default':
-                                                                fanart_image = \
-                                                                    image['attributes']['src']
+                if channel['attributes']['hasLiveStream']:
+                    url = 'plugin://plugin.video.discoveryplus/play/{channel_id}?video_type=channel'.format(
+                        channel_id=channel['id'])
 
-                                            channels_list.append(dict(
-                                                id='%s@%s' % (channel['id'], slugify(
-                                                    xbmcaddon.Addon(id='plugin.video.discoveryplus').getAddonInfo(
-                                                        'name'))),
-                                                name=channel['attributes']['name'],
-                                                logo=channel_logo if channel_logo else fanart_image,
-                                                stream=url
-                                            ))
+                    channel_logo = None
+                    fanart_image = None
+                    if channel['relationships'].get('images'):
+                        for image in images:
+                            for channel_images in channel['relationships']['images']['data']:
+                                if image['id'] == channel_images['id']:
+                                    if image['attributes']['kind'] == 'logo':
+                                        channel_logo = image['attributes']['src']
+                                    if image['attributes']['kind'] == 'default':
+                                        fanart_image = image['attributes']['src']
+
+                    channels_list.append(dict(
+                        id='%s@%s' % (channel['id'], slugify(
+                            xbmcaddon.Addon(id='plugin.video.discoveryplus').getAddonInfo('name'))),
+                        name=channel['attributes']['name'],
+                        logo=channel_logo if channel_logo else fanart_image,
+                        stream=url
+                    ))
 
         return channels_list
 
@@ -490,47 +474,35 @@ class Dplay(object):
 
         channels_list = []
 
-        for collection in collections:
-            if collection['attributes']['alias'] == 'explore-national-live-channels-list':
-                for c in collection['relationships']['items']['data']:
-                    for collectionItem in collectionItems:
-                        if c['id'] == collectionItem['id']:
-                            if collectionItem['relationships'].get('channel'):
-                                for channel in channels:
-                                    if \
-                                            collectionItem['relationships']['channel']['data'][
-                                                'id'] == channel['id']:
+        collection = [x for x in collections if x['attributes']['alias'] == 'explore-national-live-channels-list'][0]
+        for collection_relationship in collection['relationships']['items']['data']:
+            collectionItem = [x for x in collectionItems if x['id'] == collection_relationship['id']][0]
 
-                                        if channel['attributes']['hasLiveStream']:
-                                            url = 'plugin://plugin.video.discoveryplus/play/{channel_id}?video_type=channel'.format(
-                                                channel_id=channel['id'])
+            if collectionItem['relationships'].get('channel'):
+                channel = [x for x in channels if x['id'] == collectionItem['relationships']['channel']['data']['id']][0]
 
-                                            channel_logo = None
-                                            fanart_image = None
-                                            if channel['relationships'].get('images'):
-                                                for image in images:
-                                                    for channel_images in \
-                                                            channel['relationships']['images'][
-                                                                'data']:
-                                                        if image['id'] == channel_images[
-                                                            'id']:
-                                                            if image['attributes'][
-                                                                'kind'] == 'logo':
-                                                                channel_logo = \
-                                                                    image['attributes']['src']
-                                                            if image['attributes'][
-                                                                'kind'] == 'default':
-                                                                fanart_image = \
-                                                                    image['attributes']['src']
+                if channel['attributes']['hasLiveStream']:
+                    url = 'plugin://plugin.video.discoveryplus/play/{channel_id}?video_type=channel'.format(
+                        channel_id=channel['id'])
 
-                                            channels_list.append(dict(
-                                                id='%s@%s' % (channel['id'], slugify(
-                                                    xbmcaddon.Addon(id='plugin.video.discoveryplus').getAddonInfo(
-                                                        'name'))),
-                                                name=channel['attributes']['name'],
-                                                logo=channel_logo if channel_logo else fanart_image,
-                                                stream=url
-                                            ))
+                    channel_logo = None
+                    fanart_image = None
+                    if channel['relationships'].get('images'):
+                        for image in images:
+                            for channel_images in channel['relationships']['images']['data']:
+                                if image['id'] == channel_images['id']:
+                                    if image['attributes']['kind'] == 'logo':
+                                        channel_logo = image['attributes']['src']
+                                    if image['attributes']['kind'] == 'default':
+                                        fanart_image = image['attributes']['src']
+
+                    channels_list.append(dict(
+                        id='%s@%s' % (channel['id'], slugify(
+                            xbmcaddon.Addon(id='plugin.video.discoveryplus').getAddonInfo('name'))),
+                        name=channel['attributes']['name'],
+                        logo=channel_logo if channel_logo else fanart_image,
+                        stream=url
+                    ))
 
         return channels_list
 
@@ -543,133 +515,102 @@ class Dplay(object):
         collections = list(filter(lambda x: x['type'] == 'collection', page_data['included']))
         collectionItems = list(filter(lambda x: x['type'] == 'collectionItem', page_data['included']))
 
-        for collection in collections:
-            if collection['attributes']['alias'] == 'epg-listing-wrapper':
-                for collection_relationships in collection['relationships']['items']['data']:
-                    for collectionItem in collectionItems:
-                        if collection_relationships['id'] == collectionItem['id']:
-                            if collectionItem['relationships'].get('collection'):
+        collection = [x for x in collections if x['attributes']['alias'] == 'epg-listing-wrapper'][0]
+        for collection_relationships in collection['relationships']['items']['data']:
+            collectionItem = [x for x in collectionItems if x['id'] == collection_relationships['id']][0]
+            if collectionItem['relationships'].get('collection'):
 
-                                # Get daily epg per channel
-                                for option in collection['attributes']['component']['filters'][0]['options']:
+                # Get daily epg per channel
+                for option in collection['attributes']['component']['filters'][0]['options']:
 
-                                    # Grab EPG only for current day and later
-                                    if option['id'] >= collection['attributes']['component']['filters'][0]['initiallySelectedOptionIds'][0]:
+                    # Grab EPG only for current day and later
+                    if option['id'] >= \
+                            collection['attributes']['component']['filters'][0]['initiallySelectedOptionIds'][0]:
 
-                                        epg_page_data = self.get_collections(
-                                            collection_id=collectionItem['relationships']['collection']['data']['id'],
-                                            page=1,
-                                            parameter=option['parameter'])
+                        epg_page_data = self.get_collections(
+                            collection_id=collectionItem['relationships']['collection']['data']['id'],
+                            page=1,
+                            parameter=option['parameter'])
 
-                                        # It is possible that channel doesn't have EPG for requested day
-                                        if epg_page_data.get('included'):
+                        # It is possible that channel doesn't have EPG for requested day
+                        if epg_page_data.get('included'):
 
-                                            collectionItems2 = list(
-                                                filter(lambda x: x['type'] == 'collectionItem',
-                                                       epg_page_data['included']))
-                                            channels = list(
-                                                filter(lambda x: x['type'] == 'channel', epg_page_data['included']))
-                                            images = list(
-                                                filter(lambda x: x['type'] == 'image', epg_page_data['included']))
-                                            videos = list(
-                                                filter(lambda x: x['type'] == 'video', epg_page_data['included']))
-                                            taxonomyNodes = list(filter(lambda x: x['type'] == 'taxonomyNode',
-                                                                        epg_page_data['included']))
+                            collectionItems2 = list(filter(lambda x: x['type'] == 'collectionItem', epg_page_data['included']))
+                            channels = list(filter(lambda x: x['type'] == 'channel', epg_page_data['included']))
+                            images = list(filter(lambda x: x['type'] == 'image', epg_page_data['included']))
+                            videos = list(filter(lambda x: x['type'] == 'video', epg_page_data['included']))
+                            taxonomyNodes = list(filter(lambda x: x['type'] == 'taxonomyNode', epg_page_data['included']))
 
-                                            for channel in channels:
-                                                if channel['attributes']['hasLiveStream']:
-                                                    for collectionItem2 in collectionItems2:
-                                                        for video in videos:
-                                                            if video['id'] == \
-                                                                    collectionItem2['relationships']['video']['data'][
-                                                                        'id']:
+                            for channel in channels:
+                                if channel['attributes']['hasLiveStream']:
+                                    for collectionItem2 in collectionItems2:
+                                        video = [x for x in videos if
+                                                 x['id'] == collectionItem2['relationships']['video']['data']['id']][0]
 
-                                                                fanart_image = None
-                                                                if video['relationships'].get('images'):
-                                                                    for image in images:
-                                                                        for video_images in \
-                                                                                video['relationships']['images'][
-                                                                                    'data']:
-                                                                            if image['id'] == video_images['id']:
-                                                                                if image['attributes'][
-                                                                                    'kind'] == 'default':
-                                                                                    fanart_image = image['attributes'][
-                                                                                        'src']
+                                        fanart_image = None
+                                        if video['relationships'].get('images'):
+                                            for image in images:
+                                                for video_images in video['relationships']['images']['data']:
+                                                    if image['id'] == video_images['id']:
+                                                        if image['attributes']['kind'] == 'default':
+                                                            fanart_image = image['attributes']['src']
 
-                                                                channel_id = '%s@%s' % (channel['id'], slugify(
-                                                                    xbmcaddon.Addon(
-                                                                        id='plugin.video.discoveryplus').getAddonInfo(
-                                                                        'name')))
+                                        channel_id = '%s@%s' % (channel['id'], slugify(
+                                            xbmcaddon.Addon(id='plugin.video.discoveryplus').getAddonInfo('name')))
 
-                                                                # Sport events
-                                                                if video['relationships'].get('txSports'):
-                                                                    subtitle = video['attributes'].get('secondaryTitle')
-                                                                    for taxonomyNode in taxonomyNodes:
-                                                                        if taxonomyNode['id'] == \
-                                                                                video['relationships']['txSports'][
-                                                                                    'data'][0]['id']:
-                                                                            if video['attributes'].get(
-                                                                                    'secondaryTitle'):
-                                                                                subtitle = taxonomyNode['attributes'][
-                                                                                               'name'] + ' - ' + \
-                                                                                           video['attributes'][
-                                                                                               'secondaryTitle']
-                                                                            else:
-                                                                                subtitle = taxonomyNode['attributes'][
-                                                                                    'name']
+                                        # Sport events
+                                        if video['relationships'].get('txSports'):
+                                            subtitle = video['attributes'].get('secondaryTitle')
+                                            for taxonomyNode in taxonomyNodes:
+                                                if taxonomyNode['id'] == \
+                                                        video['relationships']['txSports']['data'][0]['id']:
+                                                    if video['attributes'].get('secondaryTitle'):
+                                                        subtitle = taxonomyNode['attributes']['name'] + ' - ' + \
+                                                                   video['attributes']['secondaryTitle']
+                                                    else:
+                                                        subtitle = taxonomyNode['attributes']['name']
 
-                                                                    epg[channel_id].append(dict(
-                                                                        start=video['attributes'].get('scheduleStart'),
-                                                                        stop=video['attributes'].get('scheduleEnd'),
-                                                                        title=video['attributes'].get('name'),
-                                                                        description=video['attributes'].get(
-                                                                            'description'),
-                                                                        subtitle=subtitle,
-                                                                        image=fanart_image
-                                                                    ))
-                                                                # TV shows
-                                                                else:
-                                                                    if video['attributes']['customAttributes'].get(
-                                                                            'listingSeasonNumber') and \
-                                                                            video['attributes'][
-                                                                                'customAttributes'].get(
-                                                                                'listingEpisodeNumber'):
-                                                                        episode = 'S' + str(
-                                                                            video['attributes']['customAttributes'][
-                                                                                'listingSeasonNumber']) + 'E' + str(
-                                                                            video['attributes']['customAttributes'][
-                                                                                'listingEpisodeNumber'])
-                                                                    else:
-                                                                        episode = None
+                                            epg[channel_id].append(dict(
+                                                start=video['attributes'].get('scheduleStart'),
+                                                stop=video['attributes'].get('scheduleEnd'),
+                                                title=video['attributes'].get('name'),
+                                                description=video['attributes'].get('description'),
+                                                subtitle=subtitle,
+                                                image=fanart_image
+                                            ))
+                                        # TV shows
+                                        else:
+                                            if video['attributes']['customAttributes'].get('listingSeasonNumber') and \
+                                                    video['attributes']['customAttributes'].get('listingEpisodeNumber'):
+                                                episode = 'S' + str(video['attributes']['customAttributes']['listingSeasonNumber']) + \
+                                                          'E' + str(video['attributes']['customAttributes']['listingEpisodeNumber'])
+                                            else:
+                                                episode = None
 
-                                                                    subtitle = video['attributes'].get('name')
-                                                                    # Don't add name to subtitle if it same as listingShowName
-                                                                    if video['attributes']['customAttributes'].get(
-                                                                            'listingShowName') and video[
-                                                                        'attributes'].get(
-                                                                        'name'):
-                                                                        if video['attributes']['customAttributes'][
-                                                                            'listingShowName'] == \
-                                                                                video['attributes']['name']:
-                                                                            subtitle = None
+                                            subtitle = video['attributes'].get('name')
+                                            # Don't add name to subtitle if it same as listingShowName
+                                            if video['attributes']['customAttributes'].get(
+                                                    'listingShowName') and video['attributes'].get('name'):
+                                                if video['attributes']['customAttributes']['listingShowName'] == \
+                                                        video['attributes']['name']:
+                                                    subtitle = None
 
-                                                                    # At least discovery+ UK doesn't always have show name on data
-                                                                    if video['attributes']['customAttributes'].get('listingShowName') is None:
-                                                                        title = subtitle
-                                                                        subtitle = None
-                                                                    else:
-                                                                        title = video['attributes']['customAttributes']['listingShowName']
+                                            # At least discovery+ UK doesn't always have show name on data
+                                            if video['attributes']['customAttributes'].get('listingShowName') is None:
+                                                title = subtitle
+                                                subtitle = None
+                                            else:
+                                                title = video['attributes']['customAttributes']['listingShowName']
 
-                                                                    epg[channel_id].append(dict(
-                                                                        start=video['attributes'].get('scheduleStart'),
-                                                                        stop=video['attributes'].get('scheduleEnd'),
-                                                                        title=title,
-                                                                        description=video['attributes'].get(
-                                                                            'description'),
-                                                                        subtitle=subtitle,
-                                                                        episode=episode,
-                                                                        image=fanart_image
-                                                                    ))
+                                            epg[channel_id].append(dict(
+                                                start=video['attributes'].get('scheduleStart'),
+                                                stop=video['attributes'].get('scheduleEnd'),
+                                                title=title,
+                                                description=video['attributes'].get('description'),
+                                                subtitle=subtitle,
+                                                episode=episode,
+                                                image=fanart_image
+                                            ))
 
         return epg
 
