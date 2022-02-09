@@ -1498,6 +1498,7 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                                 next_page_path = [x['attributes']['url'] for x in routes if
                                                   x['id'] == link['relationships']['linkedContentRoutes']['data'][0]['id']][0]
 
+                                thumb_image = None
                                 for collectionItem2 in collectionItems:
                                     if collection['relationships']['items']['data'][0]['id'] == collectionItem2['id']:
                                         if collectionItem2['relationships'].get('image'):
@@ -1526,7 +1527,7 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
 
                                 helper.add_item(link_title, url=plugin_url, content='videos',
                                                 art=category_art,
-                                                folder_name=collection['attributes'].get('title'))
+                                                folder_name=page_data['data']['attributes'].get('title'))
 
                 # discoveryplus.com (US and EU) search result 'collections' folder content
                 if collectionItem['relationships'].get('link'):
