@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="plugin.video.discoveryplus" version="1.6.13" name="discovery+" provider-name="Dis90">
+<addon id="plugin.video.discoveryplus" version="1.6.14" name="discovery+" provider-name="Dis90">
 <requires>
   <import addon="xbmc.python" version="2.24.0"/>
   <import addon="script.module.requests" version="2.9.1"/>
@@ -21,6 +21,12 @@
     <fanart>resources/fanart.png</fanart>
   </assets>
   <news>
+    v1.6.14 (10.2.2022)
+    - Code improvements
+    - You can now also mark seasons as watched or unwatched
+    - Dutch translation (thanks to djdirty60)
+    - If you are using IPTV Manager you need to refresh channels from IPTV Manager settings also 
+      if you are using Kodi favorites you need to re-add them after this update because of changes made to add-on internal urls
     v1.6.13 (4.2.2022)
     - You can now mark videos as watched or unwatched
     - Minor fixes
