@@ -1084,8 +1084,7 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                 list_collection(collection_id=page_data['data']['id'],
                                 page=1,
                                 mandatoryParams=page_data['data']['attributes']['component'].get('mandatoryParams'),
-                                parameter=page_data['data']['attributes']['component']['filters'][0]['options'][0][
-                                    'id'])
+                                parameter=page_data['data']['attributes']['component']['filters'][0]['options'][0].get('parameter'))
             else:
                 for option in page_data['data']['attributes']['component']['filters'][0]['options']:
                     title = helper.language(30011) + ' ' + str(option['id'])
