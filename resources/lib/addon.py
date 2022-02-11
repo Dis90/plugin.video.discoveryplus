@@ -550,9 +550,13 @@ def list_page_in(page_path):
                                                             folder_name=pages[0]['attributes'].get('title'))
 
                                         if collection2['attributes']['name'] == 'blueprint-show-shorts':
-                                            plugin_url = plugin.url_for(list_collection_items,
-                                                                        page_path=page_path,
-                                                                        collection_id=collection2['id'])
+                                            # Create mandatoryParams
+                                            mandatoryParams = 'pf[show.id]=' + pages[0]['relationships']['primaryContent']['data']['id']
+
+                                            plugin_url = plugin.url_for(
+                                                list_collection,
+                                                collection_id=collection2['id'],
+                                                mandatoryParams=mandatoryParams)
 
                                             helper.add_item('Shorts', url=plugin_url,
                                                             content='videos',
@@ -637,182 +641,6 @@ def list_page_in(page_path):
 
                                                         helper.add_item(taxonomyNode['attributes']['name'],
                                                                         content='videos', url=plugin_url)
-
-    helper.eod()
-
-@plugin.route('/collection_items<path:page_path>/<collection_id>')
-def list_collection_items(page_path, collection_id):
-    page_data = helper.d.get_page(page_path)
-
-    collections = list(filter(lambda x: x['type'] == 'collection', page_data['included']))
-    collectionItems = list(filter(lambda x: x['type'] == 'collectionItem', page_data['included']))
-    images = list(filter(lambda x: x['type'] == 'image', page_data['included']))
-    shows = list(filter(lambda x: x['type'] == 'show', page_data['included']))
-    videos = list(filter(lambda x: x['type'] == 'video', page_data['included']))
-    channels = list(filter(lambda x: x['type'] == 'channel', page_data['included']))
-    taxonomyNodes = list(filter(lambda x: x['type'] == 'taxonomyNode', page_data['included']))
-
-    collection = [x for x in collections if collection_id == x['id']][0]
-    for collection_relationship in collection['relationships']['items']['data']:
-        collectionItem = [x for x in collectionItems if x['id'] == collection_relationship['id']][0]
-
-        # List videos (Show -> Shorts in d+ India) can't use list_collection because of missing mandatoryParams
-        if collectionItem['relationships'].get('video'):
-            video = [x for x in videos if x['id'] == collectionItem['relationships']['video']['data']['id']][0]
-            show = [x for x in shows if x['id'] == video['relationships']['show']['data']['id']][0]
-
-            # Genres
-            g = []
-            if video['relationships'].get('txGenres'):
-                for taxonomyNode in taxonomyNodes:
-                    for video_genre in video['relationships']['txGenres']['data']:
-                        if taxonomyNode['id'] == video_genre['id']:
-                            g.append(taxonomyNode['attributes']['name'])
-
-            # Content rating
-            mpaa = None
-            if video['attributes'].get('contentRatings'):
-                for contentRating in video['attributes']['contentRatings']:
-                    if contentRating['system'] == helper.d.contentRatingSystem:
-                        mpaa = contentRating['code']
-
-            # Channel
-            primaryChannel = None
-            if video['relationships'].get('primaryChannel'):
-                primaryChannel = [x['attributes']['name'] for x in channels if
-                                  x['id'] == video['relationships']['primaryChannel']['data']['id']][0]
-
-            # Thumbnail
-            video_thumb_image = None
-            if video['relationships'].get('images'):
-                video_thumb_image = [x['attributes']['src'] for x in images if
-                                     x['id'] == video['relationships']['images']['data'][0]['id']][0]
-
-            duration = video['attributes']['videoDuration'] / 1000.0 if video['attributes'].get('videoDuration') else None
-
-            # If episode is not yet playable, show playable time in plot
-            if video['attributes'].get('earliestPlayableStart'):
-                if helper.d.parse_datetime(video['attributes']['earliestPlayableStart']) > helper.d.get_current_time():
-                    playable = str(
-                        helper.d.parse_datetime(video['attributes']['earliestPlayableStart']).strftime('%d.%m.%Y %H:%M'))
-                    if video['attributes'].get('description'):
-                        plot = helper.language(30002) + playable + ' ' + video['attributes'].get('description')
-                    else:
-                        plot = helper.language(30002) + playable
-                else:
-                    plot = video['attributes'].get('description')
-            else:
-                plot = video['attributes'].get('description')
-
-            # discovery+ subscription check
-            # First check if video is available for free
-            if len(video['attributes']['packages']) > 1:
-                # Get all available packages in availabilityWindows
-                for availabilityWindow in video['attributes']['availabilityWindows']:
-                    if availabilityWindow['package'] == 'Free' or availabilityWindow['package'] == 'Registered':
-                        # Check if there is ending time for free availability
-                        if availabilityWindow.get('playableEnd'):
-                            # Check if video is still available for free
-                            if helper.d.parse_datetime(availabilityWindow['playableStart']) < \
-                                    helper.d.get_current_time() < helper.d.parse_datetime(
-                                availabilityWindow['playableEnd']):
-                                subscription_needed = False
-
-                            else:  # Video is not anymore available for free
-                                subscription_needed = True
-            else:  # Only one package in packages = Subscription needed
-                subscription_needed = True
-
-            # Check if user has needed subscription
-            check = any(x in video['attributes']['packages'] for x in helper.d.get_user_data()['attributes']['packages'])
-            if check is True:
-                subscription_needed = False
-            else:
-                subscription_needed = True
-
-            if subscription_needed is True:
-                if plot:
-                    plot = helper.language(30034) + ' ' + plot
-                else:
-                    plot = helper.language(30034)
-
-            # secondaryTitle used in sport events
-            if video['attributes'].get('secondaryTitle'):
-                video_title = video['attributes'].get('name').lstrip() + ' - ' + video['attributes']['secondaryTitle'].lstrip()
-            else:
-                video_title = video['attributes'].get('name').lstrip()
-
-            aired = None
-            if video['attributes'].get('earliestPlayableStart'):
-                aired = str(helper.d.parse_datetime(video['attributes']['earliestPlayableStart']))
-
-            episode_info = {
-                'mediatype': 'episode',
-                'title': video_title,
-                'tvshowtitle': show['attributes']['name'],
-                'season': video['attributes'].get('seasonNumber'),
-                'episode': video['attributes'].get('episodeNumber'),
-                'plot': plot,
-                'genre': g,
-                'studio': primaryChannel,
-                'duration': duration,
-                'aired': aired,
-                'mpaa': mpaa
-            }
-
-            # Watched status from discovery+
-            menu = []
-            if helper.get_setting('sync_playback'):
-                if video['attributes']['viewingHistory']['viewed']:
-                    if 'completed' in video['attributes']['viewingHistory']:
-                        if video['attributes']['viewingHistory']['completed']:  # Watched video
-                            episode_info['playcount'] = '1'
-                            resume = 0
-                            total = duration
-                            # Mark as unwatched
-                            menu.append((helper.language(30042),
-                                         'RunPlugin(plugin://' + helper.addon_name +
-                                         '/mark_video_watched_unwatched/' + str(video['id']) + '?position=0' + ')',))
-                        else:  # Partly watched video
-                            episode_info['playcount'] = '0'
-                            resume = video['attributes']['viewingHistory']['position'] / 1000.0
-                            total = duration
-                            # Reset resume position
-                            menu.append((helper.language(30044),
-                                         'RunPlugin(plugin://' + helper.addon_name +
-                                         '/mark_video_watched_unwatched/' + str( video['id']) + '?position=0' + ')',))
-                            # Mark as watched
-                            menu.append((helper.language(30043),
-                                         'RunPlugin(plugin://' + helper.addon_name +
-                                         '/mark_video_watched_unwatched/' + str(video['id']) +
-                                         '?position=' + str(video['attributes']['videoDuration']) + ')',))
-                    else:  # Sometimes 'viewed' is True but 'completed' is missing. Example some Live sports
-                        episode_info['playcount'] = '0'
-                        resume = 0
-                        total = 1
-                else:  # Unwatched video
-                    episode_info['playcount'] = '0'
-                    resume = 0
-                    total = 1
-                    # Live sport doesn't have videoDuration
-                    if video['attributes'].get('videoDuration'):
-                        # Mark as watched
-                        menu.append((helper.language(30043),
-                                     'RunPlugin(plugin://' + helper.addon_name +
-                                     '/mark_video_watched_unwatched/' + str(video['id']) +
-                                     '?position=' + str(video['attributes']['videoDuration']) + ')',))
-            else:  # Kodis resume data used
-                resume = None
-                total = None
-
-            episode_art = artwork(show['relationships'].get('images'), images, video_thumb=video_thumb_image)
-
-            plugin_url = plugin.url_for(play, video_id=video['id'], video_type=video['attributes']['videoType'])
-
-            helper.add_item(video_title, url=plugin_url, info=episode_info, art=episode_art,
-                            content='episodes', menu=menu, playable=True, resume=resume, total=total,
-                            folder_name=collection['attributes'].get('title'),
-                            sort_method='sort_episodes')
 
     helper.eod()
 
