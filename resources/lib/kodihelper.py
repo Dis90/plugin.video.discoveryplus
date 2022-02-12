@@ -117,8 +117,8 @@ class KodiHelper(object):
         if os.path.exists(cookie_file):
             os.remove(cookie_file)
 
-    def add_item(self, title, url, folder=True, playable=False, info=None, art=None, content=False,
-                 menu=None, resume=None, total=None, folder_name=None, sort_method=None):
+    def add_item(self, title, url, folder=True, playable=False, info=None, art=None, content=False, menu=None,
+                 resume=None, total=None, position=None):
         addon = self.get_addon()
         listitem = xbmcgui.ListItem(label=title, offscreen=True)
 
@@ -143,22 +143,24 @@ class KodiHelper(object):
             xbmcplugin.setContent(self.handle, content)
         if menu:
             listitem.addContextMenuItems(menu)
-        if folder_name:
-            xbmcplugin.setPluginCategory(self.handle, folder_name)
-        if sort_method:
-            if sort_method == 'unsorted':
-                xbmcplugin.addSortMethod(self.handle, xbmcplugin.SORT_METHOD_UNSORTED)
-                xbmcplugin.addSortMethod(self.handle, xbmcplugin.SORT_METHOD_LABEL)
-            if sort_method == 'sort_label':
-                xbmcplugin.addSortMethod(self.handle, xbmcplugin.SORT_METHOD_LABEL)
-            if sort_method == 'sort_episodes':
-                xbmcplugin.addSortMethod(self.handle, xbmcplugin.SORT_METHOD_EPISODE)
-                xbmcplugin.addSortMethod(self.handle, xbmcplugin.SORT_METHOD_VIDEO_TITLE)
-            if sort_method == 'bottom':
-                listitem.setProperty("SpecialSort", "bottom")
+        # SpecialSort
+        if position:
+            listitem.setProperty("SpecialSort", position)
 
         xbmcplugin.addDirectoryItem(self.handle, url, listitem, folder)
 
+    def add_sort_methods(self, sort_method):
+        if sort_method == 'unsorted':
+            xbmcplugin.addSortMethod(self.handle, xbmcplugin.SORT_METHOD_UNSORTED)
+            xbmcplugin.addSortMethod(self.handle, xbmcplugin.SORT_METHOD_LABEL)
+        if sort_method == 'sort_label':
+            xbmcplugin.addSortMethod(self.handle, xbmcplugin.SORT_METHOD_LABEL)
+        if sort_method == 'sort_episodes':
+            xbmcplugin.addSortMethod(self.handle, xbmcplugin.SORT_METHOD_EPISODE)
+            xbmcplugin.addSortMethod(self.handle, xbmcplugin.SORT_METHOD_VIDEO_TITLE)
+
+    def add_folder_name(self, name):
+        xbmcplugin.setPluginCategory(self.handle, name)
 
     def eod(self):
         """Tell Kodi that the end of the directory listing is reached."""
