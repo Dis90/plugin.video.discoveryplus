@@ -117,7 +117,7 @@ class KodiHelper(object):
         if os.path.exists(cookie_file):
             os.remove(cookie_file)
 
-    def add_item(self, title, url, folder=True, playable=False, info=None, art=None, content=False, menu=None,
+    def add_item(self, title, url, folder=True, playable=False, info=None, art=None, menu=None,
                  resume=None, total=None, position=None):
         addon = self.get_addon()
         listitem = xbmcgui.ListItem(label=title, offscreen=True)
@@ -139,8 +139,6 @@ class KodiHelper(object):
             listitem.setArt(art)
         if info:
             listitem.setInfo('video', info)
-        if content:
-            xbmcplugin.setContent(self.handle, content)
         if menu:
             listitem.addContextMenuItems(menu)
         # SpecialSort
@@ -159,8 +157,13 @@ class KodiHelper(object):
             xbmcplugin.addSortMethod(self.handle, xbmcplugin.SORT_METHOD_EPISODE)
             xbmcplugin.addSortMethod(self.handle, xbmcplugin.SORT_METHOD_VIDEO_TITLE)
 
-    def add_folder_name(self, name):
-        xbmcplugin.setPluginCategory(self.handle, name)
+    def finalize_directory(self, content_type=None, sort_method='unsorted', title=None):
+        """Finalize a directory listing. Set title, available sort methods and content type"""
+        if title:
+            xbmcplugin.setPluginCategory(self.handle, title)
+        if content_type:
+            xbmcplugin.setContent(self.handle, content_type)
+        self.add_sort_methods(sort_method)
 
     def eod(self):
         """Tell Kodi that the end of the directory listing is reached."""
