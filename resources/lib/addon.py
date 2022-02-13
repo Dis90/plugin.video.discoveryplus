@@ -991,6 +991,16 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                         'mpaa': mpaa
                     }
 
+                    # Show watched sign if all episodes of season are watched
+                    if helper.get_setting('sync_playback') and helper.get_setting('season_markers'):
+                        unwatched_episodes = season_has_unwatched_episodes(
+                            collection_id=page_data['data']['id'],
+                            mandatoryParams=page_data['data']['attributes']['component'].get('mandatoryParams'),
+                            parameter=option['parameter'])
+
+                        if unwatched_episodes is False:
+                            info['playcount'] = '1'
+
                     show_art = artwork(shows[0]['relationships'].get('images'), images)
 
                     # mandatoryParams = pf[show.id]=12423, parameter = # pf[seasonNumber]=1
@@ -1572,6 +1582,31 @@ def mark_season_watched_unwatched(collection_id):
 
     # Close busy dialog
     xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
+    # Refresh list
+    helper.refresh_list()
+
+def season_has_unwatched_episodes(collection_id, mandatoryParams=None, parameter=None):
+    page_data = helper.d.get_collections(collection_id=collection_id, page=1, mandatoryParams=mandatoryParams,
+                                         parameter=parameter)
+
+    total = 0
+    watched = 0
+
+    # Don't try to list empty collection
+    if page_data['data'].get('relationships'):
+        videos = list(filter(lambda x: x['type'] == 'video', page_data['included']))
+        for video in videos:
+            total += 1
+
+            if video['attributes']['viewingHistory']['viewed']:
+                if 'completed' in video['attributes']['viewingHistory']:
+                    if video['attributes']['viewingHistory']['completed']:  # Watched video
+                        watched += 1
+
+    if watched != total:
+        return True
+    else:
+        return False
 
 @plugin.route('/iptv/channels')
 def iptv_channels():

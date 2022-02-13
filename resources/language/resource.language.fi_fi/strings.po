@@ -157,7 +157,6 @@ msgctxt "#30035"
 msgid "Reset settings"
 msgstr "Nollaa asetukset"
 
-
 msgctxt "#30036"
 msgid "Profiles"
 msgstr "Profiilit"
@@ -193,3 +192,7 @@ msgstr "Merkitse katsotuksi (d+)"
 msgctxt "#30044"
 msgid "Reset resume position (d+)"
 msgstr "Unohda katselutilanne (d+)"
+
+msgctxt "#30045"
+msgid "Show watched season markers\n\rWarning: This will slow down loading seasons page"
+msgstr "Näytä katsottujen kausien merkinnät\n\rVaroitus: Tämä hidastaa kausinäkymän latausta"
