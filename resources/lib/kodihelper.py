@@ -282,13 +282,18 @@ class KodiHelper(object):
                 duration = current_episode['data']['attributes']['videoDuration'] / 1000.0 if current_episode['data'][
                     'attributes'].get('videoDuration') else None
 
+                aired = ''
+                if current_episode['data']['attributes'].get('earliestPlayableStart'):
+                    aired = str(self.d.parse_datetime(current_episode['data']['attributes']['earliestPlayableStart'])
+                                .strftime('%d.%m.%Y'))
+
                 if current_episode['data']['attributes']['videoType'] == 'LIVE':
                     info = {
                         'mediatype': 'video',
                         'title': current_episode['data']['attributes'].get('name').lstrip(),
                         'plot': current_episode['data']['attributes'].get('description'),
                         'duration': duration,
-                        'aired': current_episode['data']['attributes'].get('airDate')
+                        'aired': aired
                     }
                 else:
                     info = {
@@ -434,17 +439,10 @@ class DplusPlayer(xbmc.Player):
                 next_episode_thumb_image = [x['attributes']['src'] for x in images if
                                             x['id'] == next_episode['data'][0]['relationships']['images']['data'][0]['id']][0]
 
-            if self.current_episode_info.get('aired'):
-                current_episode_aired = self.helper.d.parse_datetime(self.current_episode_info['aired']).strftime(
-                    '%d.%m.%Y')
-            else:
-                current_episode_aired = ''
-
-            if next_episode['data'][0]['attributes'].get('airDate'):
-                next_episode_aired = self.helper.d.parse_datetime(
-                    next_episode['data'][0]['attributes']['airDate']).strftime('%d.%m.%Y')
-            else:
-                next_episode_aired = ''
+            next_episode_aired = ''
+            if next_episode['data'][0]['attributes'].get('earliestPlayableStart'):
+                next_episode_aired = str(self.helper.d.parse_datetime(next_episode['data'][0]['attributes']['earliestPlayableStart'])\
+                    .strftime('%d.%m.%Y'))
 
             next_episode_art = self.helper.d.parse_artwork(show['relationships'].get('images'), images,
                                                     video_thumb=next_episode_thumb_image)
@@ -468,7 +466,7 @@ class DplusPlayer(xbmc.Player):
                     plot=self.current_episode_info['title'],
                     playcount='',
                     rating=None,
-                    firstaired=current_episode_aired,
+                    firstaired=self.current_episode_info['aired'],
                     runtime=self.current_episode_info['duration'],
                 ),
                 next_episode=dict(
