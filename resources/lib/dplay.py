@@ -371,6 +371,41 @@ class Dplay(object):
 
         return self.make_request(url, method, headers=self.site_headers)
 
+    def parse_artwork(self, image_list, images, video_thumb=None, type=None):
+        fanart_image = None
+        logo_image = None
+        poster_image = None
+
+        if image_list:
+            for item in image_list['data']:
+                image = [x for x in images if x['id'] == item['id']][0]
+                if image['attributes']['kind'] == 'default':
+                    fanart_image = image['attributes']['src']
+                if image['attributes']['kind'] == 'logo':
+                    logo_image = image['attributes']['src']
+                # discoveryplus.in has logos in poster
+                if self.realm == 'dplusindia':
+                    if image['attributes']['kind'] == 'poster':
+                        poster_image = image['attributes']['src']
+                else:
+                    if image['attributes']['kind'] == 'poster_with_logo':
+                        poster_image = image['attributes']['src']
+
+        if type and type in ['channel', 'category']:
+            thumb = logo_image if logo_image else fanart_image
+            logo_image = None
+        else:
+            thumb = video_thumb if video_thumb else fanart_image
+
+        art = {
+            'fanart': fanart_image,
+            'thumb': thumb,
+            'clearlogo': logo_image,
+            'poster': poster_image
+        }
+
+        return art
+
     def get_channels(self):
         page_data = self.get_page('/epg')
 
