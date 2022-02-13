@@ -474,7 +474,7 @@ class DplusPlayer(xbmc.Player):
                     tvshowid=next_episode['data'][0]['relationships']['show']['data']['id'],
                     title=next_episode['data'][0]['attributes'].get('name').lstrip(),
                     art={
-                        'thumb': next_episode_thumb_image,
+                        'thumb': next_episode_art['thumb'],
                         'tvshow.clearart': '',
                         'tvshow.clearlogo': next_episode_art['clearlogo'],
                         'tvshow.fanart': next_episode_art['fanart'],
