@@ -273,21 +273,6 @@ class KodiHelper(object):
                         if contentRating['system'] == self.d.contentRatingSystem:
                             mpaa = contentRating['code']
 
-                show_fanart_image = None
-                show_logo_image = None
-                show_poster_image = None
-
-                if show['relationships'].get('images'):
-                    for image in images:
-                        for show_images in show['relationships']['images']['data']:
-                            if image['id'] == show_images['id']:
-                                if image['attributes']['kind'] == 'default':
-                                    show_fanart_image = image['attributes']['src']
-                                if image['attributes']['kind'] == 'logo':
-                                    show_logo_image = image['attributes']['src']
-                                if image['attributes']['kind'] == 'poster_with_logo':
-                                    show_poster_image = image['attributes']['src']
-
                 # Thumbnail
                 video_thumb_image = None
                 if current_episode['data']['relationships'].get('images'):
@@ -320,12 +305,7 @@ class KodiHelper(object):
 
                 playitem.setInfo('video', info)
 
-                art = {
-                    'fanart': show_fanart_image,
-                    'thumb': video_thumb_image,
-                    'clearlogo': show_logo_image,
-                    'poster': show_poster_image
-                }
+                art = self.d.parse_artwork(show['relationships'].get('images'), images, video_thumb=video_thumb_image)
 
                 playitem.setArt(art)
 
@@ -448,21 +428,6 @@ class DplusPlayer(xbmc.Player):
 
             show = [x for x in shows if x['id'] == next_episode['data'][0]['relationships']['show']['data']['id']][0]
 
-            show_fanart_image = None
-            show_logo_image = None
-            show_poster_image = None
-
-            if show['relationships'].get('images'):
-                for image in images:
-                    for show_images in show['relationships']['images']['data']:
-                        if image['id'] == show_images['id']:
-                            if image['attributes']['kind'] == 'default':
-                                show_fanart_image = image['attributes']['src']
-                            if image['attributes']['kind'] == 'logo':
-                                show_logo_image = image['attributes']['src']
-                            if image['attributes']['kind'] == 'poster_with_logo':
-                                show_poster_image = image['attributes']['src']
-
             # Thumbnail
             next_episode_thumb_image = None
             if next_episode['data'][0]['relationships'].get('images'):
@@ -480,6 +445,9 @@ class DplusPlayer(xbmc.Player):
                     next_episode['data'][0]['attributes']['airDate']).strftime('%d.%m.%Y')
             else:
                 next_episode_aired = ''
+
+            next_episode_art = self.helper.d.parse_artwork(show['relationships'].get('images'), images,
+                                                    video_thumb=next_episode_thumb_image)
 
             next_info = dict(
                 current_episode=dict(
@@ -510,10 +478,10 @@ class DplusPlayer(xbmc.Player):
                     art={
                         'thumb': next_episode_thumb_image,
                         'tvshow.clearart': '',
-                        'tvshow.clearlogo': show_logo_image,
-                        'tvshow.fanart': show_fanart_image,
+                        'tvshow.clearlogo': next_episode_art['clearlogo'],
+                        'tvshow.fanart': next_episode_art['fanart'],
                         'tvshow.landscape:': '',
-                        'tvshow.poster': show_poster_image,
+                        'tvshow.poster': next_episode_art['poster'],
                     },
                     season=next_episode['data'][0]['attributes'].get('seasonNumber'),
                     episode=next_episode['data'][0]['attributes'].get('episodeNumber'),
