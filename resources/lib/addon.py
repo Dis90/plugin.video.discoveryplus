@@ -200,7 +200,7 @@ def list_page_us(page_path, search_query=None):
                                                 'playcount': '0'
                                             }
 
-                                            channel_art = artwork(channel['relationships'].get('images'),
+                                            channel_art = helper.d.parse_artwork(channel['relationships'].get('images'),
                                                                   images, type='channel')
 
                                             plugin_url = plugin.url_for(play, video_id=channel['id'],
@@ -354,7 +354,7 @@ def list_page_us(page_path, search_query=None):
                                                     'playcount': '0'
                                                 }
 
-                                                channel_art = artwork(channel['relationships'].get('images'),
+                                                channel_art = helper.d.parse_artwork(channel['relationships'].get('images'),
                                                                       images,
                                                                       type='channel')
 
@@ -600,7 +600,7 @@ def list_page_in(page_path):
                                     'playcount': '0'
                                 }
 
-                                channel_art = artwork(channel['relationships'].get('images'), images, type='channel')
+                                channel_art = helper.d.parse_artwork(channel['relationships'].get('images'), images, type='channel')
 
                                 plugin_url = plugin.url_for(play, video_id=channel['id'], video_type='channel')
                                 content_type = 'videos'
@@ -702,7 +702,7 @@ def list_favorite_search_shows_in(search_query=None):
             menu.append((helper.language(30009),
                          'RunPlugin(plugin://' + helper.addon_name + '/add_favorite/' + str(show['id']) + ')',))
 
-        show_art = artwork(show['relationships'].get('images'), images)
+        show_art = helper.d.parse_artwork(show['relationships'].get('images'), images)
 
         if search_query:
             folder_name = helper.language(30007) + ' / ' + search_query
@@ -870,7 +870,7 @@ def list_favorite_watchlist_videos_in():
             resume = None
             total = None
 
-        episode_art = artwork(show['relationships'].get('images'), images, video_thumb=video_thumb_image)
+        episode_art = helper.d.parse_artwork(show['relationships'].get('images'), images, video_thumb=video_thumb_image)
 
         if plugin.args.get('videoType'):
             folder_name = helper.language(30017)
@@ -1001,7 +1001,7 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                         if unwatched_episodes is False:
                             info['playcount'] = '1'
 
-                    show_art = artwork(shows[0]['relationships'].get('images'), images)
+                    show_art = helper.d.parse_artwork(shows[0]['relationships'].get('images'), images)
 
                     # mandatoryParams = pf[show.id]=12423, parameter = # pf[seasonNumber]=1
                     plugin_url = plugin.url_for(list_collection,
@@ -1069,7 +1069,7 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                         menu.append((helper.language(30009),
                                      'RunPlugin(plugin://' + helper.addon_name + '/add_favorite/' + str(show['id']) + ')',))
 
-                    show_art = artwork(show['relationships'].get('images'), images)
+                    show_art = helper.d.parse_artwork(show['relationships'].get('images'), images)
                     plugin_url = plugin.url_for(list_page, next_page_path)
                     folder_name = page_data['data']['attributes'].get('title')
                     sort_method = 'unsorted'
@@ -1254,7 +1254,7 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                         resume = None
                         total = None
 
-                    episode_art = artwork(show['relationships'].get('images'), images, video_thumb=video_thumb_image)
+                    episode_art = helper.d.parse_artwork(show['relationships'].get('images'), images, video_thumb=video_thumb_image)
 
                     # mandatoryParams and no parameter = list search result videos (Episodes, Specials, Extras)
                     if mandatoryParams and parameter is None:
@@ -1296,7 +1296,7 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                             'plot': channel['attributes'].get('description')
                         }
 
-                        channel_art = artwork(channel['relationships'].get('images'), images, type='channel')
+                        channel_art = helper.d.parse_artwork(channel['relationships'].get('images'), images, type='channel')
                         plugin_url = plugin.url_for(list_page, next_page_path)
                         folder_name = page_data['data']['attributes'].get('title')
                         sort_method = 'unsorted'
@@ -1315,7 +1315,7 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                             'playcount': '0'
                         }
 
-                        channel_art = artwork(channel['relationships'].get('images'), images, type='channel')
+                        channel_art = helper.d.parse_artwork(channel['relationships'].get('images'), images, type='channel')
                         plugin_url = plugin.url_for(play, video_id=channel['id'], video_type='channel')
                         folder_name = page_data['data']['attributes'].get('title')
                         content_type = 'videos'
@@ -1434,7 +1434,7 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                     next_page_path = [x['attributes']['url'] for x in routes if
                                       x['id'] == taxonomyNode['relationships']['routes']['data'][0]['id']][0]
 
-                    art = artwork(taxonomyNode['relationships'].get('images'), images, type='category')
+                    art = helper.d.parse_artwork(taxonomyNode['relationships'].get('images'), images, type='category')
 
                     info = {
                         'plot': taxonomyNode['attributes'].get('description')
@@ -1632,38 +1632,3 @@ def update_setting_defaults():
         helper.set_setting('iptv.channels_uri', 'plugin://plugin.video.discoveryplus/iptv/channels')
     if iptv_epg_uri != 'plugin://plugin.video.discoveryplus/iptv/epg':
         helper.set_setting('iptv.epg_uri', 'plugin://plugin.video.discoveryplus/iptv/epg')
-
-def artwork(image_list, images, video_thumb=None, type=None):
-    fanart_image = None
-    logo_image = None
-    poster_image = None
-
-    if image_list:
-        for item in image_list['data']:
-            image = [x for x in images if x['id'] == item['id']][0]
-            if image['attributes']['kind'] == 'default':
-                fanart_image = image['attributes']['src']
-            if image['attributes']['kind'] == 'logo':
-                logo_image = image['attributes']['src']
-            # discoveryplus.in has logos in poster
-            if helper.d.realm == 'dplusindia':
-                if image['attributes']['kind'] == 'poster':
-                    poster_image = image['attributes']['src']
-            else:
-                if image['attributes']['kind'] == 'poster_with_logo':
-                    poster_image = image['attributes']['src']
-
-    if type and type in ['channel', 'category']:
-        thumb = logo_image if logo_image else fanart_image
-        logo_image = None
-    else:
-        thumb = video_thumb if video_thumb else fanart_image
-
-    art = {
-        'fanart': fanart_image,
-        'thumb': thumb,
-        'clearlogo': logo_image,
-        'poster': poster_image
-    }
-
-    return art
