@@ -119,7 +119,7 @@ msgstr ""
 
 msgctxt "#30032"
 msgid "Hide non season categories from seasons page"
-msgstr ""Verberg niet-seizoenscategorieën op de seizoenenpagina
+msgstr "Verberg niet seizoenscategorieën op de seizoenenpagina"
 
 msgctxt "#30033"
 msgid "Flatten TV show seasons if only one season"
@@ -171,4 +171,4 @@ msgstr "Hervattingspositie resetten (D+)"
 
 msgctxt "#30045"
 msgid "Show watched season markers\n\rWarning: This will slow down loading seasons page"
-msgstr ""
+msgstr "Markeringen voor bekeken seizoen weergeven\n\rWaarschuwing: dit vertraagt ​​het laden van de seizoenspagina"
