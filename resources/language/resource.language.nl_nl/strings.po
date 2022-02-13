@@ -192,3 +192,7 @@ msgstr "Markeren als bekeken (D+)"
 msgctxt "#30044"
 msgid "Reset resume position (d+)"
 msgstr "Hervattingspositie resetten (D+)"
+
+msgctxt "#30045"
+msgid "Show watched season markers\n\rWarning: This will slow down loading seasons page"
+msgstr ""
