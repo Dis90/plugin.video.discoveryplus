@@ -17,25 +17,13 @@ msgctxt "#30000"
 msgid "General"
 msgstr "Yleiset"
 
-msgctxt "#30001"
-msgid "Frontpage"
-msgstr "Etusivu"
+#empty string with id 30001
 
 msgctxt "#30002"
 msgid "Playable "
 msgstr "Katsottavissa "
 
-msgctxt "#30003"
-msgid "Information"
-msgstr "Info"
-
-msgctxt "#30004"
-msgid "Please enter your login credentials in the add-on settings."
-msgstr "Aseta kirjautumistietosi lisäosan asetuksissa."
-
-msgctxt "#30005"
-msgid "Reset credentials"
-msgstr "Nollaa käyttäjätiedot"
+#empty strings from id 30003 to 30005
 
 msgctxt "#30006"
 msgid "Error"
@@ -45,9 +33,7 @@ msgctxt "#30007"
 msgid "Search"
 msgstr "Etsi"
 
-msgctxt "#30008"
-msgid "No results found for"
-msgstr "Ei tuloksia haulle"
+#empty string with id 30008
 
 msgctxt "#30009"
 msgid "Add to My List (discovery+)"
@@ -65,21 +51,13 @@ msgctxt "#30012"
 msgid "Wrong email or password"
 msgstr "Väärä sähköposti tai salasana"
 
-msgctxt "#30013"
-msgid "Site"
-msgstr "Sivusto"
+#empty string with id 30013
 
 msgctxt "#30014"
 msgid "Watch"
 msgstr "Katso"
 
-msgctxt "#30015"
-msgid "Email"
-msgstr "Sähköpostiosoite"
-
-msgctxt "#30016"
-msgid "Password"
-msgstr "Salasana"
+#empty strings from id 30015 to 30016
 
 msgctxt "#30017"
 msgid "Favorites"
@@ -133,9 +111,7 @@ msgctxt "#30029"
 msgid "Enable UHD (experimental) / USA only"
 msgstr "Ota käyttöön UHD (kokeellinen) / vain USA"
 
-msgctxt "#30030"
-msgid "Promotion"
-msgstr "Esittelyssä"
+#empty string with id 30030
 
 msgctxt "#30031"
 msgid "Views"
