@@ -266,6 +266,13 @@ class KodiHelper(object):
 
                 show = [x for x in shows if x['id'] == current_episode['data']['relationships']['show']['data']['id']][0]
 
+                # Content rating
+                mpaa = None
+                if current_episode['data']['attributes'].get('contentRatings'):
+                    for contentRating in current_episode['data']['attributes']['contentRatings']:
+                        if contentRating['system'] == self.d.contentRatingSystem:
+                            mpaa = contentRating['code']
+
                 show_fanart_image = None
                 show_logo_image = None
                 show_poster_image = None
@@ -307,7 +314,8 @@ class KodiHelper(object):
                         'episode': current_episode['data']['attributes'].get('episodeNumber'),
                         'plot': current_episode['data']['attributes'].get('description'),
                         'duration': duration,
-                        'aired': current_episode['data']['attributes'].get('airDate')
+                        'aired': current_episode['data']['attributes'].get('airDate'),
+                        'mpaa': mpaa
                     }
 
                 playitem.setInfo('video', info)
