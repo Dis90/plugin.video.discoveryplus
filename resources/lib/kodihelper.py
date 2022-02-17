@@ -424,80 +424,88 @@ class DplusPlayer(xbmc.Player):
         next_episode = self.helper.d.get_next_episode_info(current_video_id=self.video_id)
 
         if next_episode.get('data'):
-            self.helper.log('Current episode name: %s' % self.current_episode_info['title'].encode('utf-8'))
-            self.helper.log(
-                'Next episode name: %s' % next_episode['data'][0]['attributes'].get('name').encode('utf-8').lstrip())
+            # discovery+ can suggest to watch episode from different tvshow when all episodes are watched.
+            # So we only send data to Up Next when episode is from same tvshow what is currently playing.
+            if self.current_show_id == next_episode['data'][0]['relationships']['show']['data']['id']:
+                self.helper.log('Current episode name: %s' % self.current_episode_info['title'].encode('utf-8'))
+                self.helper.log(
+                    'Next episode name: %s' % next_episode['data'][0]['attributes'].get('name').encode('utf-8').lstrip())
 
-            images = list(filter(lambda x: x['type'] == 'image', next_episode['included']))
-            shows = list(filter(lambda x: x['type'] == 'show', next_episode['included']))
+                images = list(filter(lambda x: x['type'] == 'image', next_episode['included']))
+                shows = list(filter(lambda x: x['type'] == 'show', next_episode['included']))
 
-            show = [x for x in shows if x['id'] == next_episode['data'][0]['relationships']['show']['data']['id']][0]
+                show = [x for x in shows if x['id'] == next_episode['data'][0]['relationships']['show']['data']['id']][0]
 
-            # Thumbnail
-            next_episode_thumb_image = None
-            if next_episode['data'][0]['relationships'].get('images'):
-                next_episode_thumb_image = [x['attributes']['src'] for x in images if
-                                            x['id'] == next_episode['data'][0]['relationships']['images']['data'][0]['id']][0]
+                # Thumbnail
+                next_episode_thumb_image = None
+                if next_episode['data'][0]['relationships'].get('images'):
+                    next_episode_thumb_image = [x['attributes']['src'] for x in images if
+                                                x['id'] ==
+                                                next_episode['data'][0]['relationships']['images']['data'][0]['id']][0]
 
-            next_episode_aired = ''
-            if next_episode['data'][0]['attributes'].get('earliestPlayableStart'):
-                next_episode_aired = str(self.helper.d.parse_datetime(next_episode['data'][0]['attributes']['earliestPlayableStart'])\
-                    .strftime('%d.%m.%Y'))
+                next_episode_aired = ''
+                if next_episode['data'][0]['attributes'].get('earliestPlayableStart'):
+                    next_episode_aired = str(
+                        self.helper.d.parse_datetime(next_episode['data'][0]['attributes']['earliestPlayableStart']) \
+                        .strftime('%d.%m.%Y'))
 
-            next_episode_art = self.helper.d.parse_artwork(show['relationships'].get('images'), images,
-                                                    video_thumb=next_episode_thumb_image)
+                next_episode_art = self.helper.d.parse_artwork(show['relationships'].get('images'), images,
+                                                               video_thumb=next_episode_thumb_image)
 
-            next_info = dict(
-                current_episode=dict(
-                    episodeid=self.video_id,
-                    tvshowid=self.current_show_id,
-                    title=self.current_episode_info['title'],
-                    art={
-                        'thumb': self.current_episode_art['thumb'],
-                        'tvshow.clearart': '',
-                        'tvshow.clearlogo': self.current_episode_art['clearlogo'],
-                        'tvshow.fanart': self.current_episode_art['fanart'],
-                        'tvshow.landscape': '',
-                        'tvshow.poster': self.current_episode_art['poster'],
-                    },
-                    season=self.current_episode_info['season'],
-                    episode=self.current_episode_info['episode'],
-                    showtitle=self.current_episode_info['tvshowtitle'],
-                    plot=self.current_episode_info['title'],
-                    playcount='',
-                    rating=None,
-                    firstaired=self.current_episode_info['aired'],
-                    runtime=self.current_episode_info['duration'],
-                ),
-                next_episode=dict(
-                    episodeid=next_episode['data'][0]['id'],
-                    tvshowid=next_episode['data'][0]['relationships']['show']['data']['id'],
-                    title=next_episode['data'][0]['attributes'].get('name').lstrip(),
-                    art={
-                        'thumb': next_episode_art['thumb'],
-                        'tvshow.clearart': '',
-                        'tvshow.clearlogo': next_episode_art['clearlogo'],
-                        'tvshow.fanart': next_episode_art['fanart'],
-                        'tvshow.landscape:': '',
-                        'tvshow.poster': next_episode_art['poster'],
-                    },
-                    season=next_episode['data'][0]['attributes'].get('seasonNumber'),
-                    episode=next_episode['data'][0]['attributes'].get('episodeNumber'),
-                    showtitle=show['attributes']['name'],
-                    plot=next_episode['data'][0]['attributes'].get('description'),
-                    playcount='',
-                    rating=None,
-                    firstaired=next_episode_aired,
-                    runtime=next_episode['data'][0]['attributes'].get('videoDuration') / 1000.0,
-                ),
+                next_info = dict(
+                    current_episode=dict(
+                        episodeid=self.video_id,
+                        tvshowid=self.current_show_id,
+                        title=self.current_episode_info['title'],
+                        art={
+                            'thumb': self.current_episode_art['thumb'],
+                            'tvshow.clearart': '',
+                            'tvshow.clearlogo': self.current_episode_art['clearlogo'],
+                            'tvshow.fanart': self.current_episode_art['fanart'],
+                            'tvshow.landscape': '',
+                            'tvshow.poster': self.current_episode_art['poster'],
+                        },
+                        season=self.current_episode_info['season'],
+                        episode=self.current_episode_info['episode'],
+                        showtitle=self.current_episode_info['tvshowtitle'],
+                        plot=self.current_episode_info['title'],
+                        playcount='',
+                        rating=None,
+                        firstaired=self.current_episode_info['aired'],
+                        runtime=self.current_episode_info['duration'],
+                    ),
+                    next_episode=dict(
+                        episodeid=next_episode['data'][0]['id'],
+                        tvshowid=next_episode['data'][0]['relationships']['show']['data']['id'],
+                        title=next_episode['data'][0]['attributes'].get('name').lstrip(),
+                        art={
+                            'thumb': next_episode_art['thumb'],
+                            'tvshow.clearart': '',
+                            'tvshow.clearlogo': next_episode_art['clearlogo'],
+                            'tvshow.fanart': next_episode_art['fanart'],
+                            'tvshow.landscape:': '',
+                            'tvshow.poster': next_episode_art['poster'],
+                        },
+                        season=next_episode['data'][0]['attributes'].get('seasonNumber'),
+                        episode=next_episode['data'][0]['attributes'].get('episodeNumber'),
+                        showtitle=show['attributes']['name'],
+                        plot=next_episode['data'][0]['attributes'].get('description'),
+                        playcount='',
+                        rating=None,
+                        firstaired=next_episode_aired,
+                        runtime=next_episode['data'][0]['attributes'].get('videoDuration') / 1000.0,
+                    ),
 
-                play_url='plugin://' + self.helper.addon_name + '/play/' +
-                         next_episode['data'][0]['id'] + '?video_type=' + next_episode['data'][0]['attributes'][
-                             'videoType'],
-                notification_time='',
-            )
+                    play_url='plugin://' + self.helper.addon_name + '/play/' +
+                             next_episode['data'][0]['id'] + '?video_type=' + next_episode['data'][0]['attributes'][
+                                 'videoType'],
+                    notification_time='',
+                )
 
-            self.helper.upnext_signal(sender=self.helper.addon_name, next_info=next_info)
+                self.helper.upnext_signal(sender=self.helper.addon_name, next_info=next_info)
+
+            else:
+                self.helper.log('Next episode is not from same tvshow, skipping')
 
         else:
             self.helper.log('No next episode available')
