@@ -165,9 +165,9 @@ class KodiHelper(object):
             xbmcplugin.setContent(self.handle, content_type)
         self.add_sort_methods(sort_method)
 
-    def eod(self):
+    def eod(self, cache=True):
         """Tell Kodi that the end of the directory listing is reached."""
-        xbmcplugin.endOfDirectory(self.handle)
+        xbmcplugin.endOfDirectory(self.handle, cacheToDisc=cache)
 
     def refresh_list(self):
         """Refresh listing after adding or deleting favorites"""
