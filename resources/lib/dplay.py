@@ -691,9 +691,7 @@ class Dplay(object):
 
         # Use drmSupported:false for UHD streams. For now playback is only tested to kinda work when drm and
         # InputStreamAdaptive is disabled from add-on settings. It is possible that drm/mpd stream also works on Android devices.
-        # All videos doesn't work without drm/mpd stream. That is why drm is enabled if US UHD is not enabled.
-        # Also subtitles seems to be broken in HLS or Kodi doesn't like them.
-        # Change drmSupported:true to false if you want to play videos without drm.
+        # Change drmSupported to false from add-on settings if you want to play videos without drm.
         if self.us_uhd:
             hwDecoding = ['H264','H265']
             platform = 'firetv'
