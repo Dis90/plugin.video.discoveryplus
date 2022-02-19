@@ -424,8 +424,8 @@ class DplusPlayer(xbmc.Player):
         next_episode = self.helper.d.get_next_episode_info(current_video_id=self.video_id)
 
         if next_episode.get('data'):
-            # discovery+ can suggest to watch episode from different tvshow when all episodes are watched.
-            # So we only send data to Up Next when episode is from same tvshow what is currently playing.
+            # discovery+ can recommend to watch episode from different TV show when all episodes are watched.
+            # So we only send data to Up Next when episode is from same TV show what is currently playing.
             if self.current_show_id == next_episode['data'][0]['relationships']['show']['data']['id']:
                 self.helper.log('Current episode name: %s' % self.current_episode_info['title'].encode('utf-8'))
                 self.helper.log(
