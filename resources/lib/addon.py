@@ -897,6 +897,7 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
     folder_name = None
     sort_method = None
     content_type = None
+    cache = True
 
     # Don't try to list empty collection
     if page_data['data'].get('relationships'):
@@ -993,6 +994,9 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
 
                     # Show watched sign if all episodes of season are watched
                     if helper.get_setting('sync_playback') and helper.get_setting('season_markers'):
+                        # Set cache to False or otherwise when going back from episodes to season list season is not
+                        # showing as watched when user watch last episode of season
+                        cache = False
                         unwatched_episodes = season_has_unwatched_episodes(
                             collection_id=page_data['data']['id'],
                             mandatoryParams=page_data['data']['attributes']['component'].get('mandatoryParams'),
@@ -1456,7 +1460,7 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                 pass
 
     helper.finalize_directory(content_type=content_type, sort_method=sort_method, title=folder_name)
-    helper.eod()
+    helper.eod(cache)
 
 @plugin.route('/search')
 def search():
