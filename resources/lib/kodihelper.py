@@ -517,7 +517,10 @@ class DplusPlayer(xbmc.Player):
             return
         video_lastpos = format(self.video_lastpos, '.0f')
         video_totaltime = format(self.video_totaltime, '.0f')
-        video_percentage = self.video_lastpos * 100 / self.video_totaltime
+        try:
+            video_percentage = self.video_lastpos * 100 / self.video_totaltime
+        except ZeroDivisionError:
+            video_percentage = 0
         # Convert to milliseconds
         video_lastpos_msec = int(video_lastpos) * 1000
         video_totaltime_msec = int(video_totaltime) * 1000
@@ -533,6 +536,8 @@ class DplusPlayer(xbmc.Player):
         if video_percentage > 92:
             self.helper.log('Marking episode completely watched')
             self.helper.d.update_playback_progress(self.video_id, video_totaltime_msec)
+        elif video_percentage == 0:
+            self.helper.log('Playback error. Not updating playback status.')
         else:
             self.helper.log('Marking episode partly watched')
             self.helper.d.update_playback_progress(self.video_id, video_lastpos_msec)
