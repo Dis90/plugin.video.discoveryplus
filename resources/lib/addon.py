@@ -22,7 +22,6 @@ def run():
 @plugin.route('/')
 def list_menu():
     update_setting_defaults()
-    helper.d.get_token()
 
     # Cookies.txt login. Login error, show error message
     if helper.d.realm != 'dplusindia' and helper.d.get_user_data()['attributes']['anonymous'] == True and \
@@ -1581,8 +1580,8 @@ def link_login():
         xbmc.sleep(10000) # Check login every 10 seconds
         link_token = helper.d.linkDevice_login()
         if link_token:
-            # Save cookie to add-on settings
-            helper.set_setting('cookie', link_token)
+            # Save cookie
+            helper.d.get_token(link_token)
             not_logged = False
     pDialog.update(100, dialog_text)
     pDialog.close()
@@ -1660,7 +1659,6 @@ def season_has_unwatched_episodes(collection_id, mandatoryParams=None, parameter
 
 @plugin.route('/iptv/channels')
 def iptv_channels():
-    helper.d.get_token()
     """Return JSON-STREAMS formatted data for all live channels"""
     from resources.lib.iptvmanager import IPTVManager
     port = int(plugin.args.get('port')[0])
@@ -1668,7 +1666,6 @@ def iptv_channels():
 
 @plugin.route('/iptv/epg')
 def iptv_epg():
-    helper.d.get_token()
     """Return JSON-EPG formatted data for all live channel EPG data"""
     from resources.lib.iptvmanager import IPTVManager
     port = int(plugin.args.get('port')[0])
