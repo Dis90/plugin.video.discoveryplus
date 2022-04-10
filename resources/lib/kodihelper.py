@@ -523,9 +523,6 @@ class DplusPlayer(xbmc.Player):
         self.helper.log('Video lastpos msec: %s' % str(video_lastpos_msec))
         self.helper.log('Video percentage watched: %s' % str(video_percentage))
 
-        # Get new token before updating playback progress
-        self.helper.d.get_token()
-
         # Over 92 percent watched = use totaltime
         if video_percentage > 92:
             self.helper.log('Marking episode completely watched')

@@ -41,8 +41,6 @@ class Dplay(object):
         self.device_id = self.client_id.replace("-", "")
         self.us_uhd = us_uhd
         self.drm_supported = drm_supported
-        self.cookiestxt = cookiestxt
-        self.cookie = cookie
 
         self.http_session = requests.Session()
         self.settings_folder = settings_folder
@@ -91,10 +89,11 @@ class Dplay(object):
         # Use exported cookies.txt
         if cookiestxt:
             self.cookie_jar = cookielib.MozillaCookieJar(cookiestxt_file)
-        # Else try to use user defined cookie from add-on settings
+        # Code login cookies and user defined cookie
         else:
             self.cookie_jar = cookielib.LWPCookieJar(os.path.join(self.settings_folder, 'cookie_file'))
 
+            # Use user defined cookie from add-on settings
             if cookie:
                 ck = cookielib.Cookie(version=0, name='st', value=cookie, port=None, port_specified=False,
                                 domain=realm_config['domain'], domain_specified=False, domain_initial_dot=False, path='/',
@@ -143,6 +142,13 @@ class Dplay(object):
                 self.cookie_jar.save(ignore_discard=True, ignore_expires=True)
             except IOError:
                 pass
+            # Check for invalid session token
+            if self.check_invalid_token(req.content):
+                # Get new token and reload data
+                self.get_token()
+                return self.make_request(url, method, params, payload, headers, text)
+
+            # Check for errors
             self.raise_dplay_error(req.content)
             if text:
                 return req.text
@@ -172,7 +178,23 @@ class Dplay(object):
         except ValueError:  # when response is not in json
             pass
 
-    def get_token(self):
+    def check_invalid_token(self, response):
+        try:
+            result = False
+            response = json.loads(response)
+            if 'errors' in response:
+                for error in response['errors']:
+                    if 'code' in error.keys():
+                        if error['code'] == 'invalid.token':
+                            result = True
+            return result
+
+        except KeyError:
+            return False
+        except ValueError:  # when response is not in json
+            return False
+
+    def get_token(self, token=None):
         url = '{api_url}/token'.format(api_url=self.api_url)
 
         params = {
@@ -182,9 +204,9 @@ class Dplay(object):
         }
 
         headers = self.site_headers
-        # Set cookie if it's set on add-on settings
-        if self.cookie and self.cookiestxt is False:
-            headers['cookie'] = 'st=' + self.cookie
+        # Use provided token to get new cookie
+        if token:
+            headers['cookie'] = 'st=' + token
 
         return self.make_request(url, 'get', params=params, headers=headers)
 
