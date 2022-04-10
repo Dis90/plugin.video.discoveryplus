@@ -94,12 +94,6 @@ class KodiHelper(object):
         else:
             return None
 
-    def check_for_credentials(self):
-        self.d.get_token()  # Get new token before checking credentials
-        if self.d.get_user_data()['attributes']['anonymous'] == True:
-            raise self.d.DplayError(self.language(30022))
-        return True
-
     def reset_settings(self):
         self.set_setting('numresults', '100')
         self.set_setting('cookiestxt', 'true')
@@ -170,7 +164,7 @@ class KodiHelper(object):
         xbmcplugin.endOfDirectory(self.handle, cacheToDisc=cache)
 
     def refresh_list(self):
-        """Refresh listing after adding or deleting favorites"""
+        """Refresh listing"""
         return xbmc.executebuiltin('Container.Refresh')
 
     # Up Next integration

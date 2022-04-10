@@ -111,7 +111,9 @@ msgctxt "#30029"
 msgid "Enable UHD (experimental) / USA only"
 msgstr ""
 
-#empty string with id 30030
+msgctxt "#30030"
+msgid "Login"
+msgstr ""
 
 msgctxt "#30031"
 msgid "Views"
@@ -171,4 +173,8 @@ msgstr ""
 
 msgctxt "#30045"
 msgid "Show watched season markers\n\rWarning: This will slow down loading seasons page"
+msgstr ""
+
+msgctxt "#30046"
+msgid "Go on your mobile phone, tablet or computer\n\rdiscoveryplus.com/link\n\rWhen prompted, enter this 6-digit code:\n\r"
 msgstr ""

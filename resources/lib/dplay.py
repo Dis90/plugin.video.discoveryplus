@@ -41,6 +41,8 @@ class Dplay(object):
         self.device_id = self.client_id.replace("-", "")
         self.us_uhd = us_uhd
         self.drm_supported = drm_supported
+        self.cookiestxt = cookiestxt
+        self.cookie = cookie
 
         self.http_session = requests.Session()
         self.settings_folder = settings_folder
@@ -93,11 +95,12 @@ class Dplay(object):
         else:
             self.cookie_jar = cookielib.LWPCookieJar(os.path.join(self.settings_folder, 'cookie_file'))
 
-            ck = cookielib.Cookie(version=0, name='st', value=cookie, port=None, port_specified=False,
+            if cookie:
+                ck = cookielib.Cookie(version=0, name='st', value=cookie, port=None, port_specified=False,
                                 domain=realm_config['domain'], domain_specified=False, domain_initial_dot=False, path='/',
                                 path_specified=True, secure=False, expires=None, discard=True, comment=None,
                                 comment_url=None, rest={'HttpOnly': None}, rfc2109=False)
-            self.cookie_jar.set_cookie(ck)
+                self.cookie_jar.set_cookie(ck)
 
         try:
             self.cookie_jar.load(ignore_discard=True, ignore_expires=True)
@@ -178,7 +181,27 @@ class Dplay(object):
             'shortlived': 'true'
         }
 
-        return self.make_request(url, 'get', params=params, headers=self.site_headers)
+        headers = self.site_headers
+        # Set cookie if it's set on add-on settings
+        if self.cookie and self.cookiestxt is False:
+            headers['cookie'] = 'st=' + self.cookie
+
+        return self.make_request(url, 'get', params=params, headers=headers)
+
+    def linkDevice_initiate(self):
+        url = '{api_url}/authentication/linkDevice/initiate'.format(api_url=self.api_url)
+
+        return json.loads(self.make_request(url, 'post', headers=self.site_headers))
+
+    def linkDevice_login(self):
+        url = '{api_url}/authentication/linkDevice/login'.format(api_url=self.api_url)
+        data = self.make_request(url, 'post', headers=self.site_headers)
+
+        if data:
+            return json.loads(data)['data']['attributes']['token']
+        # Return is empty if code is not entered on discoveryplus.com/link
+        else:
+            return None
 
     def get_user_data(self):
         url = '{api_url}/users/me'.format(api_url=self.api_url)

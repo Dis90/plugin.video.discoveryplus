@@ -1,7 +1,7 @@
 <settings>
   <category label="30000">
     <setting id="numresults" type="slider" label="30018" default="100" range="1,100" option="int"/>
-    <setting id="cookiestxt" label="30020" type="bool" default="true"/>
+    <setting id="cookiestxt" label="30020" type="bool" default="false"/>
     <setting id="cookiestxt_file" label="30021" type="file" default="" visible="eq(-1,true)" subsetting="true"/>
     <setting id="cookie" label="30039" type="text" default="" visible="eq(-2,false)" />
     <setting id="sync_playback" label="30027" type="bool" default="true"/>
