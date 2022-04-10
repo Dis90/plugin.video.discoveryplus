@@ -22,98 +22,118 @@ def run():
 @plugin.route('/')
 def list_menu():
     update_setting_defaults()
-    helper.check_for_credentials()
+    helper.d.get_token()
 
-    # List menu items (Shows, Categories)
-    if helper.d.realm == 'dplusindia':
-        helper.add_item(helper.language(30017), url=plugin.url_for(list_page, '/liked-videos'))
-        helper.add_item('Watchlist', url=plugin.url_for(list_page, '/watch-later'))
-        helper.add_item('Kids', url=plugin.url_for(list_page, '/kids/home'))
-        page_data = helper.d.get_menu('/bottom-menu-v3')
+    # Cookies.txt login. Login error, show error message
+    if helper.d.realm != 'dplusindia' and helper.d.get_user_data()['attributes']['anonymous'] == True and \
+            helper.get_setting('cookiestxt'):
+        raise helper.d.DplayError(helper.language(30022))
+    # Code login or cookie set from settings. Login error, show login link
+    elif helper.d.realm != 'dplusindia' and helper.d.get_user_data()['attributes']['anonymous'] == True and \
+            helper.get_setting('cookiestxt') is False:
+        helper.add_item(helper.language(30030), url=plugin.url_for(link_login)) # Login
+    # d+ India
+    elif helper.d.realm == 'dplusindia' and helper.d.get_user_data()['attributes']['anonymous'] == True:
+        raise helper.d.DplayError(helper.language(30022))
+    # Login ok, show menu
     else:
-        page_data = helper.d.get_menu('/web-menubar-v2')
+        # List menu items (Shows, Categories)
+        if helper.d.realm == 'dplusindia':
+            helper.add_item(helper.language(30017), url=plugin.url_for(list_page, '/liked-videos'))
+            helper.add_item('Watchlist', url=plugin.url_for(list_page, '/watch-later'))
+            helper.add_item('Kids', url=plugin.url_for(list_page, '/kids/home'))
+            page_data = helper.d.get_menu('/bottom-menu-v3')
+        else:
+            page_data = helper.d.get_menu('/web-menubar-v2')
 
-    collections = list(filter(lambda x: x['type'] == 'collection', page_data['included']))
-    collectionItems = list(filter(lambda x: x['type'] == 'collectionItem', page_data['included']))
-    images = list(filter(lambda x: x['type'] == 'image', page_data['included']))
-    links = list(filter(lambda x: x['type'] == 'link', page_data['included']))
-    routes = list(filter(lambda x: x['type'] == 'route', page_data['included']))
+        collections = list(filter(lambda x: x['type'] == 'collection', page_data['included']))
+        collectionItems = list(filter(lambda x: x['type'] == 'collectionItem', page_data['included']))
+        images = list(filter(lambda x: x['type'] == 'image', page_data['included']))
+        links = list(filter(lambda x: x['type'] == 'link', page_data['included']))
+        routes = list(filter(lambda x: x['type'] == 'route', page_data['included']))
 
-    for data_collection in page_data['data']['relationships']['items']['data']:
-        collectionItem = [x for x in collectionItems if x['id'] == data_collection['id']][0]
+        for data_collection in page_data['data']['relationships']['items']['data']:
+            collectionItem = [x for x in collectionItems if x['id'] == data_collection['id']][0]
 
-        # discoveryplus.com (EU and US) uses links after collectionItems
-        # Get only links
-        if collectionItem['relationships'].get('link'):
-            link = [x for x in links if x['id'] == collectionItem['relationships']['link']['data']['id']][0]
+            # discoveryplus.com (EU and US) uses links after collectionItems
+            # Get only links
+            if collectionItem['relationships'].get('link'):
+                link = [x for x in links if x['id'] == collectionItem['relationships']['link']['data']['id']][0]
 
-            # Hide unwanted menu links
-            if link['attributes']['kind'] == 'Internal Link' and link['attributes']['name'] not in helper.d.unwanted_menu_items:
+                # Hide unwanted menu links
+                if link['attributes']['kind'] == 'Internal Link' and link['attributes'][
+                    'name'] not in helper.d.unwanted_menu_items:
 
-                # Find page path from routes
-                next_page_path = [x['attributes']['url'] for x in routes if
-                                  x['id'] == link['relationships']['linkedContentRoutes']['data'][0]['id']][0]
+                    # Find page path from routes
+                    next_page_path = [x['attributes']['url'] for x in routes if
+                                      x['id'] == link['relationships']['linkedContentRoutes']['data'][0]['id']][0]
 
-                link_info = {
-                    'plot': link['attributes'].get('description')
-                }
+                    link_info = {
+                        'plot': link['attributes'].get('description')
+                    }
 
-                thumb_image = None
-                if link['relationships'].get('images'):
-                    thumb_image = [x['attributes']['src'] for x in images if
-                                   x['id'] == link['relationships']['images']['data'][0]['id']][0]
+                    thumb_image = None
+                    if link['relationships'].get('images'):
+                        thumb_image = [x['attributes']['src'] for x in images if
+                                       x['id'] == link['relationships']['images']['data'][0]['id']][0]
 
-                link_art = {
-                    'icon': thumb_image
-                }
+                    link_art = {
+                        'icon': thumb_image
+                    }
 
-                # Replace search button url
-                if link['attributes']['name'].startswith('search'):
-                    helper.add_item(link['attributes']['title'], url=plugin.url_for(search),
-                                    info=link_info, art=link_art)
-                else:
-                    helper.add_item(link['attributes']['title'], url=plugin.url_for(list_page, next_page_path),
-                                    info=link_info, art=link_art)
-
-        # discovery+ India uses collections after collectionItems
-        if collectionItem['relationships'].get('collection'):
-            collection = [x for x in collections if x['id'] == collectionItem['relationships']['collection']['data']['id']][0]
-
-            if collection['attributes']['component']['id'] == 'menu-item':
-                collectionItem2 = [x for x in collectionItems if x['id'] == collection['relationships']['items']['data'][0]['id']][0]
-                # Get only links
-                if collectionItem2['relationships'].get('link'):
-                    link = [x for x in links if x['id'] == collectionItem2['relationships']['link']['data']['id']][0]
-                    # Hide unwanted menu links
-                    if link['attributes']['kind'] == 'Internal Link' and collection['attributes']['title'] not in helper.d.unwanted_menu_items:
-
-                        # Find page path from routes
-                        next_page_path = [x['attributes']['url'] for x in routes if
-                                          x['id'] == link['relationships']['linkedContentRoutes']['data'][0]['id']][0]
-
-                        link_info = {
-                            'plot': link['attributes'].get('description')
-                        }
-
-                        thumb_image = None
-                        if link['relationships'].get('images'):
-                            thumb_image = [x['attributes']['src'] for x in images if
-                                           x['id'] == link['relationships']['images']['data'][0]['id']][0]
-
-                        link_art = {
-                            'icon': thumb_image
-                        }
-                        # Have to use collection title instead link title because some links doesn't have title
-                        helper.add_item(collection['attributes']['title'], url=plugin.url_for(list_page, next_page_path),
+                    # Replace search button url
+                    if link['attributes']['name'].startswith('search'):
+                        helper.add_item(link['attributes']['title'], url=plugin.url_for(search),
+                                        info=link_info, art=link_art)
+                    else:
+                        helper.add_item(link['attributes']['title'], url=plugin.url_for(list_page, next_page_path),
                                         info=link_info, art=link_art)
 
-    # Search discoveryplus.in
-    if helper.d.realm == 'dplusindia':
-        helper.add_item(helper.language(30007), url=plugin.url_for(search))
+            # discovery+ India uses collections after collectionItems
+            if collectionItem['relationships'].get('collection'):
+                collection = \
+                [x for x in collections if x['id'] == collectionItem['relationships']['collection']['data']['id']][0]
 
-    # Profiles
-    if helper.d.realm != 'dplusindia':
-        helper.add_item(helper.language(30036), url=plugin.url_for(list_profiles))
+                if collection['attributes']['component']['id'] == 'menu-item':
+                    collectionItem2 = \
+                    [x for x in collectionItems if x['id'] == collection['relationships']['items']['data'][0]['id']][0]
+                    # Get only links
+                    if collectionItem2['relationships'].get('link'):
+                        link = [x for x in links if x['id'] == collectionItem2['relationships']['link']['data']['id']][
+                            0]
+                        # Hide unwanted menu links
+                        if link['attributes']['kind'] == 'Internal Link' and collection['attributes'][
+                            'title'] not in helper.d.unwanted_menu_items:
+
+                            # Find page path from routes
+                            next_page_path = [x['attributes']['url'] for x in routes if
+                                              x['id'] == link['relationships']['linkedContentRoutes']['data'][0]['id']][
+                                0]
+
+                            link_info = {
+                                'plot': link['attributes'].get('description')
+                            }
+
+                            thumb_image = None
+                            if link['relationships'].get('images'):
+                                thumb_image = [x['attributes']['src'] for x in images if
+                                               x['id'] == link['relationships']['images']['data'][0]['id']][0]
+
+                            link_art = {
+                                'icon': thumb_image
+                            }
+                            # Have to use collection title instead link title because some links doesn't have title
+                            helper.add_item(collection['attributes']['title'],
+                                            url=plugin.url_for(list_page, next_page_path),
+                                            info=link_info, art=link_art)
+
+        # Search discoveryplus.in
+        if helper.d.realm == 'dplusindia':
+            helper.add_item(helper.language(30007), url=plugin.url_for(search))
+
+        # Profiles
+        if helper.d.realm != 'dplusindia':
+            helper.add_item(helper.language(30036), url=plugin.url_for(list_profiles))
 
     helper.finalize_directory(title=helper.get_addon().getAddonInfo('name'))
     helper.eod()
@@ -1541,6 +1561,32 @@ def switch_profile():
                 helper.dialog('ok', helper.language(30006), error.value)
     else:
         helper.d.switch_profile(plugin.args['profileId'][0])
+    helper.refresh_list()
+
+@plugin.route('/link_login')
+def link_login():
+    linkingCode = helper.d.linkDevice_initiate()['data']['attributes']['linkingCode']
+
+    dialog_text = helper.language(30046) + '{}'.format(linkingCode)
+
+    import xbmc
+    import xbmcgui
+    pDialog = xbmcgui.DialogProgress()
+    pDialog.create(helper.language(30030), dialog_text)
+
+    not_logged = True
+    while not_logged:
+        if pDialog.iscanceled():
+            break
+        xbmc.sleep(10000) # Check login every 10 seconds
+        link_token = helper.d.linkDevice_login()
+        if link_token:
+            # Save cookie to add-on settings
+            helper.set_setting('cookie', link_token)
+            not_logged = False
+    pDialog.update(100, dialog_text)
+    pDialog.close()
+
     helper.refresh_list()
 
 @plugin.route('/mark_video_watched_unwatched/<video_id>')
