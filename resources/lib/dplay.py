@@ -34,13 +34,14 @@ def slugify(text):
     return text
 
 class Dplay(object):
-    def __init__(self, settings_folder, logging_prefix, numresults, cookiestxt, cookiestxt_file, cookie, us_uhd, drm_supported):
+    def __init__(self, settings_folder, logging_prefix, numresults, cookiestxt, cookiestxt_file, us_uhd, drm_supported):
         self.logging_prefix = logging_prefix
         self.numResults = numresults
         self.client_id = str(uuid.uuid1())
         self.device_id = self.client_id.replace("-", "")
         self.us_uhd = us_uhd
         self.drm_supported = drm_supported
+        self.invalid_token_checked = False
 
         self.http_session = requests.Session()
         self.settings_folder = settings_folder
@@ -48,7 +49,7 @@ class Dplay(object):
 
         # Realm config
         realm_config    = self.load_realm_config()
-        realm          = 'realm=' + realm_config['realm']
+        realm           = 'realm=' + realm_config['realm']
         siteLookupKey   = ',siteLookupKey=' + realm_config['siteLookupKey'] if realm_config.get('siteLookupKey') else ''
         bid             = ',bid=' + realm_config['brandId'] if realm_config.get('brandId') else ''
         hn              = ',hn=www.discoveryplus.com'
@@ -93,14 +94,6 @@ class Dplay(object):
         else:
             self.cookie_jar = cookielib.LWPCookieJar(os.path.join(self.settings_folder, 'cookie_file'))
 
-            # Use user defined cookie from add-on settings
-            if cookie:
-                ck = cookielib.Cookie(version=0, name='st', value=cookie, port=None, port_specified=False,
-                                domain=realm_config['domain'], domain_specified=False, domain_initial_dot=False, path='/',
-                                path_specified=True, secure=False, expires=None, discard=True, comment=None,
-                                comment_url=None, rest={'HttpOnly': None}, rfc2109=False)
-                self.cookie_jar.set_cookie(ck)
-
         try:
             self.cookie_jar.load(ignore_discard=True, ignore_expires=True)
         except IOError:
@@ -143,10 +136,12 @@ class Dplay(object):
             except IOError:
                 pass
             # Check for invalid session token
-            if self.check_invalid_token(req.content):
-                # Get new token and reload data
-                self.get_token()
-                return self.make_request(url, method, params, payload, headers, text)
+            if self.invalid_token_checked is False:
+                if self.check_invalid_token(req.content):
+                    self.invalid_token_checked = True
+                    # Get new token and reload data
+                    self.get_token()
+                    return self.make_request(url, method, params, payload, headers, text)
 
             # Check for errors
             self.raise_dplay_error(req.content)

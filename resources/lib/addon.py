@@ -23,16 +23,20 @@ def run():
 def list_menu():
     update_setting_defaults()
 
+    # Use user defined cookie from add-on settings
+    if helper.get_setting('cookie'):
+        helper.d.get_token(helper.get_setting('cookie'))
+
+    anonymous_user = helper.d.get_user_data()['attributes']['anonymous']
+
     # Cookies.txt login. Login error, show error message
-    if helper.d.realm != 'dplusindia' and helper.d.get_user_data()['attributes']['anonymous'] == True and \
-            helper.get_setting('cookiestxt'):
+    if helper.d.realm != 'dplusindia' and anonymous_user == True and helper.get_setting('cookiestxt'):
         raise helper.d.DplayError(helper.language(30022))
     # Code login or cookie set from settings. Login error, show login link
-    elif helper.d.realm != 'dplusindia' and helper.d.get_user_data()['attributes']['anonymous'] == True and \
-            helper.get_setting('cookiestxt') is False:
+    elif helper.d.realm != 'dplusindia' and anonymous_user == True and helper.get_setting('cookiestxt') is False:
         helper.add_item(helper.language(30030), url=plugin.url_for(link_login)) # Login
     # d+ India
-    elif helper.d.realm == 'dplusindia' and helper.d.get_user_data()['attributes']['anonymous'] == True:
+    elif helper.d.realm == 'dplusindia' and anonymous_user == True:
         raise helper.d.DplayError(helper.language(30022))
     # Login ok, show menu
     else:
