@@ -135,7 +135,7 @@ def list_menu():
             helper.add_item(helper.language(30036), url=plugin.url_for(list_profiles))
 
     helper.finalize_directory(title=helper.get_addon().getAddonInfo('name'))
-    helper.eod()
+    helper.eod(cache=False)
 
 @plugin.route('/page<path:page_path>')
 def list_page(page_path):
