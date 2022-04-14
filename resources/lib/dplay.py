@@ -90,7 +90,7 @@ class Dplay(object):
         # client_name/client_version (manufacturer/model; operating system/version)
         self.device_info = \
             'dplus_us/1.38.0 (Kodi Foundation/Kodi {kodi_version}; {os_name}/{os_version}; {device_id})'\
-                .format(kodi_version=kodi_version, os_name=self.parse_kodi_useragent()['name'], os_version=self.parse_kodi_useragent()['version'], device_id=self.device_id)
+                .format(kodi_version=kodi_version, os_name=self.get_system_platform(), os_version=self.get_system_platform_version(), device_id=self.device_id)
 
         # Use exported cookies.txt
         if cookiestxt:
@@ -178,15 +178,32 @@ class Dplay(object):
         except ValueError:  # when response is not in json
             pass
 
-    def parse_kodi_useragent(self):
-        from resources.lib import httpagentparser
-        real_user_agent = xbmc.getUserAgent()
-        platform = httpagentparser.detect(real_user_agent)['platform']
-        response = {
-                'name': platform['name'] if platform.get('name') else 'unknown',
-                'version': platform['version'] if platform.get('version') else 'unknown'
-        }
-        return response
+    def get_system_platform(self):
+        platform = 'unknown'
+        if xbmc.getCondVisibility('system.platform.linux') and not xbmc.getCondVisibility('system.platform.android'):
+            platform = 'Linux'
+        elif xbmc.getCondVisibility('system.platform.linux') and xbmc.getCondVisibility('system.platform.android'):
+            platform = 'Android'
+        elif xbmc.getCondVisibility('system.platform.uwp'):
+            platform = 'UWP'
+        elif xbmc.getCondVisibility('system.platform.windows'):
+            platform = 'Windows'
+        elif xbmc.getCondVisibility('system.platform.osx'):
+            platform = 'macOS'
+        elif xbmc.getCondVisibility('system.platform.ios'):
+            platform = 'iOS'
+        elif xbmc.getCondVisibility('system.platform.tvos'):
+            platform = 'tvOS'
+        return platform
+
+    def get_system_platform_version(self):
+        import platform
+        version = 'unknown'
+        if self.get_system_platform() == 'Windows':
+            version = platform.win32_ver()[0]
+        elif self.get_system_platform() == 'macOS':
+            version = platform.mac_ver()[0]
+        return version
 
     def check_invalid_token(self, response):
         try:
