@@ -854,6 +854,7 @@ def list_favorite_watchlist_videos_in():
         menu = []
         if helper.get_setting('sync_playback'):
             if video['attributes']['viewingHistory']['viewed']:
+                episode_info['lastplayed'] = str(helper.d.parse_datetime(video['attributes']['viewingHistory']['lastStartedTimestamp']))
                 if 'completed' in video['attributes']['viewingHistory']:
                     if video['attributes']['viewingHistory']['completed']:  # Watched video
                         episode_info['playcount'] = '1'
@@ -1240,6 +1241,7 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                     menu = []
                     if helper.get_setting('sync_playback'):
                         if video['attributes']['viewingHistory']['viewed']:
+                            episode_info['lastplayed'] = str(helper.d.parse_datetime(video['attributes']['viewingHistory']['lastStartedTimestamp']))
                             if 'completed' in video['attributes']['viewingHistory']:
                                 if video['attributes']['viewingHistory']['completed']:  # Watched video
                                     episode_info['playcount'] = '1'
