@@ -34,7 +34,7 @@ def slugify(text):
     return text
 
 class Dplay(object):
-    def __init__(self, settings_folder, logging_prefix, numresults, cookiestxt, cookiestxt_file, us_uhd, drm_supported):
+    def __init__(self, settings_folder, logging_prefix, numresults, cookiestxt, cookiestxt_file, us_uhd, drm_supported, kodi_version):
         self.logging_prefix = logging_prefix
         self.numResults = numresults
         self.client_id = str(uuid.uuid1())
@@ -61,7 +61,7 @@ class Dplay(object):
             self.contentRatingSystem = 'DMEC'
         else:
             disco_params = realm + siteLookupKey + bid + hn + hth + ',features=ar'
-            disco_client = 'WEB:UNKNOWN:dplus_us:1.25.0'
+            disco_client = 'WEB:UNKNOWN:dplus_us:1.38.0'
             if realm_config.get('mainTerritoryCode'):
 
                 # Content rating systems
@@ -86,6 +86,11 @@ class Dplay(object):
             'x-disco-params': disco_params,
             'x-disco-client': disco_client
         }
+
+        # client_name/client_version (manufacturer/model; operating system/version)
+        self.device_info = \
+            'dplus_us/1.38.0 (Kodi Foundation/Kodi {kodi_version}; {os_name}/{os_version}; {device_id})'\
+                .format(kodi_version=kodi_version, os_name=self.parse_kodi_useragent()['name'], os_version=self.parse_kodi_useragent()['version'], device_id=self.device_id)
 
         # Use exported cookies.txt
         if cookiestxt:
@@ -173,6 +178,16 @@ class Dplay(object):
         except ValueError:  # when response is not in json
             pass
 
+    def parse_kodi_useragent(self):
+        from resources.lib import httpagentparser
+        real_user_agent = xbmc.getUserAgent()
+        platform = httpagentparser.detect(real_user_agent)['platform']
+        response = {
+                'name': platform['name'] if platform.get('name') else 'unknown',
+                'version': platform['version'] if platform.get('version') else 'unknown'
+        }
+        return response
+
     def check_invalid_token(self, response):
         try:
             result = False
@@ -199,6 +214,8 @@ class Dplay(object):
         }
 
         headers = self.site_headers
+        # Register used device to discovery+. Only works when code login is used.
+        headers['x-device-info'] = self.device_info
         # Use provided token to get new cookie
         if token:
             headers['cookie'] = 'st=' + token
