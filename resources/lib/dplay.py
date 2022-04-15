@@ -203,6 +203,9 @@ class Dplay(object):
             version = platform.win32_ver()[0]
         elif self.get_system_platform() == 'macOS':
             version = platform.mac_ver()[0]
+        elif self.get_system_platform() == 'Android':
+            import subprocess
+            version = subprocess.check_output( ['/system/bin/getprop', 'ro.build.version.release'])
         return version
 
     def check_invalid_token(self, response):
