@@ -34,7 +34,7 @@ def list_menu():
         raise helper.d.DplayError(helper.language(30022))
     # Code login or cookie set from settings. Login error, show login link
     elif helper.d.realm != 'dplusindia' and anonymous_user == True and helper.get_setting('cookiestxt') is False:
-        helper.add_item(helper.language(30030), url=plugin.url_for(link_login)) # Login
+        link_login() # PIN code login
     # d+ India
     elif helper.d.realm == 'dplusindia' and anonymous_user == True:
         raise helper.d.DplayError(helper.language(30022))
@@ -1568,7 +1568,6 @@ def switch_profile():
         helper.d.switch_profile(plugin.args['profileId'][0])
     helper.refresh_list()
 
-@plugin.route('/link_login')
 def link_login():
     linkingCode = helper.d.linkDevice_initiate()['data']['attributes']['linkingCode']
 
@@ -1576,6 +1575,7 @@ def link_login():
 
     import xbmc
     import xbmcgui
+
     pDialog = xbmcgui.DialogProgress()
     pDialog.create(helper.language(30030), dialog_text)
 
@@ -1586,13 +1586,14 @@ def link_login():
         xbmc.sleep(10000) # Check login every 10 seconds
         link_token = helper.d.linkDevice_login()
         if link_token:
+            pDialog.update(50)
             # Save cookie
             helper.d.get_token(link_token)
             not_logged = False
-    pDialog.update(100, dialog_text)
+    pDialog.update(100)
     pDialog.close()
-
     helper.refresh_list()
+    return
 
 @plugin.route('/mark_video_watched_unwatched/<video_id>')
 def mark_video_watched_unwatched(video_id):
