@@ -32,6 +32,7 @@ This add-on is unofficial and it is not supported by Discovery Networks and beca
 - Profiles
 
 # How do I login?
-Add-on doesn't support direct login. There are two ways to set cookies.
-1. Export cookies from Chrome. Go to discovery+ website and login. After that use <a href="https://chrome.google.com/webstore/detail/get-cookiestxt/bgaddhkoddajcdgocldbbfleckgcbcid">Get cookies.txt</a> to export cookies and from add-on settings specify location of cookies.txt.
-2. Find cookie named st from your browser. Example in Chrome you can use this link chrome://settings/siteData?searchSubpage=prod-direct.discoveryplus and add value of st cookie to add-on settings.
+There are three ways to login.
+1. Click login in add-on and you get PIN code which you then type to <a href=https://discoveryplus.com/link>https://discoveryplus.com/link</a> (USA and EU only)
+2. Export cookies from Chrome. Go to discovery+ website and login. After that use <a href="https://chrome.google.com/webstore/detail/get-cookiestxt/bgaddhkoddajcdgocldbbfleckgcbcid">Get cookies.txt</a> to export cookies and from add-on settings specify location of cookies.txt.
+3. Find cookie named st from your browser. Example in Chrome you can use this link chrome://settings/siteData?searchSubpage=prod-direct.discoveryplus and add value of st cookie to add-on settings.
