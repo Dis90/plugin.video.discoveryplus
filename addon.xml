@@ -22,7 +22,7 @@
   </assets>
   <news>
     v1.6.20+matrix.1 (23.4.2022)
-    - Debig logging userdata and token request are now disabled
+    - Debug logging userdata and token request is now disabled
     v1.6.19+matrix.1 (15.4.2022)
     - Properly fixed PIN login
     v1.6.18+matrix.1 (15.4.2022)
