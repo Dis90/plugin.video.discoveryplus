@@ -46,6 +46,7 @@ class Dplay(object):
         self.http_session = requests.Session()
         self.settings_folder = settings_folder
         self.unwanted_menu_items = ('epg')
+        self.log_userdata_requests = False
 
         # Realm config
         realm_config    = self.load_realm_config()
@@ -135,7 +136,13 @@ class Dplay(object):
             else:  # post
                 req = self.http_session.post(url, params=params, data=payload, headers=headers)
             self.log('Response code: %s' % req.status_code)
-            self.log('Response: %s' % req.content)
+
+            # For security reasons we don't want to log responses from these pages
+            if ('/users/me' in url or '/token' in url) and self.log_userdata_requests is False:
+                self.log('Response: %s' % 'HIDDEN RESPONSE')
+            else:
+                self.log('Response: %s' % req.content)
+
             try:
                 self.cookie_jar.save(ignore_discard=True, ignore_expires=True)
             except IOError:
