@@ -31,6 +31,12 @@ This add-on is unofficial and it is not supported by Discovery Networks and beca
 - Favorites/My List
 - Profiles
 
+# Repositories
+Install add-on via repository and you get automatic updates.
+
+- Kodi 18 (Leia): https://github.com/Dis90/repository.dis90/raw/master/repo/repository.dis90-1.0.1.zip
+- Kodi 19 (Matrix): https://github.com/Dis90/repository.dis90/raw/matrix/repo/repository.dis90-1.0.1.zip
+
 # How do I login?
 There are three ways to login.
 1. If cookies aren't set add-on will show you PIN code which you then type to <a href=https://discoveryplus.com/link>https://discoveryplus.com/link</a> (USA and EU only)
