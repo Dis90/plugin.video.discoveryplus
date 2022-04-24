@@ -128,6 +128,31 @@ class KodiHelper(object):
             except self.d.DplayError as error:
                 self.dialog('ok', self.language(30006), error.value)
 
+    def pin_login_dialog(self):
+        linkingCode = self.d.linkDevice_initiate()['data']['attributes']['linkingCode']
+
+        dialog_text = self.language(30046) + '{}'.format(linkingCode)
+
+        pDialog = xbmcgui.DialogProgress()
+        pDialog.create(self.language(30030), dialog_text)
+
+        not_logged = True
+        while not_logged:
+            if pDialog.iscanceled():
+                break
+            xbmc.sleep(10000)  # Check login every 10 seconds
+            link_token = self.d.linkDevice_login()
+            if link_token:
+                pDialog.update(50)
+                # Save cookie
+                self.d.get_token(link_token)
+                not_logged = False
+        pDialog.update(100)
+        pDialog.close()
+        # Refresh listing after successful login
+        if not_logged is False:
+            self.refresh_list()
+
     def get_user_input(self, heading, hidden=False):
         keyboard = xbmc.Keyboard('', heading, hidden)
         keyboard.doModal()
