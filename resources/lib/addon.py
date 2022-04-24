@@ -136,7 +136,7 @@ def list_menu():
 
         # Profiles
         if helper.d.realm != 'dplusindia':
-            helper.add_item(helper.language(30036), url=plugin.url_for(list_profiles))
+            helper.add_item(helper.language(30036), url=plugin.url_for(profiles))
 
     helper.finalize_directory(title=helper.get_addon().getAddonInfo('name'))
     helper.eod(cache=False)
@@ -1500,41 +1500,10 @@ def search():
         helper.log('No search query provided.')
         return False
 
-@plugin.route('/list_profiles')
-def list_profiles():
-    profiles = helper.d.get_profiles()
-    avatars = helper.d.get_avatars()
-    user_data = helper.d.get_user_data()
-
-    for profile in profiles:
-
-        image_url = None
-        for avatar in avatars:
-            if avatar['id'] == profile['attributes']['avatarName'].lower():
-                image_url = avatar['attributes']['imageUrl']
-
-        art = {
-            'icon': image_url
-        }
-
-        plugin_url = plugin.url_for(switch_profile, profileId=profile['id'])
-
-        if profile['id'] == user_data['attributes']['selectedProfileId']:
-            profile_name = profile['attributes']['profileName'] + ' *'
-        elif profile['attributes'].get('pinRestricted'):
-            profile_name = profile['attributes']['profileName'] + ' ' + helper.language(30037)
-            plugin_url = plugin.url_for(switch_profile,
-                                        profileId=profile['id'],
-                                        pinRestricted=profile['attributes']['pinRestricted'],
-                                        profileName=profile['attributes']['profileName'])
-        else:
-            profile_name = profile['attributes']['profileName']
-
-        helper.add_item(profile_name, url=plugin_url, art=art)
-
-    folder_name = helper.get_addon().getAddonInfo('name') + ' / ' + helper.language(30036)
-    helper.finalize_directory(title=folder_name)
-    helper.eod()
+@plugin.route('/profiles')
+def profiles():
+    helper.profiles_dialog()
+    helper.refresh_list()
 
 @plugin.route('/add_favorite/<show_id>')
 def add_favorite(show_id):
@@ -1553,20 +1522,6 @@ def play(video_id):
 @plugin.route('/reset_settings')
 def reset_settings():
     helper.reset_settings()
-
-@plugin.route('/switch_profile')
-def switch_profile():
-    if plugin.args.get('pinRestricted'):
-        pin = helper.dialog('numeric', helper.language(30006) + ' {}'.format(plugin.args['profileName'][0]))
-        if pin:
-            try:
-                helper.d.switch_profile(plugin.args['profileId'][0], pin)
-                # Invalid pin
-            except helper.d.DplayError as error:
-                helper.dialog('ok', helper.language(30006), error.value)
-    else:
-        helper.d.switch_profile(plugin.args['profileId'][0])
-    helper.refresh_list()
 
 def link_login():
     linkingCode = helper.d.linkDevice_initiate()['data']['attributes']['linkingCode']
