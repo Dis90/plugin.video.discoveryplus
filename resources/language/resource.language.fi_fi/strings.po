@@ -51,7 +51,9 @@ msgctxt "#30012"
 msgid "Wrong email or password"
 msgstr "Väärä sähköposti tai salasana"
 
-#empty string with id 30013
+msgctxt "#30013"
+msgid "Current"
+msgstr "Nykyinen"
 
 msgctxt "#30014"
 msgid "Watch"
