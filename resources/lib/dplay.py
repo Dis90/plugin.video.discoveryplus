@@ -88,9 +88,11 @@ class Dplay(object):
         }
 
         # client_name/client_version (manufacturer/model; operating system/version)
+        client = disco_client.split(':')
         self.device_info = \
-            'dplus_us/1.38.0 (Kodi Foundation/Kodi {kodi_version}; {os_name}/{os_version}; {device_id})'\
-                .format(kodi_version=kodi_version, os_name=self.get_system_platform(), os_version=self.get_system_platform_version(), device_id=self.device_id)
+            '{client_name}/{client_version} (Kodi Foundation/Kodi {kodi_version}; {os_name}/{os_version}; {device_id})'\
+                .format(client_name=client[2], client_version=client[3], kodi_version=kodi_version,
+                        os_name=self.get_system_platform(), os_version=self.get_system_platform_version(), device_id=self.device_id)
 
         # Use exported cookies.txt
         if cookiestxt:
