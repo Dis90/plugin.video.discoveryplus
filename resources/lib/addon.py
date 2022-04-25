@@ -13,8 +13,8 @@ plugin = routing.Plugin()
 def run():
     try:
         plugin.run()
-    except helper.d.DplayError as error:
-        if error.value == 'unauthorized':  # Login error, wrong email or password
+    except helper.d.DplusError as error:
+        if error.code == 'unauthorized':  # Login error, wrong email or password
             helper.dialog('ok', helper.language(30006), helper.language(30012))
         else:
             helper.dialog('ok', helper.language(30006), error.value)
@@ -31,13 +31,13 @@ def list_menu():
 
     # Cookies.txt login. Login error, show error message
     if helper.d.realm != 'dplusindia' and anonymous_user == True and helper.get_setting('cookiestxt'):
-        raise helper.d.DplayError(helper.language(30022))
+        raise helper.d.DplusError(helper.language(30022))
     # Code login or cookie set from settings. Login error, show login link
     elif helper.d.realm != 'dplusindia' and anonymous_user == True and helper.get_setting('cookiestxt') is False:
         helper.pin_login_dialog() # PIN code login
     # d+ India
     elif helper.d.realm == 'dplusindia' and anonymous_user == True:
-        raise helper.d.DplayError(helper.language(30022))
+        raise helper.d.DplusError(helper.language(30022))
     # Login ok, show menu
     else:
         # List menu items (Shows, Categories)

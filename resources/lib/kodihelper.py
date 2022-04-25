@@ -125,7 +125,7 @@ class KodiHelper(object):
             try:
                 self.d.switch_profile(profile['id'], pin)
             # Invalid pin
-            except self.d.DplayError as error:
+            except self.d.DplusError as error:
                 self.dialog('ok', self.language(30006), error.value)
 
     def pin_login_dialog(self):
@@ -397,7 +397,7 @@ class KodiHelper(object):
 
                     xbmc.sleep(1000)
 
-        except self.d.DplayError as error:
+        except self.d.DplusError as error:
             self.dialog('ok', self.language(30006), error.value)
 
 class DplusPlayer(xbmc.Player):
