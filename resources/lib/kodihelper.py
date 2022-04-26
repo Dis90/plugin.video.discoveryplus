@@ -149,9 +149,6 @@ class KodiHelper(object):
                 not_logged = False
         pDialog.update(100)
         pDialog.close()
-        # Refresh listing after successful login
-        if not_logged is False:
-            self.refresh_list()
 
     def get_user_input(self, heading, hidden=False):
         keyboard = xbmc.Keyboard('', heading, hidden)

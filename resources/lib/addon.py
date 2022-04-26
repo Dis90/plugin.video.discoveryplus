@@ -34,7 +34,7 @@ def list_menu():
         raise helper.d.DplusError(helper.language(30022))
     # Code login or cookie set from settings. Login error, show login link
     elif helper.d.realm != 'dplusindia' and anonymous_user == True and helper.get_setting('cookiestxt') is False:
-        helper.pin_login_dialog() # PIN code login
+        helper.add_item(helper.language(30030), url=plugin.url_for(linkDevice), folder=False) # PIN code login
     # d+ India
     elif helper.d.realm == 'dplusindia' and anonymous_user == True:
         raise helper.d.DplusError(helper.language(30022))
@@ -1499,6 +1499,11 @@ def search():
     else:
         helper.log('No search query provided.')
         return False
+
+@plugin.route('/linkDevice')
+def linkDevice():
+    helper.pin_login_dialog()
+    helper.refresh_list()
 
 @plugin.route('/profiles')
 def profiles():
