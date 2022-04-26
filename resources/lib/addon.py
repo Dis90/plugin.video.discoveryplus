@@ -136,7 +136,7 @@ def list_menu():
 
         # Profiles
         if helper.d.realm != 'dplusindia':
-            helper.add_item(helper.language(30036), url=plugin.url_for(profiles))
+            helper.add_item(helper.language(30036), url=plugin.url_for(profiles), folder=False)
 
     helper.finalize_directory(title=helper.get_addon().getAddonInfo('name'))
     helper.eod(cache=False)
@@ -1503,7 +1503,6 @@ def search():
 @plugin.route('/profiles')
 def profiles():
     helper.profiles_dialog()
-    helper.refresh_list()
 
 @plugin.route('/add_favorite/<show_id>')
 def add_favorite(show_id):
