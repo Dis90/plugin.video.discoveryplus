@@ -87,7 +87,7 @@ class KodiHelper(object):
 
         profiles = []
 
-        for profile in profiles_dict:
+        for profile in profiles_dict['data']:
             image_url = None
             for avatar in avatars:
                 if avatar['id'] == profile['attributes']['avatarName'].lower():
@@ -98,9 +98,16 @@ class KodiHelper(object):
 
             info_line = ''
             if profile['id'] == user_data['attributes']['selectedProfileId']:
-                info_line = self.language(30013)
+                info_line = self.language(30013) # Current profile
             elif profile['attributes'].get('pinRestricted'):
                 info_line = self.language(30037)
+
+            # Kids profiles
+            if profile.get('relationships'):
+                profile_restriction_level_id = profile['relationships']['contentRestrictionLevel']['data']['id']
+                restriction_level = [x for x in profiles_dict['included'] if x['id'] == profile_restriction_level_id][0]
+                # Restriction level name and description
+                info_line += self.language(30008) + '[' + restriction_level['attributes']['name'] + '] ' + restriction_level['attributes']['description']
 
             li = xbmcgui.ListItem(
                 label=profile['attributes']['profileName'],
@@ -114,10 +121,10 @@ class KodiHelper(object):
 
         index = self.dialog('select', self.language(30036), options=profiles, useDetails=True)
         if index is not None:
-            if profiles_dict[index]['attributes'].get('pinRestricted'):
-                self.profile_pin_dialog(profiles_dict[index])
+            if profiles_dict['data'][index]['attributes'].get('pinRestricted'):
+                self.profile_pin_dialog(profiles_dict['data'][index])
             else:
-                self.d.switch_profile(profiles_dict[index]['id'])
+                self.d.switch_profile(profiles_dict['data'][index]['id'])
 
     def profile_pin_dialog(self, profile):
         pin = self.dialog('numeric', self.language(30038) + ' {}'.format(profile['attributes']['profileName']))

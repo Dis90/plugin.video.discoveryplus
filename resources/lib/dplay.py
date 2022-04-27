@@ -276,8 +276,8 @@ class Dplay(object):
     def get_profiles(self):
         url = '{api_url}/users/me/profiles'.format(api_url=self.api_url)
 
-        data = self.make_request(url, 'get', headers=self.site_headers)
-        return json.loads(data)['data']
+        data = json.loads(self.make_request(url, 'get', headers=self.site_headers))
+        return data
 
     def switch_profile(self, profileId, pin=None):
         jsonPayload = {
