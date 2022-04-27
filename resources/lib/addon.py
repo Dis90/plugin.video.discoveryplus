@@ -1502,7 +1502,7 @@ def search():
 
 @plugin.route('/linkDevice')
 def linkDevice():
-    helper.pin_login_dialog()
+    helper.linkDevice_dialog()
     helper.refresh_list()
 
 @plugin.route('/profiles')
