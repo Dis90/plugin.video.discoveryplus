@@ -128,7 +128,7 @@ class KodiHelper(object):
             except self.d.DplusError as error:
                 self.dialog('ok', self.language(30006), error.value)
 
-    def pin_login_dialog(self):
+    def linkDevice_dialog(self):
         linkingCode = self.d.linkDevice_initiate()['data']['attributes']['linkingCode']
 
         dialog_text = self.language(30046) + '{}'.format(linkingCode)
