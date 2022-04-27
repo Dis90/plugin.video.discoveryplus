@@ -33,7 +33,9 @@ msgctxt "#30007"
 msgid "Search"
 msgstr ""
 
-#empty string with id 30008
+msgctxt "#30008"
+msgid "[Kids]"
+msgstr ""
 
 msgctxt "#30009"
 msgid "Add to My List (discovery+)"
@@ -52,7 +54,7 @@ msgid "Wrong email or password"
 msgstr ""
 
 msgctxt "#30013"
-msgid "Current"
+msgid "[Active profile]"
 msgstr ""
 
 msgctxt "#30014"
