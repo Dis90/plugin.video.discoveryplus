@@ -140,7 +140,7 @@ class KodiHelper(object):
         while not_logged:
             if pDialog.iscanceled():
                 break
-            xbmc.sleep(10000)  # Check login every 10 seconds
+            xbmc.sleep(5000)  # Check login every 5 seconds
             link_token = self.d.linkDevice_login()
             if link_token:
                 pDialog.update(50)
