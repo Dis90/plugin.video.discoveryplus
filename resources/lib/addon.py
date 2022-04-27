@@ -1042,6 +1042,9 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
         # content-grid, content-hero etc
         else:
 
+            # Sometimes items are missing example when My List is empty
+            if page_data['data']['relationships'].get('items') is None:
+                return
             # Get order of content from page_data['data']
             for collection_relationship in page_data['data']['relationships']['items']['data']:
                 # Match collectionItem id's from collection listing to all collectionItems in data
