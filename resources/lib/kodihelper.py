@@ -107,7 +107,7 @@ class KodiHelper(object):
                 label2=info_line
             )
             li.setArt({
-                'thumb': image_url,
+                'thumb': image_url
             })
 
             profiles.append(li)
