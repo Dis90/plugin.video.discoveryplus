@@ -102,16 +102,14 @@ def list_menu():
                     [x for x in collectionItems if x['id'] == collection['relationships']['items']['data'][0]['id']][0]
                     # Get only links
                     if collectionItem2['relationships'].get('link'):
-                        link = [x for x in links if x['id'] == collectionItem2['relationships']['link']['data']['id']][
-                            0]
+                        link = [x for x in links if x['id'] == collectionItem2['relationships']['link']['data']['id']][0]
                         # Hide unwanted menu links
                         if link['attributes']['kind'] == 'Internal Link' and collection['attributes'][
                             'title'] not in helper.d.unwanted_menu_items:
 
                             # Find page path from routes
                             next_page_path = [x['attributes']['url'] for x in routes if
-                                              x['id'] == link['relationships']['linkedContentRoutes']['data'][0]['id']][
-                                0]
+                                              x['id'] == link['relationships']['linkedContentRoutes']['data'][0]['id']][0]
 
                             link_info = {
                                 'plot': link['attributes'].get('description')
