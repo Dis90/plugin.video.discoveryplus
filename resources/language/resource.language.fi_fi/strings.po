@@ -180,5 +180,5 @@ msgid "Show watched season markers\n\rWarning: This will slow down loading seaso
 msgstr "Näytä katsottujen kausien merkinnät\n\rVaroitus: Tämä hidastaa kausinäkymän latausta"
 
 msgctxt "#30046"
-msgid "Go on your mobile phone, tablet or computer\n\rdiscoveryplus.com/link\n\rWhen prompted, enter this 6-digit code:\n\r"
-msgstr "Siirry matkapuhelimella, tabletilla tai tietokoneella\n\rdiscoveryplus.com/link\n\rKirjoita pyydettäessä tämä 6-numeroinen koodi:\n\r"
+msgid "Go on your mobile phone, tablet or computer[CR]{linkDevice_url}[CR]When prompted, enter this 6-digit code:[CR]{linkingCode}"
+msgstr "Siirry matkapuhelimella, tabletilla tai tietokoneella[CR]{linkDevice_url}[CR]Kirjoita pyydettäessä tämä 6-numeroinen koodi:[CR]{linkingCode}"

@@ -59,9 +59,11 @@ class Dplay(object):
             disco_params = realm + siteLookupKey + bid + ',hn=www.discoveryplus.in' + hth
             disco_client = 'WEB:UNKNOWN:dplus-india:prod'
             self.contentRatingSystem = 'DMEC'
+            self.linkDevice_url = 'discoveryplus.in/activate'
         else:
             disco_params = realm + siteLookupKey + bid + hn + hth + ',features=ar'
             disco_client = 'WEB:UNKNOWN:dplus_us:1.38.0'
+            self.linkDevice_url = 'discoveryplus.com/link'
             if realm_config.get('mainTerritoryCode'):
 
                 # Content rating systems
