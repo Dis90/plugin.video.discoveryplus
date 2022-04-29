@@ -30,14 +30,11 @@ def list_menu():
     anonymous_user = helper.d.get_user_data()['attributes']['anonymous']
 
     # Cookies.txt login. Login error, show error message
-    if helper.d.realm != 'dplusindia' and anonymous_user == True and helper.get_setting('cookiestxt'):
+    if anonymous_user == True and helper.get_setting('cookiestxt'):
         raise helper.d.DplusError(helper.language(30022))
     # Code login or cookie set from settings. Login error, show login link
-    elif helper.d.realm != 'dplusindia' and anonymous_user == True and helper.get_setting('cookiestxt') is False:
+    elif anonymous_user == True and helper.get_setting('cookiestxt') is False:
         helper.add_item(helper.language(30030), url=plugin.url_for(linkDevice), folder=False) # PIN code login
-    # d+ India
-    elif helper.d.realm == 'dplusindia' and anonymous_user == True:
-        raise helper.d.DplusError(helper.language(30022))
     # Login ok, show menu
     else:
         # List menu items (Shows, Categories)
@@ -133,8 +130,7 @@ def list_menu():
             helper.add_item(helper.language(30007), url=plugin.url_for(search))
 
         # Profiles
-        if helper.d.realm != 'dplusindia':
-            helper.add_item(helper.language(30036), url=plugin.url_for(profiles), folder=False)
+        helper.add_item(helper.language(30036), url=plugin.url_for(profiles), folder=False)
 
     helper.finalize_directory(title=helper.get_addon().getAddonInfo('name'))
     helper.eod(cache=False)

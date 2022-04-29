@@ -138,7 +138,7 @@ class KodiHelper(object):
     def linkDevice_dialog(self):
         linkingCode = self.d.linkDevice_initiate()['data']['attributes']['linkingCode']
 
-        dialog_text = self.language(30046) + '{}'.format(linkingCode)
+        dialog_text = self.language(30046).format(linkDevice_url=self.d.linkDevice_url, linkingCode=linkingCode)
 
         pDialog = xbmcgui.DialogProgress()
         pDialog.create(self.language(30030), dialog_text)
