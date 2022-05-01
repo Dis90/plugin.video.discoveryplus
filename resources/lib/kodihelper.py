@@ -96,8 +96,10 @@ class KodiHelper(object):
                 elif avatar['id'] == 'default':
                     image_url = avatar['attributes']['imageUrl']
 
+            profile_name = profile['attributes']['profileName']
             info_line = ''
             if profile['id'] == user_data['attributes']['selectedProfileId']:
+                profile_name = '[B]{}[/B]'.format(profile_name) # Bold current profile name
                 info_line = self.language(30013) # Current profile
             elif profile['attributes'].get('pinRestricted'):
                 info_line = self.language(30037)
@@ -110,7 +112,7 @@ class KodiHelper(object):
                 info_line += self.language(30008) + '[' + restriction_level['attributes']['name'] + '] ' + restriction_level['attributes']['description']
 
             li = xbmcgui.ListItem(
-                label=profile['attributes']['profileName'],
+                label=profile_name,
                 label2=info_line
             )
             li.setArt({
