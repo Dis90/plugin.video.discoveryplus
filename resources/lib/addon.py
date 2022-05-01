@@ -39,9 +39,6 @@ def list_menu():
     else:
         # List menu items (Shows, Categories)
         if helper.d.realm == 'dplusindia':
-            helper.add_item(helper.language(30017), url=plugin.url_for(list_page, '/liked-videos'))
-            helper.add_item('Watchlist', url=plugin.url_for(list_page, '/watch-later'))
-            helper.add_item('Kids', url=plugin.url_for(list_page, '/kids/home'))
             page_data = helper.d.get_menu('/bottom-menu-v3')
         else:
             page_data = helper.d.get_menu('/web-menubar-v2')
@@ -125,9 +122,12 @@ def list_menu():
                                             url=plugin.url_for(list_page, next_page_path),
                                             info=link_info, art=link_art)
 
-        # Search discoveryplus.in
+        # discoveryplus.in
         if helper.d.realm == 'dplusindia':
-            helper.add_item(helper.language(30007), url=plugin.url_for(search))
+            helper.add_item(helper.language(30017), url=plugin.url_for(list_page, '/liked-videos'))
+            helper.add_item('Watchlist', url=plugin.url_for(list_page, '/watch-later'))
+            helper.add_item('Kids', url=plugin.url_for(list_page, '/kids/home'))
+            helper.add_item(helper.language(30007), url=plugin.url_for(search)) # Search
 
         # Profiles
         helper.add_item(helper.language(30036), url=plugin.url_for(profiles), folder=False)
