@@ -39,6 +39,6 @@ Install add-on via repository and you get automatic updates.
 
 # How do I login?
 There are three ways to login.
-1. If cookies aren't set add-on will show you PIN code which you then type to <a href=https://discoveryplus.com/link>https://discoveryplus.com/link</a> (USA and EU only)
+1. If cookies aren't set add-on will show you PIN code which you then type to <a href=https://discoveryplus.com/link>https://discoveryplus.com/link</a> (USA and EU) or <a href=https://discoveryplus.in/activate>https://discoveryplus.in/activate</a> (India)
 2. Export cookies from Chrome. Go to discovery+ website and login. After that use <a href="https://chrome.google.com/webstore/detail/get-cookiestxt/bgaddhkoddajcdgocldbbfleckgcbcid">Get cookies.txt</a> to export cookies and from add-on settings specify location of cookies.txt.
 3. Find cookie named st from your browser. Example in Chrome you can use this link chrome://settings/siteData?searchSubpage=prod-direct.discoveryplus and add value of st cookie to add-on settings.
