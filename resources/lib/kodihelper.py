@@ -411,12 +411,12 @@ class DplusPlayer(xbmc.Player):
         base_url = sys.argv[0]
         handle = int(sys.argv[1])
         self.helper = KodiHelper(base_url, handle)
-        self.video_id = None
-        self.current_show_id = None
-        self.current_episode_info = ''
-        self.current_episode_art = ''
-        self.video_lastpos = 0
-        self.video_totaltime = 0
+        #self.video_id = None
+        #self.current_show_id = None
+        #self.current_episode_info = ''
+        #self.current_episode_art = ''
+        #self.video_lastpos = 0
+        #self.video_totaltime = 0
         self.playing = False
         self.paused = False
 
@@ -453,7 +453,11 @@ class DplusPlayer(xbmc.Player):
     def onPlayBackEnded(self):  # pylint: disable=invalid-name
         """Called when Kodi has ended playing a file"""
         self.helper.log('[DplusPlayer] Event onPlayBackEnded')
-        self.update_playback_progress()
+        # Up Next/Kodi calls onPlayBackEnded two times if user doesn't select Watch Now and video_lastpos is not available on first time
+        try:
+            self.update_playback_progress()
+        except AttributeError:
+            return
         self.playing = False
         # Up Next calls onPlayBackEnded before onPlayBackStarted if user doesn't select Watch Now
         # Reset current video id
