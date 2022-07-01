@@ -419,6 +419,7 @@ class DplusPlayer(xbmc.Player):
         #self.video_totaltime = 0
         self.playing = False
         self.paused = False
+        self.ff_rw = False
 
     def resolve(self, li):
         xbmcplugin.setResolvedUrl(self.helper.handle, True, listitem=li)
@@ -443,6 +444,14 @@ class DplusPlayer(xbmc.Player):
         # If we seek beyond the end, exit Player
         if self.video_lastpos >= self.video_totaltime:
             self.stop()
+
+    def onPlayBackSpeedChanged(self, speed):
+        """Called when players speed changes (eg. user FF/RW)."""
+        self.helper.log('[DplusPlayer] Event onPlayBackSpeedChanged speed=' + str(speed))
+
+        # 1 is normal playback speed
+        if speed != 1:
+            self.ff_rw = True
 
     def onPlayBackPaused(self):  # pylint: disable=invalid-name
         """Called when user pauses a playing file"""
@@ -482,6 +491,9 @@ class DplusPlayer(xbmc.Player):
         if self.paused:
             suffix = 'after pausing'
             self.paused = False
+        elif self.ff_rw:
+            suffix = 'after ff/rw'
+            self.ff_rw = False
         # playlist change
         # Up Next uses this when user clicks Watch Now, only happens if user is watching first episode in row after
         # that onPlayBackEnded is used even if user clicks Watch Now
