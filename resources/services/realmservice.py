@@ -14,13 +14,18 @@ addon = xbmcaddon.Addon(id='plugin.video.discoveryplus')
 settings_folder = xbmcvfs.translatePath(addon.getAddonInfo('profile'))
 
 def get_realm_config():
+    # Get realm config
+    # India uses old realmservice
     # Get redirected url of discoveryplus.com. Example https://www.discoveryplus.com/fi
     r = requests.get('https://www.discoveryplus.com')
-    path = r.url.replace('https://', '')
-    path = quote_plus(path)
-    # Get realm config
-    url = 'https://prod-realmservice.mercury.dnitv.com/realm-config/' + path
-    data = requests.get(url).json()
+    if r.url == 'https://www.discoveryplus.in/':
+        url = 'https://prod-realmservice.mercury.dnitv.com/realm-config/www.discoveryplus.in'
+        data = requests.get(url).json()
+    else:
+        url = 'https://global-prod.disco-api.com/bootstrapInfo'
+        data = requests.get(url, headers={"x-disco-client": "WEB:dplus_us:dplus_us:2.2.2",
+                                          "x-disco-params": "bid=dplus,hn=www.discoveryplus.com"}).json()
+
     return data
 
 def write_realm_config(config):

@@ -48,40 +48,41 @@ class Dplay(object):
         self.log_userdata_requests = False
 
         # Realm config
-        realm_config    = self.load_realm_config()
-        realm           = 'realm=' + realm_config['realm']
-        siteLookupKey   = ',siteLookupKey=' + realm_config['siteLookupKey'] if realm_config.get('siteLookupKey') else ''
-        bid             = ',bid=' + realm_config['brandId'] if realm_config.get('brandId') else ''
-        hn              = ',hn=www.discoveryplus.com'
-        hth             = ',hth=' + realm_config['mainTerritoryCode'] if realm_config.get('mainTerritoryCode') else ''
+        if self.load_realm_config().get('data'):
+            realm_config    = self.load_realm_config()['data']['attributes']
+        # Old realm config format
+        else:
+            realm_config = self.load_realm_config()
 
         if realm_config['realm'] == 'dplusindia':
-            disco_params = realm + siteLookupKey + bid + ',hn=www.discoveryplus.in' + hth
+            disco_params = 'realm=dplusindia,hn=www.discoveryplus.in'
             disco_client = 'WEB:UNKNOWN:dplus-india:prod'
             self.contentRatingSystem = 'DMEC'
             self.linkDevice_url = 'discoveryplus.in/activate'
+            self.api_url = 'https://' + realm_config['domain']
         else:
-            disco_params = realm + siteLookupKey + bid + hn + hth + ',features=ar'
-            disco_client = 'WEB:UNKNOWN:dplus_us:1.38.0'
+            disco_params = 'realm=' + realm_config['realm'] + ',bid=dplus,hn=www.discoveryplus.com,hth=' + realm_config.get('mainTerritoryCode') + ',features=ar'
+            disco_client = 'WEB:UNKNOWN:dplus_us:2.2.2'
             self.linkDevice_url = 'discoveryplus.com/link'
+            self.api_url = realm_config['baseApiUrl']
+
             if realm_config.get('mainTerritoryCode'):
 
                 # Content rating systems
                 # Great Britain = Ofcom
                 if realm_config['mainTerritoryCode'] == 'gb':
                     self.contentRatingSystem = 'Ofcom'
-                # Canada = BLM ?
-                elif realm_config['mainTerritoryCode'] == 'ca':
+                # Canada and USA = BLM
+                elif realm_config['mainTerritoryCode'] in ['ca', 'us']:
                     self.contentRatingSystem = 'BLM'
                 # EU = NICAM
                 else:
                     self.contentRatingSystem = 'NICAM'
 
-            # Only US and India doesn't have mainTerritoryCode
+            # mainTerritoryCode empty = use BLM
             else:
                 self.contentRatingSystem = 'BLM'
 
-        self.api_url = 'https://' + realm_config['domain']
         self.realm = realm_config['realm']
 
         self.site_headers = {
