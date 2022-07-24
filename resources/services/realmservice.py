@@ -11,7 +11,7 @@ except ImportError: # Python 2
 
 # Plugin Info
 addon = xbmcaddon.Addon(id='plugin.video.discoveryplus')
-settings_folder = xbmcvfs.translatePath(addon.getAddonInfo('profile'))
+settings_folder = xbmc.translatePath(addon.getAddonInfo('profile'))
 
 def get_realm_config():
     # Get realm config
