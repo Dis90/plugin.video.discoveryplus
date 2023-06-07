@@ -127,15 +127,20 @@ class KodiHelper(object):
                 self.profile_pin_dialog(profiles_dict['data'][index])
             else:
                 self.d.switch_profile(profiles_dict['data'][index]['id'])
+                self.set_setting('profileselected', 'true')
+                self.refresh_list()
 
     def profile_pin_dialog(self, profile):
         pin = self.dialog('numeric', self.language(30038) + ' {}'.format(profile['attributes']['profileName']))
         if pin:
             try:
                 self.d.switch_profile(profile['id'], pin)
+                self.set_setting('profileselected', 'true')
+                self.refresh_list()
             # Invalid pin
             except self.d.DplusError as error:
                 self.dialog('ok', self.language(30006), error.value)
+                self.set_setting('profileselected', 'false')
 
     def linkDevice_dialog(self):
         linkingCode = self.d.linkDevice_initiate()['data']['attributes']['linkingCode']
@@ -184,6 +189,7 @@ class KodiHelper(object):
         self.set_setting('seasonsonly', 'false')
         self.set_setting('flattentvshows', 'false')
         self.set_setting('iptv.enabled', 'false')
+        self.set_setting('profileselected', 'false')
 
         # Remove cookies file
         cookie_file = os.path.join(self.addon_profile, 'cookie_file')

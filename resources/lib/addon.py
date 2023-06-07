@@ -35,6 +35,10 @@ def list_menu():
     # Code login or cookie set from settings. Login error, show login link
     elif anonymous_user == True and helper.get_setting('cookiestxt') is False:
         helper.add_item(helper.language(30030), url=plugin.url_for(linkDevice), folder=False) # PIN code login
+        helper.set_setting('profileselected', 'false') # Set selected profile to false
+    # Login ok but profile not selected -> Show profiles dialog
+    elif anonymous_user == False and helper.get_setting('profileselected') is False:
+        helper.profiles_dialog()
     # Login ok, show menu
     else:
         # List menu items (Shows, Categories)
