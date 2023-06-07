@@ -402,14 +402,15 @@ def list_page_us(page_path, search_query=None):
                                                         x['id'] == collectionItem['relationships']['taxonomyNode']['data']['id']][0]
 
                                         # Find page path from routes
-                                        next_page_path = [x['attributes']['url'] for x in routes if
-                                                          x['id'] == taxonomyNode['relationships']['routes']['data'][0]['id']][0]
+                                        if taxonomyNode.get('relationships'):
+                                            next_page_path = [x['attributes']['url'] for x in routes if
+                                                              x['id'] == taxonomyNode['relationships']['routes']['data'][0]['id']][0]
 
-                                        plugin_url = plugin.url_for(list_page, next_page_path)
+                                            plugin_url = plugin.url_for(list_page, next_page_path)
 
-                                        folder_name = page['attributes'].get('pageMetadataTitle')
+                                            folder_name = page['attributes'].get('pageMetadataTitle')
 
-                                        helper.add_item(taxonomyNode['attributes']['name'], url=plugin_url)
+                                            helper.add_item(taxonomyNode['attributes']['name'], url=plugin_url)
 
     helper.finalize_directory(content_type=content_type, title=folder_name)
     helper.eod()
