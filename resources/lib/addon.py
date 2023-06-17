@@ -1504,7 +1504,10 @@ def search():
             list_page_us('/search/result', search_query)
     else:
         helper.log('No search query provided.')
-        return False
+        helper.eod()
+        helper.dialog('ok', helper.language(30006), 'No search query provided.')
+        import xbmc
+        xbmc.executebuiltin('Container.Update({0},replace)'.format(plugin.url_for(list_menu)))
 
 @plugin.route('/linkDevice')
 def linkDevice():
