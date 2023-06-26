@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="plugin.video.discoveryplus" version="1.6.24+matrix.1" name="discovery+" provider-name="Dis90">
+<addon id="plugin.video.discoveryplus" version="1.6.25+matrix.1" name="discovery+" provider-name="Dis90">
 <requires>
   <import addon="xbmc.python" version="3.0.0"/>
   <import addon="script.module.requests" version="2.9.1"/>
@@ -21,6 +21,10 @@
     <fanart>resources/fanart.png</fanart>
   </assets>
   <news>
+    v1.6.25+matrix.1 (26.6.2023)
+    - Fix empty genres in d+ US
+    - Show profile dialog after login (to prevent bypass PIN locked main profile)
+    - Fix empty search query (Kodi getting stuck)
     v1.6.24+matrix.1 (21.7.2022)
     - Fix login
     v1.6.23+matrix.1 (1.7.2022)
