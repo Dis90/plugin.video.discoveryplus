@@ -1,28 +1,206 @@
-<settings>
-  <category label="30000">
-    <setting id="numresults" type="slider" label="30018" default="100" range="1,100" option="int"/>
-    <setting id="cookiestxt" label="30020" type="bool" default="false"/>
-    <setting id="cookiestxt_file" label="30021" type="file" default="" visible="eq(-1,true)" subsetting="true"/>
-    <setting id="cookie" label="30039" type="text" default="" visible="eq(-2,false)" />
-    <setting id="sync_playback" label="30027" type="bool" default="true"/>
-    <setting id="drm_supported" label="30041" type="bool" default="true"/>
-    <setting id="profileselected" type="bool" visible="false" default="false"/>
-    <setting id="us_uhd" label="30029" type="bool" default="false"/>
-    <setting id="use_isa" label="30028" type="bool" default="true"  visible="eq(-1,true)"/>
-    <setting id="reset_settings" type="action" label="30035" action="RunPlugin(plugin://plugin.video.discoveryplus/reset_settings)"/>
-  </category>
-  <category label="30031">
-    <setting id="seasonsonly" label="30032" type="bool" default="false"/>
-    <setting id="flattentvshows" label="30033" type="bool" default="false"/>
-    <setting id="sync_playback" label="30027" type="bool" default="true" visible="false"/>
-    <setting id="season_markers" label="30045" type="bool" default="false" visible="eq(-1,true)"/>
-  </category>
-    <category label="30023">
-        <setting label="30024" type="action" action="InstallAddon(service.iptv.manager)" option="close" visible="!System.HasAddon(service.iptv.manager)"/>
-        <setting label="30025" type="bool" id="iptv.enabled" default="false" visible="System.HasAddon(service.iptv.manager)" />
-        <setting label="30026" type="action" action="Addon.OpenSettings(service.iptv.manager)" enable="eq(-1,true)" option="close" visible="System.HasAddon(service.iptv.manager)" subsetting="true"/>
-        <setting id="iptv.channels_uri" default="plugin://plugin.video.discoveryplus/iptv/channels" visible="false"/>
-        <setting id="iptv.epg_uri" default="plugin://plugin.video.discoveryplus/iptv/epg" visible="false"/>
-    </category>
-
+<?xml version="1.0" ?>
+<settings version="1">
+	<section id="plugin.video.discoveryplus">
+		<category id="general" label="30000" help="">
+			<group id="1">
+				<setting id="numresults" type="integer" label="30018" help="">
+					<level>0</level>
+					<default>100</default>
+					<constraints>
+						<minimum>1</minimum>
+						<maximum>100</maximum>
+					</constraints>
+					<control type="slider" format="integer">
+						<popup>false</popup>
+					</control>
+				</setting>
+				<setting id="cookiestxt" type="boolean" label="30020" help="">
+					<level>0</level>
+					<default>false</default>
+					<control type="toggle"/>
+				</setting>
+				<setting id="cookiestxt_file" type="path" label="30021" help="" parent="cookiestxt">
+					<level>0</level>
+					<default/>
+					<constraints>
+						<writable>false</writable>
+						<allowempty>true</allowempty>
+					</constraints>
+					<dependencies>
+						<dependency type="visible">
+							<condition operator="is" setting="cookiestxt">true</condition>
+						</dependency>
+					</dependencies>
+					<control type="button" format="file">
+						<heading>30021</heading>
+					</control>
+				</setting>
+				<setting id="cookie" type="string" label="30039" help="">
+					<level>0</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+					<dependencies>
+						<dependency type="visible">
+							<condition operator="is" setting="cookiestxt">false</condition>
+						</dependency>
+					</dependencies>
+					<control type="edit" format="string">
+						<heading>30039</heading>
+					</control>
+				</setting>
+				<setting id="sync_playback" type="boolean" label="30027" help="">
+					<level>0</level>
+					<default>true</default>
+					<control type="toggle"/>
+				</setting>
+				<setting id="drm_supported" type="boolean" label="30041" help="">
+					<level>0</level>
+					<default>true</default>
+					<control type="toggle"/>
+				</setting>
+				<setting id="profileselected" type="boolean" help="">
+					<level>0</level>
+					<default>false</default>
+					<dependencies>
+						<dependency type="visible">
+							<condition on="property" name="InfoBool">false</condition>
+						</dependency>
+					</dependencies>
+					<control type="toggle"/>
+				</setting>
+				<setting id="us_uhd" type="boolean" label="30029" help="">
+					<level>0</level>
+					<default>false</default>
+					<control type="toggle"/>
+				</setting>
+				<setting id="use_isa" type="boolean" label="30028" help="">
+					<level>0</level>
+					<default>true</default>
+					<dependencies>
+						<dependency type="visible">
+							<condition operator="is" setting="us_uhd">true</condition>
+						</dependency>
+					</dependencies>
+					<control type="toggle"/>
+				</setting>
+				<setting id="reset_settings" type="action" label="30035" help="">
+					<level>0</level>
+					<data>RunPlugin(plugin://plugin.video.discoveryplus/reset_settings)</data>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+					<control type="button" format="action"/>
+				</setting>
+			</group>
+		</category>
+		<category id="views" label="30031" help="">
+			<group id="1">
+				<setting id="seasonsonly" type="boolean" label="30032" help="">
+					<level>0</level>
+					<default>false</default>
+					<control type="toggle"/>
+				</setting>
+				<setting id="flattentvshows" type="boolean" label="30033" help="">
+					<level>0</level>
+					<default>false</default>
+					<control type="toggle"/>
+				</setting>
+				<setting id="sync_playback" type="boolean" label="30027" help="">
+					<level>0</level>
+					<default>true</default>
+					<dependencies>
+						<dependency type="visible">
+							<condition on="property" name="InfoBool">false</condition>
+						</dependency>
+					</dependencies>
+					<control type="toggle"/>
+				</setting>
+				<setting id="season_markers" type="boolean" label="30045" help="30047">
+					<level>0</level>
+					<default>false</default>
+					<dependencies>
+						<dependency type="visible">
+							<condition operator="is" setting="sync_playback">true</condition>
+						</dependency>
+					</dependencies>
+					<control type="toggle"/>
+				</setting>
+			</group>
+		</category>
+		<category id="integration" label="30023" help="">
+			<group id="1">
+				<setting id="install.iptv.manager" type="action" label="30024" help="">
+					<level>0</level>
+					<data>InstallAddon(service.iptv.manager)</data>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+					<dependencies>
+						<dependency type="visible">
+							<condition on="property" name="InfoBool">!System.HasAddon(service.iptv.manager)</condition>
+						</dependency>
+					</dependencies>
+					<control type="button" format="action">
+						<close>true</close>
+					</control>
+				</setting>
+				<setting id="iptv.enabled" type="boolean" label="30025" help="">
+					<level>0</level>
+					<default>false</default>
+					<dependencies>
+						<dependency type="visible">
+							<condition on="property" name="InfoBool">System.HasAddon(service.iptv.manager)</condition>
+						</dependency>
+					</dependencies>
+					<control type="toggle"/>
+				</setting>
+				<setting id="open.iptv.manager" type="action" label="30026" help="" parent="iptv.enabled">
+					<level>0</level>
+					<data>Addon.OpenSettings(service.iptv.manager)</data>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+					<dependencies>
+						<dependency type="enable">
+							<condition operator="is" setting="iptv.enabled">true</condition>
+						</dependency>
+						<dependency type="visible">
+							<condition on="property" name="InfoBool">System.HasAddon(service.iptv.manager)</condition>
+						</dependency>
+					</dependencies>
+					<control type="button" format="action">
+						<close>true</close>
+					</control>
+				</setting>
+				<setting id="iptv.channels_uri" type="string" help="">
+					<level>0</level>
+					<default>plugin://plugin.video.discoveryplus/iptv/channels</default>
+					<dependencies>
+						<dependency type="visible">
+							<condition on="property" name="InfoBool">false</condition>
+						</dependency>
+					</dependencies>
+					<visible>false</visible>
+					<control type="edit" format="string">
+						<heading/>
+					</control>
+				</setting>
+				<setting id="iptv.epg_uri" type="string" help="">
+					<level>0</level>
+					<default>plugin://plugin.video.discoveryplus/iptv/epg</default>
+					<dependencies>
+						<dependency type="visible">
+							<condition on="property" name="InfoBool">false</condition>
+						</dependency>
+					</dependencies>
+					<visible>false</visible>
+					<control type="edit" format="string">
+						<heading/>
+					</control>
+				</setting>
+			</group>
+		</category>
+	</section>
 </settings>

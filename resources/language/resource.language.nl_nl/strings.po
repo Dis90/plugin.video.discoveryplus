@@ -176,9 +176,13 @@ msgid "Reset resume position (d+)"
 msgstr "Hervattingspositie resetten (D+)"
 
 msgctxt "#30045"
-msgid "Show watched season markers\n\rWarning: This will slow down loading seasons page"
-msgstr "Markeringen voor bekeken seizoen weergeven\n\rWaarschuwing: dit vertraagt ​​het laden van de seizoenspagina"
+msgid "Show watched season markers"
+msgstr "Markeringen voor bekeken seizoen weergeven"
 
 msgctxt "#30046"
 msgid "Go on your mobile phone, tablet or computer[CR]{linkDevice_url}[CR]When prompted, enter this 6-digit code:[CR]{linkingCode}"
 msgstr ""
+
+msgctxt "#30047"
+msgid "Warning: This will slow down loading seasons page"
+msgstr "Waarschuwing: dit vertraagt ​​het laden van de seizoenspagina"
