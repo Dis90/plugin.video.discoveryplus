@@ -760,8 +760,8 @@ class Dplay(object):
         stream = {}
 
         # This will output window size if Kodi is in windowed mode
-        screenHeight = xbmc.getInfoLabel('System.ScreenHeight')
-        screenWidth = xbmc.getInfoLabel('System.ScreenWidth')
+        #screenHeight = xbmc.getInfoLabel('System.ScreenHeight')
+        #screenWidth = xbmc.getInfoLabel('System.ScreenWidth')
 
         # Use drmSupported:false for UHD streams. For now playback is only tested to kinda work when drm and
         # InputStreamAdaptive is disabled from add-on settings. It is possible that drm/mpd stream also works on Android devices.
@@ -770,9 +770,13 @@ class Dplay(object):
             hwDecoding = ['H264','H265']
             platform = 'firetv'
             drmSupported = 'false'
+            screenWidth = 3840
+            screenHeight = 2160
         else:
             hwDecoding = []
             platform = 'desktop'
+            screenWidth = 1920
+            screenHeight = 1080
             if self.drm_supported:
                 drmSupported = 'true'
             else:
