@@ -1547,7 +1547,7 @@ def mark_season_watched_unwatched(collection_id):
     parameter = plugin.args['parameter'][0] if plugin.args.get('parameter') else None
 
     page_data = helper.d.get_collections(collection_id=collection_id, page=1, mandatoryParams=mandatoryParams,
-                                         parameter=parameter)
+                                         parameter=parameter, itemsSize=100)
 
     import xbmc
 
@@ -1584,7 +1584,7 @@ def mark_season_watched_unwatched(collection_id):
 
 def season_has_unwatched_episodes(collection_id, mandatoryParams=None, parameter=None):
     page_data = helper.d.get_collections(collection_id=collection_id, page=1, mandatoryParams=mandatoryParams,
-                                         parameter=parameter)
+                                         parameter=parameter, itemsSize=100)
 
     total = 0
     watched = 0

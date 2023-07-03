@@ -336,7 +336,7 @@ class Dplay(object):
         data = json.loads(self.make_request(url, 'get', params=params, headers=self.site_headers))
         return data
 
-    def get_collections(self, collection_id, page, mandatoryParams=None, parameter=None):
+    def get_collections(self, collection_id, page, mandatoryParams=None, parameter=None, itemsSize=None):
         mandatoryParams = None if mandatoryParams == 'None' else mandatoryParams
         parameter = None if parameter == 'None' else parameter
 
@@ -349,10 +349,12 @@ class Dplay(object):
         else:
             url = '{api_url}/cms/collections/{collection_id}'.format(api_url=self.api_url, collection_id=collection_id)
 
+        # itemsSize is used to force displayed items count to 100
+        # This is needed for marking seasons watched/unwatched
         params = {
             'include': 'default',
             'page[items.number]': page,
-            'page[items.size]': self.numResults
+            'page[items.size]': itemsSize if itemsSize else self.numResults
         }
 
         # discoveryplus.com (go=US and Canada) and discoveryplus.in
