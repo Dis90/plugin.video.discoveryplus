@@ -591,9 +591,8 @@ class DplusPlayer(xbmc.Player):
                         runtime=next_episode['data'][0]['attributes'].get('videoDuration') / 1000.0,
                     ),
 
-                    play_url='plugin://' + self.helper.addon_name + '/play/' +
-                             next_episode['data'][0]['id'] + '?video_type=' + next_episode['data'][0]['attributes'][
-                                 'videoType'],
+                    play_url='plugin://' + self.helper.addon_name + '/play/' + next_episode['data'][0]['attributes'][
+                                 'videoType'].lower() + '/' + next_episode['data'][0]['id'],
                     notification_time='',
                 )
 

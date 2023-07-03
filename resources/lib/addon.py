@@ -904,7 +904,7 @@ def list_favorite_watchlist_videos_in():
         else:
             folder_name = 'Watchlist'
 
-        plugin_url = plugin.url_for(play, video_id=video['id'], video_type=video['attributes']['videoType'])
+        plugin_url = plugin.url_for(play, video_id=video['id'], video_type=video['attributes']['videoType'].lower())
 
         helper.add_item(video['attributes'].get('name').lstrip(), url=plugin_url, info=episode_info, art=episode_art,
                         menu=menu, playable=True, resume=resume, total=total)
@@ -1308,7 +1308,7 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                         sort_method = 'unsorted'
 
                     plugin_url = plugin.url_for(play, video_id=video['id'],
-                                                video_type=video['attributes']['videoType'])
+                                                video_type=video['attributes']['videoType'].lower())
 
                     content_type = 'episodes'
 
@@ -1528,9 +1528,9 @@ def delete_favorite(show_id):
     helper.d.add_or_delete_favorite(method='delete', show_id=show_id)
     helper.refresh_list()
 
-@plugin.route('/play/<video_id>')
-def play(video_id):
-    helper.play_item(video_id, plugin.args['video_type'][0])
+@plugin.route('/play/<video_type>/<video_id>')
+def play(video_id, video_type):
+    helper.play_item(video_id, video_type)
 
 @plugin.route('/reset_settings')
 def reset_settings():
