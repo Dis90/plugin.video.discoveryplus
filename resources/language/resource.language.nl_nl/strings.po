@@ -17,7 +17,9 @@ msgctxt "#30000"
 msgid "General"
 msgstr "Algemeen"
 
-#empty string with id 30001
+msgctxt "#30001"
+msgid "Logout"
+msgstr ""
 
 msgctxt "#30002"
 msgid "Playable "

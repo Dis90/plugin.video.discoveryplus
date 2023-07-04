@@ -1536,6 +1536,10 @@ def play(video_id, video_type):
 def reset_settings():
     helper.reset_settings()
 
+@plugin.route('/logout')
+def logout():
+    helper.d.logout()
+
 @plugin.route('/mark_video_watched_unwatched/<video_id>')
 def mark_video_watched_unwatched(video_id):
     helper.d.update_playback_progress(video_id=video_id, position=plugin.args['position'][0])

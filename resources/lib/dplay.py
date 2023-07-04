@@ -300,6 +300,10 @@ class Dplay(object):
             url = '{api_url}/users/me'.format(api_url=self.api_url)
             return self.make_request(url, 'patch', payload=json.dumps(jsonPayload), headers=self.site_headers)
 
+    def logout(self):
+        url = '{api_url}/logout'.format(api_url=self.api_url)
+        return self.make_request(url, 'post', headers=self.site_headers)
+
     def get_menu(self, menu):
         url = '{api_url}/cms/collections{menu}'.format(api_url=self.api_url, menu=menu)
 

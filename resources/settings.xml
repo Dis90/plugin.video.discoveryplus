@@ -87,11 +87,17 @@
 				</setting>
 				<setting id="reset_settings" type="action" label="30035" help="">
 					<level>0</level>
-					<data>RunPlugin(plugin://plugin.video.discoveryplus/reset_settings)</data>
-					<constraints>
-						<allowempty>true</allowempty>
-					</constraints>
-					<control type="button" format="action"/>
+					<data>RunPlugin(plugin://$ID/reset_settings)</data>
+                    <control type="button" format="action">
+                        <close>false</close>
+                    </control>
+				</setting>
+				<setting id="logout" type="action" label="30001" help="">
+					<level>0</level>
+					<data>RunPlugin(plugin://$ID/logout)</data>
+                    <control type="button" format="action">
+                        <close>true</close>
+                    </control>
 				</setting>
 			</group>
 		</category>
