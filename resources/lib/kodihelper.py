@@ -190,6 +190,7 @@ class KodiHelper(object):
         self.set_setting('flattentvshows', 'false')
         self.set_setting('iptv.enabled', 'false')
         self.set_setting('profileselected', 'false')
+        self.set_setting('select_first_unwatched', '0')
 
         # Remove cookies file
         cookie_file = os.path.join(self.addon_profile, 'cookie_file')
@@ -251,6 +252,81 @@ class KodiHelper(object):
     def refresh_list(self):
         """Refresh listing"""
         return xbmc.executebuiltin('Container.Refresh')
+
+    def autoSelect_precheck(self, contentType):
+        totalUnwatched = int(xbmc.getInfoLabel("Container.TotalUnWatched"))
+        content = xbmc.getInfoLabel('Container.Content')
+        # Check if all items are already watched
+        if totalUnwatched == 0:
+            return False
+        # If currently displayed content type is different than in loaded data we don't want to autoscroll
+        # Example when using view Landscape Combined in seasons page on skin Arctic Horizon 2 and changing season
+        # add-on will load episodes of season which will trigger autoscroll
+        if content != contentType:
+            return False
+        # select_first_unwatched 1 = On first entry
+        if self.get_setting('select_first_unwatched') == '1':
+            if int(xbmc.getInfoLabel('ListItem.CurrentItem')) > 1:
+                return False
+        # If content is seasons but season markers is false
+        if content == 'seasons' and self.get_setting('season_markers') is False:
+            return False
+        return True
+
+    def autoSelect(self, contentType):
+        # Auto select first unwatched season or episode. Kodi built in feature only works for Kodi library
+        # Inspiration taken from here https://forum.kodi.tv/showthread.php?tid=373589
+        # Wait list to complete
+        xbmc.sleep(100)
+        # Get sort direction
+        sortOrderAsc = xbmc.getCondVisibility('Container.SortDirection(ascending)')
+        try:
+            totalItems = int(xbmc.getInfoLabel('Container.NumAllItems'))
+        except:
+            # totalItems = 0
+            return
+        if not self.autoSelect_precheck(contentType):
+            return
+
+        # Get current container ID
+        window = xbmcgui.Window(xbmcgui.getCurrentWindowId())
+        containerID = window.getFocusId()
+
+        nextItemIndex = 0
+        for itemIndex in range(totalItems):
+            template = 'Container({id}).ListItemAbsolute({index}).'.format(id=containerID, index=itemIndex)
+            label = xbmc.getInfoLabel(template + 'Label')
+            # PlayCount infolabel:
+            # A string that's either empty or a stringified number, the times the item
+            # has been completely played ("", "1", "2" etc). This leaves that "watched"
+            # checkmark on items that aren't partially played.
+            playcount = xbmc.getInfoLabel(template + 'PlayCount')
+            if playcount:
+                # This ListItem has been completely played.
+                pass
+            # PercentPlayed infolabel:
+            # A stringified number from 0 to 100, (eg "37"), which is how far the video has been played.
+            # If the number is non-zero then the video can be resumed (that half-filled circle icon).
+            percentPlayed = xbmc.getInfoLabel(template + 'PercentPlayed')
+            if playcount == '' and percentPlayed == '0' and label != '..':
+                # This ListItem is not watched
+                nextItemIndex = itemIndex
+                # Stop looping in first match if sort order is ascending
+                if sortOrderAsc:
+                    break
+            if percentPlayed != '0' and label != '..':
+                # This ListItem has been partially played.
+                nextItemIndex = itemIndex
+                # Stop looping in first match if sort order is ascending
+                if sortOrderAsc:
+                    break
+
+        # Select the chosen item
+        try:
+            xbmc.executebuiltin(
+                'SetFocus({id},{selectedIndex},absolute)'.format(id=containerID, selectedIndex=nextItemIndex))
+        except:
+            pass
 
     # Up Next integration
     def upnext_signal(self, sender, next_info):

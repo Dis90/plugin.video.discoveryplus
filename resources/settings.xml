@@ -133,6 +133,20 @@
 					</dependencies>
 					<control type="toggle"/>
 				</setting>
+				<setting id="select_first_unwatched" type="integer" label="30048" help="30052">
+					<level>0</level>
+					<default>0</default>
+					<constraints>
+						<options>
+							<option label="30049">0</option>
+							<option label="30050">1</option>
+							<option label="30051">2</option>
+						</options>
+					</constraints>
+					<control type="list" format="string">
+						<heading>30047</heading>
+					</control>
+				</setting>
 			</group>
 		</category>
 		<category id="integration" label="30023" help="">

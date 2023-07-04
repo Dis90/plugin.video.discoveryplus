@@ -913,6 +913,8 @@ def list_favorite_watchlist_videos_in():
 
     helper.finalize_directory(content_type='episodes', sort_method='sort_episodes', title=folder_name)
     helper.eod()
+    if helper.get_setting('select_first_unwatched') != '0':
+        helper.autoSelect('episodes')
 
 @plugin.route('/collection/<collection_id>')
 def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None):
@@ -1495,6 +1497,9 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
 
     helper.finalize_directory(content_type=content_type, sort_method=sort_method, title=folder_name)
     helper.eod(cache)
+    if helper.get_setting('select_first_unwatched') != '0':
+        if content_type in ['seasons', 'episodes']:
+            helper.autoSelect(content_type)
 
 @plugin.route('/search')
 def search():
