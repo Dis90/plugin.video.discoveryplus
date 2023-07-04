@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="plugin.video.discoveryplus" version="1.6.25+matrix.1" name="discovery+" provider-name="Dis90">
+<addon id="plugin.video.discoveryplus" version="1.7.0+matrix.1" name="discovery+" provider-name="Dis90">
 <requires>
   <import addon="xbmc.python" version="3.0.0"/>
   <import addon="script.module.requests" version="2.9.1"/>
@@ -21,6 +21,13 @@
     <fanart>resources/fanart.png</fanart>
   </assets>
   <news>
+    v1.7.0+matrix.1 (4.7.2023)
+    - New feature: Automatic select for unwatched season and episode
+    - Fix: Hardcoded resolutions for UHD and HD
+    - Fix season markers when episode count is more than user is set to per page limit
+    - Fix displaying playback progress without d+ sync
+    - Load user data only once per listing (huge speed up for episode listings)
+    - Option to logout
     v1.6.25+matrix.1 (26.6.2023)
     - Fix empty genres in d+ US
     - Show profile dialog after login (to prevent bypass PIN locked main profile)
