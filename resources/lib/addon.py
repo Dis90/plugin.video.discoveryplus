@@ -750,6 +750,8 @@ def list_favorite_watchlist_videos_in():
     else:
         page_data = helper.d.get_favorite_watchlist_videos_in(playlist=plugin.args['playlist'][0])
 
+    user_data = helper.d.get_user_data()
+
     images = list(filter(lambda x: x['type'] == 'image', page_data['included']))
     shows = list(filter(lambda x: x['type'] == 'show', page_data['included']))
     channels = list(filter(lambda x: x['type'] == 'channel', page_data['included']))
@@ -823,7 +825,7 @@ def list_favorite_watchlist_videos_in():
             subscription_needed = True
 
         # Check if user has needed subscription
-        check = any(x in video['attributes']['packages'] for x in helper.d.get_user_data()['attributes']['packages'])
+        check = any(x in video['attributes']['packages'] for x in user_data['attributes']['packages'])
         if check is True:
             subscription_needed = False
         else:
@@ -920,6 +922,7 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
 
     page_data = helper.d.get_collections(collection_id=collection_id, page=page, mandatoryParams=mandatoryParams,
                                          parameter=parameter)
+    user_data = helper.d.get_user_data()
 
     folder_name = None
     sort_method = None
@@ -1195,7 +1198,7 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                         subscription_needed = True
 
                     # Check if user has needed subscription
-                    check = any(x in video['attributes']['packages'] for x in helper.d.get_user_data()['attributes']['packages'])
+                    check = any(x in video['attributes']['packages'] for x in user_data['attributes']['packages'])
                     if check is True:
                         subscription_needed = False
                     else:
