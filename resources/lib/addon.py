@@ -715,7 +715,8 @@ def list_favorite_search_shows_in(search_query=None):
             'genre': g,
             'season': len(show['attributes'].get('seasonNumbers')),
             'episode': show['attributes'].get('episodeCount'),
-            'mpaa': mpaa
+            'mpaa': mpaa,
+            'premiered': show['attributes'].get('premiereDate')
         }
 
         # Add or delete favorite context menu
@@ -1095,7 +1096,8 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                         'studio': primaryChannel,
                         'season': len(show['attributes'].get('seasonNumbers')),
                         'episode': show['attributes'].get('episodeCount'),
-                        'mpaa': mpaa
+                        'mpaa': mpaa,
+                        'premiered': show['attributes'].get('premiereDate')
                     }
 
                     # Add or delete favorite context menu
