@@ -45,6 +45,7 @@ class Dplay(object):
         self.settings_folder = settings_folder
         self.unwanted_menu_items = ('epg')
         self.log_userdata_requests = False
+        self.proxy_url = 'http://127.0.0.1:48201/'
 
         # Realm config
         if self.load_realm_config().get('data'):
@@ -476,11 +477,12 @@ class Dplay(object):
         else:
             thumb = video_thumb if video_thumb else fanart_image
 
+        # Load images using proxy because Kodi curl doesn't like HEAD response 404
         # Image quality is same as website. Without these parameters images can be almost 10mb and with these 200kb
-        fanart_image = fanart_image + '?bf=0&f=jpg&p=true&q=70&w=2200' if fanart_image else None
-        thumb = thumb + '?w=800&f=JPG&p=true&q=60' if thumb else None
-        logo_image = logo_image + '?bf=0&f=png&p=true&q=60&w=700' if logo_image else None
-        poster_image = poster_image + '?w=800&f=JPG&p=true&q=60' if poster_image else None
+        fanart_image = self.proxy_url + fanart_image + '?bf=0&f=jpg&p=true&q=70&w=2200' if fanart_image else None
+        thumb = self.proxy_url + thumb + '?w=800&f=JPG&p=true&q=60' if thumb else None
+        logo_image = self.proxy_url + logo_image + '?bf=0&f=png&p=true&q=60&w=700' if logo_image else None
+        poster_image = self.proxy_url + poster_image + '?w=800&f=JPG&p=true&q=60' if poster_image else None
 
         art = {
             'fanart': fanart_image,
@@ -531,8 +533,8 @@ class Dplay(object):
                                         if image['attributes']['kind'] == 'default':
                                             fanart_image = image['attributes']['src']
 
-                            channel_logo = channel_logo + '?bf=0&f=png&p=true&q=60&w=700' if channel_logo else None
-                            fanart_image = fanart_image + '?bf=0&f=jpg&p=true&q=70&w=2200' if fanart_image else None
+                            channel_logo = self.proxy_url + channel_logo + '?bf=0&f=png&p=true&q=60&w=700' if channel_logo else None
+                            fanart_image = self.proxy_url + fanart_image + '?bf=0&f=jpg&p=true&q=70&w=2200' if fanart_image else None
 
                         channels_list.append(dict(
                             id='%s@%s' % (channel['id'], slugify(
@@ -577,8 +579,8 @@ class Dplay(object):
                                     if image['attributes']['kind'] == 'default':
                                         fanart_image = image['attributes']['src']
 
-                        channel_logo = channel_logo + '?bf=0&f=png&p=true&q=60&w=700' if channel_logo else None
-                        fanart_image = fanart_image + '?bf=0&f=jpg&p=true&q=70&w=2200' if fanart_image else None
+                        channel_logo = self.proxy_url + channel_logo + '?bf=0&f=png&p=true&q=60&w=700' if channel_logo else None
+                        fanart_image = self.proxy_url + fanart_image + '?bf=0&f=jpg&p=true&q=70&w=2200' if fanart_image else None
 
                     channels_list.append(dict(
                         id='%s@%s' % (channel['id'], slugify(
@@ -622,8 +624,8 @@ class Dplay(object):
                                     if image['attributes']['kind'] == 'default':
                                         fanart_image = image['attributes']['src']
 
-                        channel_logo = channel_logo + '?bf=0&f=png&p=true&q=60&w=700' if channel_logo else None
-                        fanart_image = fanart_image + '?bf=0&f=jpg&p=true&q=70&w=2200' if fanart_image else None
+                        channel_logo = self.proxy_url + channel_logo + '?bf=0&f=png&p=true&q=60&w=700' if channel_logo else None
+                        fanart_image = self.proxy_url + fanart_image + '?bf=0&f=jpg&p=true&q=70&w=2200' if fanart_image else None
 
                     channels_list.append(dict(
                         id='%s@%s' % (channel['id'], slugify(
@@ -684,7 +686,7 @@ class Dplay(object):
                                                         if image['attributes']['kind'] == 'default':
                                                             fanart_image = image['attributes']['src']
 
-                                            fanart_image = fanart_image + '?bf=0&f=jpg&p=true&q=70&w=2200' if fanart_image else None
+                                            fanart_image = self.proxy_url + fanart_image + '?bf=0&f=jpg&p=true&q=70&w=2200' if fanart_image else None
 
                                         channel_id = '%s@%s' % (channel['id'], slugify(
                                             xbmcaddon.Addon(id='plugin.video.discoveryplus').getAddonInfo('name')))
