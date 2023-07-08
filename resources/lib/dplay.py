@@ -455,6 +455,7 @@ class Dplay(object):
         fanart_image = None
         logo_image = None
         poster_image = None
+        poster_nologo_image = None
         landscape_image = None
 
         if image_list:
@@ -473,6 +474,8 @@ class Dplay(object):
                 else:
                     if image['attributes']['kind'] == 'poster_with_logo':
                         poster_image = image['attributes']['src']
+                    if image['attributes']['kind'] == 'poster':
+                        poster_nologo_image = image['attributes']['src']
 
         if type and type in ['channel', 'category']:
             thumb = logo_image if logo_image else fanart_image
@@ -486,6 +489,7 @@ class Dplay(object):
         thumb = self.proxy_url + thumb + '?w=800&f=JPG&p=true&q=60' if thumb else None
         logo_image = self.proxy_url + logo_image + '?bf=0&f=png&p=true&q=60&w=700' if logo_image else None
         poster_image = self.proxy_url + poster_image + '?w=800&f=JPG&p=true&q=60' if poster_image else None
+        poster_nologo_image = self.proxy_url + poster_nologo_image + '?w=800&f=JPG&p=true&q=60' if poster_nologo_image else None
         landscape_image = self.proxy_url + landscape_image + '?w=800&f=JPG&p=true&q=60' if landscape_image else None
 
         art = {
@@ -493,7 +497,8 @@ class Dplay(object):
             'thumb': thumb,
             'clearlogo': logo_image,
             'poster': poster_image,
-            'landscape': landscape_image
+            'landscape': landscape_image,
+            'keyart': poster_nologo_image
         }
 
         return art
