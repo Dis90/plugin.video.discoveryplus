@@ -418,6 +418,7 @@ class KodiHelper(object):
 
                 images = list(filter(lambda x: x['type'] == 'image', current_episode['included']))
                 shows = list(filter(lambda x: x['type'] == 'show', current_episode['included']))
+                channels = list(filter(lambda x: x['type'] == 'channel', current_episode['included']))
 
                 show = [x for x in shows if x['id'] == current_episode['data']['relationships']['show']['data']['id']][0]
 
@@ -427,6 +428,12 @@ class KodiHelper(object):
                     for contentRating in current_episode['data']['attributes']['contentRatings']:
                         if contentRating['system'] == self.d.contentRatingSystem:
                             mpaa = contentRating['code']
+
+                # Channel
+                primaryChannel = None
+                if current_episode['data']['relationships'].get('primaryChannel'):
+                    primaryChannel = [x['attributes']['name'] for x in channels if
+                                      x['id'] == current_episode['data']['relationships']['primaryChannel']['data']['id']][0]
 
                 # Thumbnail
                 video_thumb_image = None
@@ -447,8 +454,9 @@ class KodiHelper(object):
                         'mediatype': 'video',
                         'title': current_episode['data']['attributes'].get('name').lstrip(),
                         'plot': current_episode['data']['attributes'].get('description'),
+                        'studio': primaryChannel,
                         'duration': duration,
-                        'aired': aired
+                        'aired': aired,
                     }
                 else:
                     info = {
@@ -460,7 +468,8 @@ class KodiHelper(object):
                         'plot': current_episode['data']['attributes'].get('description'),
                         'duration': duration,
                         'aired': current_episode['data']['attributes'].get('airDate'),
-                        'mpaa': mpaa
+                        'mpaa': mpaa,
+                        'studio': primaryChannel
                     }
 
                 playitem.setInfo('video', info)
