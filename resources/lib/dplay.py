@@ -870,6 +870,9 @@ class Dplay(object):
             stream['drm_token'] = data_dict['attributes']['streaming'][0]['protection'].get('drmToken')
         stream['drm_enabled'] = data_dict['attributes']['streaming'][0]['protection']['drmEnabled']
 
+        if data_dict['attributes'].get('markers'):
+            stream['videoAboutToEnd'] = data_dict['attributes']['markers']['videoAboutToEnd']
+
         return stream
 
     def parse_datetime(self, date):

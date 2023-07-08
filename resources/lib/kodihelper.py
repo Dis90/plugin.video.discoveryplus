@@ -473,6 +473,7 @@ class KodiHelper(object):
                 player.resolve(playitem)
 
                 player.video_id = video_id
+                player.video_notification_time = stream['videoAboutToEnd'] / 1000.0 if stream.get('videoAboutToEnd') else ''
                 player.current_show_id = current_episode['data']['relationships']['show']['data']['id']
                 player.current_episode_info = info
                 player.current_episode_art = art
@@ -669,7 +670,7 @@ class DplusPlayer(xbmc.Player):
 
                     play_url='plugin://' + self.helper.addon_name + '/play/' + next_episode['data'][0]['attributes'][
                                  'videoType'].lower() + '/' + next_episode['data'][0]['id'],
-                    notification_time='',
+                    notification_offset=self.video_notification_time,
                 )
 
                 self.helper.upnext_signal(sender=self.helper.addon_name, next_info=next_info)
