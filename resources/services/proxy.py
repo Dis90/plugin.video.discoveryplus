@@ -20,18 +20,6 @@ class RequestHandler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
         return
 
-    def do_POST(self):
-        self.send_error(404)
-
-    def do_HEAD(self):
-        url = self.path.lstrip('/').strip('\\')
-        path = urljoin(url, urlparse(url).path)
-        # Some images on d+ return HEAD 404 which Kodi curl doesn't like
-        if path.endswith(('.jpeg', '.jpg', '.png')):
-            self.send_error(200)
-        else:
-            self.send_error(404)
-
     def do_GET(self):
         url = self.path.lstrip('/').strip('\\')
         path = urljoin(url, urlparse(url).path)
