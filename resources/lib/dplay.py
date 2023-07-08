@@ -455,6 +455,7 @@ class Dplay(object):
         fanart_image = None
         logo_image = None
         poster_image = None
+        landscape_image = None
 
         if image_list:
             for item in image_list['data']:
@@ -463,6 +464,8 @@ class Dplay(object):
                     fanart_image = image['attributes']['src']
                 if image['attributes']['kind'] == 'logo':
                     logo_image = image['attributes']['src']
+                if image['attributes']['kind'] == 'cover_artwork_horizontal':
+                    landscape_image = image['attributes']['src']
                 # discoveryplus.in has logos in poster
                 if self.realm == 'dplusindia':
                     if image['attributes']['kind'] == 'poster':
@@ -483,12 +486,14 @@ class Dplay(object):
         thumb = self.proxy_url + thumb + '?w=800&f=JPG&p=true&q=60' if thumb else None
         logo_image = self.proxy_url + logo_image + '?bf=0&f=png&p=true&q=60&w=700' if logo_image else None
         poster_image = self.proxy_url + poster_image + '?w=800&f=JPG&p=true&q=60' if poster_image else None
+        landscape_image = self.proxy_url + landscape_image + '?w=800&f=JPG&p=true&q=60' if landscape_image else None
 
         art = {
             'fanart': fanart_image,
             'thumb': thumb,
             'clearlogo': logo_image,
-            'poster': poster_image
+            'poster': poster_image,
+            'landscape': landscape_image
         }
 
         return art
