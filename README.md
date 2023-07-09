@@ -8,9 +8,11 @@ This add-on is unofficial and it is not supported by Discovery Networks and beca
 - Linux
 - Mac
 - Windows
-- Android (not tested)
+- Android
 
 # Tested countries
+- Brazil
+- Canada
 - Denmark
 - Finland
 - India
@@ -21,21 +23,19 @@ This add-on is unofficial and it is not supported by Discovery Networks and beca
 - Sweden
 - United Kingdom
 - United States
-- Canada
 
 # Features
-- Supports: <a href="https://forum.kodi.tv/showthread.php?tid=336747">Up Next</a>, <a href="https://github.com/add-ons/service.iptv.manager">IPTV Manager</a> and <a href="https://forum.kodi.tv/forumdisplay.php?fid=231">PseudoTV Live</a> (Kodi 19)
+- Supports: <a href="https://forum.kodi.tv/showthread.php?tid=336747">Up Next</a>, <a href="https://github.com/add-ons/service.iptv.manager">IPTV Manager</a> and <a href="https://forum.kodi.tv/forumdisplay.php?fid=231">PseudoTV Live</a> (Kodi 19 ->)
 - Playback progress is same in discovery+ site and on Kodi add-on (you can start video on site and continue it on Kodi or other way round)
 - Live TV channels
 - Videos
 - Favorites/My List
 - Profiles
 
-# Repositories
+# Repository
 Install add-on via repository and you get automatic updates.
 
-- Kodi 18 (Leia): https://github.com/Dis90/repository.dis90/raw/master/repo/repository.dis90-1.0.1.zip
-- Kodi 19 (Matrix): https://github.com/Dis90/repository.dis90/raw/matrix/repo/repository.dis90-1.0.1.zip
+Repository for Kodi 19 and higher: https://github.com/Dis90/repository.dis90/raw/matrix/repo/repository.dis90-1.0.1.zip
 
 # How do I login?
 There are three ways to login.
