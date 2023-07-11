@@ -472,6 +472,10 @@ class Dplay(object):
                     if image['attributes']['kind'] == 'poster':
                         poster_image = image['attributes']['src']
                 else:
+                    # Alternate is used as poster in Home -> Coming soon (US and EU)
+                    # We will overwrite alternate image if poster exists
+                    if image['attributes']['kind'] == 'alternate':
+                        poster_image = image['attributes']['src']
                     if image['attributes']['kind'] == 'poster_with_logo':
                         poster_image = image['attributes']['src']
                     if image['attributes']['kind'] == 'poster':

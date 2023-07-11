@@ -1457,6 +1457,8 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                                 helper.add_item(link_title, url=plugin_url, art=category_art)
 
                 # discoveryplus.com (US and EU) search result 'collections' folder content
+                # Home -> Collections
+                # Home -> Coming Soon
                 if collectionItem['relationships'].get('link'):
                     link = [x for x in links if x['id'] == collectionItem['relationships']['link']['data']['id']][0]
 
@@ -1464,19 +1466,11 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                     next_page_path = [x['attributes']['url'] for x in routes if
                                       x['id'] == link['relationships']['linkedContentRoutes']['data'][0]['id']][0]
 
-                    thumb_image = None
-                    if link['relationships'].get('images'):
-                        thumb_image = [x['attributes']['src'] for x in images if
-                                       x['id'] == link['relationships']['images']['data'][0]['id']][0]
-
                     link_info = {
                         'plot': link['attributes'].get('description')
                     }
 
-                    link_art = {
-                        'fanart': thumb_image,
-                        'thumb': thumb_image
-                    }
+                    link_art = helper.d.parse_artwork(link['relationships'].get('images'), images)
 
                     # Category titles have stored in different places
                     if collectionItem.get('attributes') and collectionItem['attributes'].get('title'):
