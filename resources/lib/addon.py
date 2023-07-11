@@ -992,13 +992,20 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                                      '?mandatoryParams=' + page_data['data']['attributes']['component'].get('mandatoryParams') +
                                  '&parameter=' + option['parameter']  + '&watched=False' + ')',))
 
-                    # Genres
-                    g = []
-                    if shows[0]['relationships'].get('txGenres'):
-                        for taxonomyNode in taxonomyNodes:
+                    # taxonomyNodes (genres, countries)
+                    genres = []
+                    countries = []
+                    for taxonomyNode in taxonomyNodes:
+                        # Genres
+                        if shows[0]['relationships'].get('txGenres'):
                             for show_genre in shows[0]['relationships']['txGenres']['data']:
                                 if taxonomyNode['id'] == show_genre['id']:
-                                    g.append(taxonomyNode['attributes']['name'])
+                                    genres.append(taxonomyNode['attributes']['name'])
+                        # Countries
+                        if shows[0]['relationships'].get('txCountry'):
+                            for show_country in shows[0]['relationships']['txCountry']['data']:
+                                if taxonomyNode['id'] == show_country['id']:
+                                    countries.append(taxonomyNode['attributes']['name'])
 
                     # Content rating
                     mpaa = None
@@ -1013,20 +1020,12 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                         primaryChannel = [x['attributes']['name'] for x in channels if
                                           x['id'] == shows[0]['relationships']['primaryChannel']['data']['id']][0]
 
-                    # Countries
-                    countries = []
-                    if shows[0]['relationships'].get('txCountry'):
-                        for taxonomyNode in taxonomyNodes:
-                            for show_country in shows[0]['relationships']['txCountry']['data']:
-                                if taxonomyNode['id'] == show_country['id']:
-                                    countries.append(taxonomyNode['attributes']['name'])
-
                     info = {
                         'mediatype': 'season',
                         'tvshowtitle': shows[0]['attributes'].get('name'),
                         'plotoutline': shows[0]['attributes'].get('description'),
                         'plot': shows[0]['attributes'].get('longDescription'),
-                        'genre': g,
+                        'genre': genres,
                         'studio': primaryChannel,
                         'season': len(shows[0]['attributes'].get('seasonNumbers')),
                         'episode': shows[0]['attributes'].get('episodeCount'),
@@ -1076,13 +1075,20 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                     next_page_path = [x['attributes']['url'] for x in routes if
                                       x['id'] == show['relationships']['routes']['data'][0]['id']][0]
 
-                    # Genres
-                    g = []
-                    if show['relationships'].get('txGenres'):
-                        for taxonomyNode in taxonomyNodes:
+                    # taxonomyNodes (genres, countries)
+                    genres = []
+                    countries = []
+                    for taxonomyNode in taxonomyNodes:
+                        # Genres
+                        if show['relationships'].get('txGenres'):
                             for show_genre in show['relationships']['txGenres']['data']:
                                 if taxonomyNode['id'] == show_genre['id']:
-                                    g.append(taxonomyNode['attributes']['name'])
+                                    genres.append(taxonomyNode['attributes']['name'])
+                        # Countries
+                        if show['relationships'].get('txCountry'):
+                            for show_country in show['relationships']['txCountry']['data']:
+                                if taxonomyNode['id'] == show_country['id']:
+                                    countries.append(taxonomyNode['attributes']['name'])
 
                     # Content rating
                     mpaa = None
@@ -1097,19 +1103,11 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                         primaryChannel = [x['attributes']['name'] for x in channels if
                                           x['id'] == show['relationships']['primaryChannel']['data']['id']][0]
 
-                    # Countries
-                    countries = []
-                    if show['relationships'].get('txCountry'):
-                        for taxonomyNode in taxonomyNodes:
-                            for show_country in show['relationships']['txCountry']['data']:
-                                if taxonomyNode['id'] == show_country['id']:
-                                    countries.append(taxonomyNode['attributes']['name'])
-
                     info = {
                         'mediatype': 'tvshow',
                         'plotoutline': show['attributes'].get('description'),
                         'plot': show['attributes'].get('longDescription'),
-                        'genre': g,
+                        'genre': genres,
                         'studio': primaryChannel,
                         'season': len(show['attributes'].get('seasonNumbers')),
                         'episode': show['attributes'].get('episodeCount'),
@@ -1143,13 +1141,30 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                     video = [x for x in videos if x['id'] == collectionItem['relationships']['video']['data']['id']][0]
                     show = [x for x in shows if x['id'] == video['relationships']['show']['data']['id']][0]
 
-                    # Genres
-                    g = []
-                    if video['relationships'].get('txGenres'):
-                        for taxonomyNode in taxonomyNodes:
+                    # taxonomyNodes (genres, countries, sport)
+                    genres = []
+                    countries = []
+                    for taxonomyNode in taxonomyNodes:
+                        # Genres
+                        if video['relationships'].get('txGenres'):
                             for video_genre in video['relationships']['txGenres']['data']:
                                 if taxonomyNode['id'] == video_genre['id']:
-                                    g.append(taxonomyNode['attributes']['name'])
+                                    genres.append(taxonomyNode['attributes']['name'])
+                        # Countries
+                        if video['relationships'].get('txCountry'):
+                            for video_country in video['relationships']['txCountry']['data']:
+                                if taxonomyNode['id'] == video_country['id']:
+                                    countries.append(taxonomyNode['attributes']['name'])
+                        # Sport example Tennis
+                        if video['relationships'].get('txSports'):
+                            if taxonomyNode['id'] == video['relationships']['txSports']['data'][0]['id']:
+                                sport = taxonomyNode['attributes']['name']
+                        # Olympics sport
+                        elif video['relationships'].get('txOlympicssport'):
+                            if taxonomyNode['id'] == video['relationships']['txOlympicssport']['data'][0]['id']:
+                                sport = taxonomyNode['attributes']['name']
+                        else:
+                            sport = None
 
                     # Content rating
                     mpaa = None
@@ -1158,32 +1173,11 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                             if contentRating['system'] == helper.d.contentRatingSystem:
                                 mpaa = contentRating['code']
 
-                    # Sport example Tennis
-                    if video['relationships'].get('txSports'):
-                        for taxonomyNode in taxonomyNodes:
-                            if taxonomyNode['id'] == video['relationships']['txSports']['data'][0]['id']:
-                                sport = taxonomyNode['attributes']['name']
-                    # Olympics sport
-                    elif video['relationships'].get('txOlympicssport'):
-                        for taxonomyNode in taxonomyNodes:
-                            if taxonomyNode['id'] == video['relationships']['txOlympicssport']['data'][0]['id']:
-                                sport = taxonomyNode['attributes']['name']
-                    else:
-                        sport = None
-
                     # Channel
                     primaryChannel = None
                     if video['relationships'].get('primaryChannel'):
                         primaryChannel = [x['attributes']['name'] for x in channels if
                                           x['id'] == video['relationships']['primaryChannel']['data']['id']][0]
-
-                    # Countries
-                    countries = []
-                    if video['relationships'].get('txCountry'):
-                        for taxonomyNode in taxonomyNodes:
-                            for video_country in video['relationships']['txCountry']['data']:
-                                if taxonomyNode['id'] == video_country['id']:
-                                    countries.append(taxonomyNode['attributes']['name'])
 
                     # Thumbnail
                     video_thumb_image = None
@@ -1270,7 +1264,7 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                             'season': video['attributes'].get('seasonNumber'),
                             'episode': video['attributes'].get('episodeNumber'),
                             'plot': plot,
-                            'genre': g,
+                            'genre': genres,
                             'studio': primaryChannel,
                             'duration': duration,
                             'aired': aired,
