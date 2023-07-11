@@ -1013,6 +1013,14 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                         primaryChannel = [x['attributes']['name'] for x in channels if
                                           x['id'] == shows[0]['relationships']['primaryChannel']['data']['id']][0]
 
+                    # Countries
+                    countries = []
+                    if shows[0]['relationships'].get('txCountry'):
+                        for taxonomyNode in taxonomyNodes:
+                            for show_country in shows[0]['relationships']['txCountry']['data']:
+                                if taxonomyNode['id'] == show_country['id']:
+                                    countries.append(taxonomyNode['attributes']['name'])
+
                     info = {
                         'mediatype': 'season',
                         'tvshowtitle': shows[0]['attributes'].get('name'),
@@ -1022,7 +1030,8 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                         'studio': primaryChannel,
                         'season': len(shows[0]['attributes'].get('seasonNumbers')),
                         'episode': shows[0]['attributes'].get('episodeCount'),
-                        'mpaa': mpaa
+                        'mpaa': mpaa,
+                        'country': countries
                     }
 
                     # Show watched sign if all episodes of season are watched
@@ -1088,6 +1097,14 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                         primaryChannel = [x['attributes']['name'] for x in channels if
                                           x['id'] == show['relationships']['primaryChannel']['data']['id']][0]
 
+                    # Countries
+                    countries = []
+                    if show['relationships'].get('txCountry'):
+                        for taxonomyNode in taxonomyNodes:
+                            for show_country in show['relationships']['txCountry']['data']:
+                                if taxonomyNode['id'] == show_country['id']:
+                                    countries.append(taxonomyNode['attributes']['name'])
+
                     info = {
                         'mediatype': 'tvshow',
                         'plotoutline': show['attributes'].get('description'),
@@ -1097,7 +1114,8 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                         'season': len(show['attributes'].get('seasonNumbers')),
                         'episode': show['attributes'].get('episodeCount'),
                         'mpaa': mpaa,
-                        'premiered': show['attributes'].get('premiereDate')
+                        'premiered': show['attributes'].get('premiereDate'),
+                        'country': countries
                     }
 
                     # Add or delete favorite context menu
@@ -1158,6 +1176,14 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                     if video['relationships'].get('primaryChannel'):
                         primaryChannel = [x['attributes']['name'] for x in channels if
                                           x['id'] == video['relationships']['primaryChannel']['data']['id']][0]
+
+                    # Countries
+                    countries = []
+                    if video['relationships'].get('txCountry'):
+                        for taxonomyNode in taxonomyNodes:
+                            for video_country in video['relationships']['txCountry']['data']:
+                                if taxonomyNode['id'] == video_country['id']:
+                                    countries.append(taxonomyNode['attributes']['name'])
 
                     # Thumbnail
                     video_thumb_image = None
@@ -1233,7 +1259,8 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                             'plot': plot,
                             'studio': primaryChannel,
                             'duration': duration,
-                            'aired': aired
+                            'aired': aired,
+                            'country': countries
                         }
                     else:
                         episode_info = {
@@ -1247,7 +1274,8 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                             'studio': primaryChannel,
                             'duration': duration,
                             'aired': aired,
-                            'mpaa': mpaa
+                            'mpaa': mpaa,
+                            'country': countries
                         }
 
                     # Watched status from discovery+
