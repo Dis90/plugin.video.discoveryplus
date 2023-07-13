@@ -328,8 +328,7 @@ class Dplay(object):
             'include': 'default'
         }
 
-        # discoveryplus.com (go=US and Canada) and discoveryplus.in
-        if self.realm in ['go', 'dplusindia']:
+        if self.realm == 'dplusindia':
             params['decorators'] = 'viewingHistory,isFavorite'
         else:
             params['decorators'] = 'viewingHistory,isFavorite,playbackAllowed'
@@ -362,8 +361,7 @@ class Dplay(object):
             'page[items.size]': itemsSize if itemsSize else self.numResults
         }
 
-        # discoveryplus.com (go=US and Canada) and discoveryplus.in
-        if self.realm in ['go', 'dplusindia']:
+        if self.realm == 'dplusindia':
             params['decorators'] = 'viewingHistory,isFavorite'
         else:
             params['decorators'] = 'viewingHistory,isFavorite,playbackAllowed'
