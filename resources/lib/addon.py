@@ -723,11 +723,13 @@ def list_favorite_search_shows_in(search_query=None):
         if show['attributes']['isFavorite']:
             menu = []
             menu.append((helper.language(30010),
-                         'RunPlugin(plugin://' + helper.addon_name + '/delete_favorite/' + str(show['id']) + ')',))
+                         'RunPlugin(plugin://{addon_id}/delete_favorite/{show_id})'.format(addon_id=helper.addon_name,
+                                                                                           show_id=str(show['id'])),))
         else:
             menu = []
             menu.append((helper.language(30009),
-                         'RunPlugin(plugin://' + helper.addon_name + '/add_favorite/' + str(show['id']) + ')',))
+                         'RunPlugin(plugin://{addon_id}/add_favorite/{show_id})'.format(addon_id=helper.addon_name,
+                                                                                        show_id=str(show['id'])),))
 
         show_art = helper.d.parse_artwork(show['relationships'].get('images'), images)
 
@@ -860,7 +862,8 @@ def list_favorite_watchlist_videos_in():
         menu = []
         if helper.get_setting('sync_playback'):
             if video['attributes']['viewingHistory']['viewed']:
-                episode_info['lastplayed'] = str(helper.d.parse_datetime(video['attributes']['viewingHistory']['lastStartedTimestamp']))
+                episode_info['lastplayed'] = str(
+                    helper.d.parse_datetime(video['attributes']['viewingHistory']['lastStartedTimestamp']))
                 if 'completed' in video['attributes']['viewingHistory']:
                     if video['attributes']['viewingHistory']['completed']:  # Watched video
                         episode_info['playcount'] = '1'
@@ -868,20 +871,21 @@ def list_favorite_watchlist_videos_in():
                         total = duration
                         # Mark as unwatched
                         menu.append((helper.language(30042),
-                                     'RunPlugin(plugin://' + helper.addon_name + '/mark_video_watched_unwatched/' + str(
-                                         video['id']) + '?position=0' + ')',))
+                                     'RunPlugin(plugin://{addon_id}/mark_video_watched_unwatched/{video_id}?position=0)'.format(
+                                         addon_id=helper.addon_name, video_id=str(video['id'])),))
                     else:  # Partly watched video
                         episode_info['playcount'] = '0'
                         resume = video['attributes']['viewingHistory']['position'] / 1000.0
                         total = duration
                         # Reset resume position
                         menu.append((helper.language(30044),
-                                     'RunPlugin(plugin://' + helper.addon_name + '/mark_video_watched_unwatched/' + str(
-                                         video['id']) + '?position=0' + ')',))
+                                     'RunPlugin(plugin://{addon_id}/mark_video_watched_unwatched/{video_id}?position=0)'.format(
+                                         addon_id=helper.addon_name, video_id=str(video['id'])),))
                         # Mark as watched
                         menu.append((helper.language(30043),
-                                     'RunPlugin(plugin://' + helper.addon_name + '/mark_video_watched_unwatched/' + str(
-                                         video['id']) + '?position=' + str(video['attributes']['videoDuration']) + ')',))
+                                     'RunPlugin(plugin://{addon_id}/mark_video_watched_unwatched/{video_id}?position={duration})'.format(
+                                         addon_id=helper.addon_name, video_id=str(video['id']),
+                                         duration=str(video['attributes']['videoDuration'])),))
                 else:  # Sometimes 'viewed' is True but 'completed' is missing. Example some Live sports
                     episode_info['playcount'] = '0'
                     resume = 0
@@ -894,8 +898,9 @@ def list_favorite_watchlist_videos_in():
                 if video['attributes'].get('videoDuration'):
                     # Mark as watched
                     menu.append((helper.language(30043),
-                                 'RunPlugin(plugin://' + helper.addon_name + '/mark_video_watched_unwatched/' + str(
-                                     video['id']) + '?position=' + str(video['attributes']['videoDuration']) + ')',))
+                                 'RunPlugin(plugin://{addon_id}/mark_video_watched_unwatched/{video_id}?position={duration})'.format(
+                                     addon_id=helper.addon_name, video_id=str(video['id']),
+                                     duration=str(video['attributes']['videoDuration'])),))
         else:  # Kodis resume data used
             resume = None
             total = None
@@ -976,21 +981,20 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
 
                     # Context menu
                     menu = []
-
                     if helper.get_setting('sync_playback'):
                         # Mark as watched
                         menu.append((helper.language(30043),
-                                 'RunPlugin(plugin://' + helper.addon_name + '/mark_season_watched_unwatched/' +
-                                 str(page_data['data']['id']) +
-                                     '?mandatoryParams=' + page_data['data']['attributes']['component'].get('mandatoryParams') +
-                                 '&parameter=' + option['parameter']  + '&watched=True' + ')',))
+                                     'RunPlugin(plugin://{addon_id}/mark_season_watched_unwatched/{page_id}?mandatoryParams={mandatoryParams}&parameter={parameter}&watched=True)'.format(
+                                         addon_id=helper.addon_name, page_id=str(page_data['data']['id']),
+                                         mandatoryParams=page_data['data']['attributes']['component'].get('mandatoryParams'),
+                                         parameter=option['parameter']),))
 
                         # Mark as unwatched
                         menu.append((helper.language(30042),
-                                 'RunPlugin(plugin://' + helper.addon_name + '/mark_season_watched_unwatched/' +
-                                 str(page_data['data']['id']) +
-                                     '?mandatoryParams=' + page_data['data']['attributes']['component'].get('mandatoryParams') +
-                                 '&parameter=' + option['parameter']  + '&watched=False' + ')',))
+                                 'RunPlugin(plugin://{addon_id}/mark_season_watched_unwatched/{page_id}?mandatoryParams={mandatoryParams}&parameter={parameter}&watched=False)'.format(
+                                     addon_id=helper.addon_name, page_id=str(page_data['data']['id']),
+                                     mandatoryParams=page_data['data']['attributes']['component'].get('mandatoryParams'),
+                                     parameter=option['parameter']),))
 
                     # taxonomyNodes (genres, countries)
                     genres = []
@@ -1120,11 +1124,15 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                     if show['attributes']['isFavorite']:
                         menu = []
                         menu.append((helper.language(30010),
-                                     'RunPlugin(plugin://' + helper.addon_name + '/delete_favorite/' + str(show['id']) + ')',))
+                                     'RunPlugin(plugin://{addon_id}/delete_favorite/{show_id})'.format(
+                                         addon_id=helper.addon_name,
+                                         show_id=str(show['id'])),))
                     else:
                         menu = []
                         menu.append((helper.language(30009),
-                                     'RunPlugin(plugin://' + helper.addon_name + '/add_favorite/' + str(show['id']) + ')',))
+                                     'RunPlugin(plugin://{addon_id}/add_favorite/{show_id})'.format(
+                                         addon_id=helper.addon_name,
+                                         show_id=str(show['id'])),))
 
                     show_art = helper.d.parse_artwork(show['relationships'].get('images'), images)
                     plugin_url = plugin.url_for(list_page, next_page_path)
@@ -1284,21 +1292,21 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                                     total = duration
                                     # Mark as unwatched
                                     menu.append((helper.language(30042),
-                                                 'RunPlugin(plugin://' + helper.addon_name +
-                                                 '/mark_video_watched_unwatched/' + str(video['id']) + '?position=0' + ')',))
+                                                 'RunPlugin(plugin://{addon_id}/mark_video_watched_unwatched/{video_id}?position=0)'.format(
+                                                     addon_id=helper.addon_name, video_id=str(video['id'])),))
                                 else:  # Partly watched video
                                     episode_info['playcount'] = '0'
                                     resume = video['attributes']['viewingHistory']['position'] / 1000.0
                                     total = duration
                                     # Reset resume position
                                     menu.append((helper.language(30044),
-                                                 'RunPlugin(plugin://' + helper.addon_name +
-                                                 '/mark_video_watched_unwatched/' + str(video['id']) + '?position=0' + ')',))
+                                                 'RunPlugin(plugin://{addon_id}/mark_video_watched_unwatched/{video_id}?position=0)'.format(
+                                                     addon_id=helper.addon_name, video_id=str(video['id'])),))
                                     # Mark as watched
                                     menu.append((helper.language(30043),
-                                                 'RunPlugin(plugin://' + helper.addon_name +
-                                                 '/mark_video_watched_unwatched/' + str(video['id']) +
-                                                 '?position=' + str(video['attributes']['videoDuration']) + ')',))
+                                                 'RunPlugin(plugin://{addon_id}/mark_video_watched_unwatched/{video_id}?position={duration})'.format(
+                                                     addon_id=helper.addon_name, video_id=str(video['id']),
+                                                     duration=str(video['attributes']['videoDuration'])),))
                             else:  # Sometimes 'viewed' is True but 'completed' is missing. Example some Live sports
                                 episode_info['playcount'] = '0'
                                 resume = 0
@@ -1311,9 +1319,9 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                             if video['attributes'].get('videoDuration'):
                                 # Mark as watched
                                 menu.append((helper.language(30043),
-                                             'RunPlugin(plugin://' + helper.addon_name +
-                                             '/mark_video_watched_unwatched/' + str(video['id']) +
-                                             '?position=' + str(video['attributes']['videoDuration']) + ')',))
+                                             'RunPlugin(plugin://{addon_id}/mark_video_watched_unwatched/{video_id}?position={duration})'.format(
+                                                 addon_id=helper.addon_name, video_id=str(video['id']),
+                                                 duration=str(video['attributes']['videoDuration'])),))
                     else:  # Kodis resume data used
                         resume = None
                         total = None
