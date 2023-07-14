@@ -25,7 +25,11 @@ msgctxt "#30002"
 msgid "Playable "
 msgstr "Afspeelbaar "
 
-#empty strings from id 30003 to 30005
+msgctxt "#30003"
+msgid "No search query provided."
+msgstr ""
+
+#empty strings from id 30004 to 30005
 
 msgctxt "#30006"
 msgid "Error"

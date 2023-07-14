@@ -1539,7 +1539,7 @@ def search():
     else:
         helper.log('No search query provided.')
         helper.eod()
-        helper.dialog('ok', helper.language(30006), 'No search query provided.')
+        helper.dialog('ok', helper.language(30006), helper.language(30003))
         import xbmc
         xbmc.executebuiltin('Container.Update({0},replace)'.format(plugin.url_for(list_menu)))
 
