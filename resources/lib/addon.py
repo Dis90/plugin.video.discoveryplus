@@ -69,10 +69,6 @@ def list_menu():
                     next_page_path = [x['attributes']['url'] for x in routes if
                                       x['id'] == link['relationships']['linkedContentRoutes']['data'][0]['id']][0]
 
-                    link_info = {
-                        'plot': link['attributes'].get('description')
-                    }
-
                     thumb_image = None
                     if link['relationships'].get('images'):
                         thumb_image = [x['attributes']['src'] for x in images if
@@ -84,11 +80,10 @@ def list_menu():
 
                     # Replace search button url
                     if link['attributes']['name'].startswith('search'):
-                        helper.add_item(link['attributes']['title'], url=plugin.url_for(search),
-                                        info=link_info, art=link_art)
+                        helper.add_item(link['attributes']['title'], url=plugin.url_for(search), art=link_art)
                     else:
                         helper.add_item(link['attributes']['title'], url=plugin.url_for(list_page, next_page_path),
-                                        info=link_info, art=link_art)
+                                        art=link_art)
 
             # discovery+ India uses collections after collectionItems
             if collectionItem['relationships'].get('collection'):
@@ -109,10 +104,6 @@ def list_menu():
                             next_page_path = [x['attributes']['url'] for x in routes if
                                               x['id'] == link['relationships']['linkedContentRoutes']['data'][0]['id']][0]
 
-                            link_info = {
-                                'plot': link['attributes'].get('description')
-                            }
-
                             thumb_image = None
                             if link['relationships'].get('images'):
                                 thumb_image = [x['attributes']['src'] for x in images if
@@ -123,8 +114,7 @@ def list_menu():
                             }
                             # Have to use collection title instead link title because some links doesn't have title
                             helper.add_item(collection['attributes']['title'],
-                                            url=plugin.url_for(list_page, next_page_path),
-                                            info=link_info, art=link_art)
+                                            url=plugin.url_for(list_page, next_page_path), art=link_art)
 
         # discoveryplus.in
         if helper.d.realm == 'dplusindia':
