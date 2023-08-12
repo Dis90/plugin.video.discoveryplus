@@ -1107,7 +1107,8 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                         'episode': show['attributes'].get('episodeCount'),
                         'mpaa': mpaa,
                         'premiered': show['attributes'].get('premiereDate'),
-                        'country': countries
+                        'country': countries,
+                        'title': show['attributes']['name'].encode('utf-8')
                     }
 
                     # Add or delete favorite context menu
