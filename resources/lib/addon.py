@@ -1143,6 +1143,7 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                     # taxonomyNodes (genres, countries, sport)
                     genres = []
                     countries = []
+                    sport = None
                     for taxonomyNode in taxonomyNodes:
                         # Genres
                         if video['relationships'].get('txGenres'):
@@ -1162,8 +1163,7 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                         elif video['relationships'].get('txOlympicssport'):
                             if taxonomyNode['id'] == video['relationships']['txOlympicssport']['data'][0]['id']:
                                 sport = taxonomyNode['attributes']['name']
-                        else:
-                            sport = None
+                            
 
                     # Content rating
                     mpaa = None
