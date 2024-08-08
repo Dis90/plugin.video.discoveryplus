@@ -1487,21 +1487,23 @@ def list_collection(collection_id, page=1, mandatoryParams=None, parameter=None)
                 if collectionItem['relationships'].get('taxonomyNode'):
                     taxonomyNode = [x for x in taxonomyNodes if x['id'] == collectionItem['relationships']['taxonomyNode']['data']['id']][0]
 
-                    # Find page path from routes
-                    next_page_path = [x['attributes']['url'] for x in routes if
-                                      x['id'] == taxonomyNode['relationships']['routes']['data'][0]['id']][0]
+                    # Sometimes routes are missing
+                    if taxonomyNode['relationships'].get('routes'):
+                        # Find page path from routes
+                        next_page_path = [x['attributes']['url'] for x in routes if
+                                          x['id'] == taxonomyNode['relationships']['routes']['data'][0]['id']][0]
 
-                    art = helper.d.parse_artwork(taxonomyNode['relationships'].get('images'), images, type='category')
+                        art = helper.d.parse_artwork(taxonomyNode['relationships'].get('images'), images, type='category')
 
-                    info = {
-                        'plot': taxonomyNode['attributes'].get('description')
-                    }
+                        info = {
+                            'plot': taxonomyNode['attributes'].get('description')
+                        }
 
-                    plugin_url = plugin.url_for(list_page, next_page_path)
-                    sort_method = 'unsorted'
-                    content_type = 'tvshows'
+                        plugin_url = plugin.url_for(list_page, next_page_path)
+                        sort_method = 'unsorted'
+                        content_type = 'tvshows'
 
-                    helper.add_item(taxonomyNode['attributes']['name'], url=plugin_url, info=info, art=art)
+                        helper.add_item(taxonomyNode['attributes']['name'], url=plugin_url, info=info, art=art)
 
             try:
                 if page_data['data']['meta']['itemsCurrentPage'] != page_data['data']['meta']['itemsTotalPages']:
